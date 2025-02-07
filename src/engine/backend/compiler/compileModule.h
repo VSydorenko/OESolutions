@@ -23,10 +23,17 @@ protected:
 	CMetaObjectModule* m_moduleObject;
 };
 
-class BACKEND_API CCompileGlobalModule : public CCompileModule {
+class BACKEND_API CCompileCommonModule : public CCompileModule {
+public:
+	CCompileCommonModule(CMetaObjectModule* moduleObject) :
+		CCompileModule(moduleObject, false) {
+	}
+};
+
+class BACKEND_API CCompileGlobalModule : public CCompileCommonModule {
 public:
 	CCompileGlobalModule(CMetaObjectModule* moduleObject) :
-		CCompileModule(moduleObject, false) {
+		CCompileCommonModule(moduleObject) {
 	}
 };
 

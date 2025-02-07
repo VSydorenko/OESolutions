@@ -11,7 +11,7 @@
 wxIMPLEMENT_DYNAMIC_CLASS(IModuleManager::CModuleUnit, CValue);
 
 IModuleManager::CModuleUnit::CModuleUnit(IModuleManager *moduleManager, CMetaObjectModule *moduleObject, bool managerModule) :
-	CValue(eValueTypes::TYPE_VALUE, true), IModuleInfo(new CCompileModule(moduleObject, true)),
+	CValue(eValueTypes::TYPE_VALUE, true), IModuleInfo(new CCompileCommonModule(moduleObject)),
 	m_methodHelper(new CMethodHelper()),
 	m_moduleManager(moduleManager),
 	m_moduleObject(moduleObject)
