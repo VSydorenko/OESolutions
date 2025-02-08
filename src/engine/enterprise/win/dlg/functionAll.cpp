@@ -19,7 +19,7 @@ CDialogFunctionAll::CDialogFunctionAll(wxWindow* parent, wxWindowID id, const wx
 	this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
 	wxBoxSizer* bSizer = new wxBoxSizer(wxVERTICAL);
-	m_treeCtrlElements = new wxTreeCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_SINGLE | wxTR_HIDE_ROOT);
+	m_treeCtrlElements = new wxTreeCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_SINGLE | wxTR_HIDE_ROOT | wxTR_TWIST_BUTTONS);
 	m_treeCtrlElements->SetDoubleBuffered(true);
 	bSizer->Add(m_treeCtrlElements, 1, wxALL | wxEXPAND, 5);
 

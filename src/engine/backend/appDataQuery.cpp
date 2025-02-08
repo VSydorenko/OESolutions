@@ -117,20 +117,22 @@ bool CApplicationData::AuthenticationUser(const wxString& userName, const wxStri
 void CApplicationData::RefreshActiveUser()
 {
 	const wxDateTime& currentTime = wxDateTime::Now();
-	// fisrt update current session
-	IPreparedStatement* preparedStatement = db_query->PrepareStatement("UPDATE %s SET lastActive = ? WHERE session = ?", session_table);
-	if (preparedStatement == nullptr) return;
-	preparedStatement->SetParamDate(1, currentTime);
-	preparedStatement->SetParamString(2, m_sessionGuid.str());
-	const int changedRows = preparedStatement->RunQuery();
-	db_query->CloseStatement(preparedStatement);
 	if (sm_sessionLocker.TryEnter()) {
-		IPreparedStatement* preparedStatement = db_query->PrepareStatement("DELETE FROM %s WHERE lastActive < ?", session_table);
+		// fisrt update current session
+		IPreparedStatement* preparedStatement = db_query->PrepareStatement("UPDATE %s SET lastActive = ? WHERE session = ?", session_table);
 		if (preparedStatement == nullptr) return;
-		preparedStatement->SetParamDate(1, currentTime.Subtract(wxTimeSpan(0, 0, timeInterval)));
-		preparedStatement->RunQuery();
+		preparedStatement->SetParamDate(1, currentTime);
+		preparedStatement->SetParamString(2, m_sessionGuid.str());
+		const int changedRows = preparedStatement->RunQuery();
 		db_query->CloseStatement(preparedStatement);
-		sm_sessionLocker.Leave();
+		{
+			IPreparedStatement* preparedStatement = db_query->PrepareStatement("DELETE FROM %s WHERE lastActive < ?", session_table);
+			if (preparedStatement == nullptr) return;
+			preparedStatement->SetParamDate(1, currentTime.Subtract(wxTimeSpan(0, 0, timeInterval)));
+			preparedStatement->RunQuery();
+			db_query->CloseStatement(preparedStatement);
+			sm_sessionLocker.Leave();
+		}
 	}
 }
 
@@ -197,9 +199,9 @@ bool CApplicationData::StartSession(const wxString& userName, const wxString& us
 	if (hasError)  return false;
 
 	if (!AuthenticationAndSetUser(userName, userPassword)) {
-		if (backend_mainFrame == nullptr) 
+		if (backend_mainFrame == nullptr)
 			return false;
-		if (!backend_mainFrame->AuthenticationUser(userName, userPassword)) 
+		if (!backend_mainFrame->AuthenticationUser(userName, userPassword))
 			return false;
 	}
 

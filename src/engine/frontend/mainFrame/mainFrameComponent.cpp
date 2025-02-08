@@ -58,7 +58,7 @@ bool CDocMDIFrame::AuthenticationUser(const wxString& userName, const wxString& 
 	const int result = autorization->ShowModal();
 	autorization->Destroy();
 	if (result == wxID_CANCEL) return false;
-	return appData->AuthenticationAndSetUser(autorization->GetLogin(), autorization->GetPassword());
+	return true; //appData->AuthenticationAndSetUser(autorization->GetLogin(), autorization->GetPassword());
 }
 
 IMetaData* CDocMDIFrame::FindMetadataByPath(const wxString& strFileName) const

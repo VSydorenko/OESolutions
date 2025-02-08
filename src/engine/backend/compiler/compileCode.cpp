@@ -586,6 +586,72 @@ void CCompileCode::RemoveVariable(const wxString& strVarName)
 }
 
 /**
+ * Recompile
+ * Назначение:
+ * Трасляция и компиляция исходного кода в байт-код (объектный код)
+ * Возвращаемое значение:
+ * true,false
+ */
+
+bool CCompileCode::Recompile()
+{
+	//clear functions & variables
+	Reset();
+
+	//контекст самого модуля
+	m_pContext = GetContext();
+
+	//prepare lexem 
+	if (!PrepareLexem()) {
+		return false;
+	}
+
+	//подготовить контекстные переменные
+	PrepareModuleData();
+
+	//Компиляция 
+	if (CompileModule()) {
+		m_changeCode = false;
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Compile
+ * Назначение:
+ * Трасляция и компиляция исходного кода в байт-код (объектный код)
+ * Возвращаемое значение:
+ * true,false
+ */
+
+bool CCompileCode::Compile()
+{
+	//clear functions & variables
+	Reset();
+
+	//контекст самого модуля
+	m_pContext = GetContext();
+
+	//prepare lexem 
+	if (!PrepareLexem()) {
+		return false;
+	}
+
+	//подготовить контекстные переменные
+	PrepareModuleData();
+
+	//Компиляция 
+	if (CompileModule()) {
+		m_changeCode = false;
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * Compile
  * Назначение:
  * Трасляция и компиляция исходного кода в байт-код (объектный код)

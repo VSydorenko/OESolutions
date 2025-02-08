@@ -36,6 +36,7 @@ protected:
 private:
 	IValueModel* m_tableModel;
 	IValueModel::IValueModelReturnLine* m_tableCurrentLine;
+	bool m_dataViewUpdated, m_dataViewSizeChanged;
 	wxSize m_dataViewSize;
 public:
 
@@ -163,6 +164,7 @@ protected:
 	void OnContextMenu(wxDataViewEvent& event);
 
 	void OnSize(wxSizeEvent& event);
+	void OnIdle(wxIdleEvent& event);
 
 	// the methods to be called from the window event handlers
 	void HandleOnScroll(wxScrollWinEvent& event);

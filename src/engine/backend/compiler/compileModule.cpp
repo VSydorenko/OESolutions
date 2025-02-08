@@ -22,16 +22,6 @@ CCompileModule::CCompileModule(CMetaObjectModule* moduleObject, bool onlyFunctio
 	m_cContext.m_nFindLocalInParent = 0;
 }
 
-CMetaObjectModule* CCompileModule::GetModuleObject() const
-{
-	return m_moduleObject;
-}
-
-CCompileModule* CCompileModule::GetParent() const
-{
-	return dynamic_cast<CCompileModule*>(m_parent);
-}
-
 /**
  * Compile
  * Ќазначение:
@@ -58,7 +48,7 @@ bool CCompileModule::Compile()
 			Load(m_moduleObject->GetModuleText());
 
 			return m_parent != nullptr ?
-				((CCompileModule*)m_parent)->Compile() : true;
+				m_parent->Compile() : true;
 		}
 	}
 
@@ -68,26 +58,20 @@ bool CCompileModule::Compile()
 	//рекурсивно компилируем модули на случай каких-либо изменений 
 	if (m_parent != nullptr) {
 
-		bool callRecompile = false;
-		std::stack<CCompileModule*> compileModules;
-		CCompileModule* parentModule = dynamic_cast<CCompileModule*>(m_parent);
+		std::stack<CCompileModule*> compileModule; bool callRecompile = false;
+
+		CCompileModule* parentModule = GetParent();
 
 		while (parentModule != nullptr) {
-			if (parentModule->m_changeCode) {
-				callRecompile = true;
-			}
-			if (callRecompile) {
-				compileModules.push(parentModule);
-			}
-			parentModule = dynamic_cast<CCompileModule*>(parentModule->GetParent());
+			if (parentModule->m_changeCode) callRecompile = true;
+			if (callRecompile) compileModule.push(parentModule);
+			parentModule = parentModule->GetParent();
 		}
 
-		while (!compileModules.empty()) {
-			CCompileModule* compileCode = compileModules.top();
-			if (!compileCode->Recompile()) {
-				return false;
-			}
-			compileModules.pop();
+		while (!compileModule.empty()) {
+			CCompileModule* compileCode = compileModule.top();
+			if (!compileCode->Recompile()) return false;
+			compileModule.pop();
 		}
 	}
 

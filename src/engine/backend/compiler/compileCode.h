@@ -54,12 +54,15 @@ public:
 
 	void RemoveVariable(const wxString& strName);
 
-	virtual void SetParent(CCompileCode* parent); //Установка родительского модуля и запрещенного макс. прародителя
+	void SetParent(CCompileCode* parent); //Установка родительского модуля и запрещенного макс. прародителя
 	virtual CCompileCode* GetParent() const {
 		return m_parent;
 	}
 
-	bool Compile(const wxString& strCode); //Компиляция модуля из мета-объекта
+	virtual bool Recompile(); // Рекомпиляция модуля из мета-объекта
+
+	virtual bool Compile(); // Компиляция модуля из мета-объекта
+	virtual bool Compile(const wxString& strCode); //Компиляция модуля
 
 	//атрибуты:
 	bool m_onlyFunction; // true - only functions and export functions 

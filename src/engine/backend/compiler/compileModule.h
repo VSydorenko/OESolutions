@@ -9,15 +9,16 @@ class BACKEND_API CMetaObjectModule;
 //////////////////////////////////////////////////////////////////////
 
 class BACKEND_API CCompileModule : public CCompileCode {
-	bool Recompile(); //ѕерекомпил¤ци¤ текущего модул¤ из мета-объекта
-public: bool Compile(); //ѕерекомпил¤ци¤ текущего модул¤ из мета-объекта
+public:
+	virtual bool Recompile(); //ѕерекомпил¤ци¤ текущего модул¤ из мета-объекта
+	virtual bool Compile(); //ѕерекомпил¤ци¤ текущего модул¤ из мета-объекта
 public:
 
 	CCompileModule(CMetaObjectModule* moduleObject, bool onlyFunction = false);
 	virtual ~CCompileModule() {}
 
-	virtual CMetaObjectModule* GetModuleObject() const;
-	virtual CCompileModule* GetParent() const;
+	virtual CCompileModule* GetParent() const { return dynamic_cast<CCompileModule*>(m_parent); }
+	virtual CMetaObjectModule* GetModuleObject() const { return m_moduleObject; }
 
 protected:
 	CMetaObjectModule* m_moduleObject;
@@ -26,7 +27,7 @@ protected:
 class BACKEND_API CCompileCommonModule : public CCompileModule {
 public:
 	CCompileCommonModule(CMetaObjectModule* moduleObject) :
-		CCompileModule(moduleObject, false) {
+		CCompileModule(moduleObject, true) {
 	}
 };
 

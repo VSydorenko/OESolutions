@@ -224,7 +224,7 @@ bool CValueTableBox::FilterSource(const CSourceExplorer& src, const meta_identif
 //***********************************************************************************
 
 CValueTableBox::CValueTableBox() : IValueWindow(), ITypeControlAttribute(g_valueTableCLSID),
-m_tableModel(nullptr), m_tableCurrentLine(nullptr)
+m_tableModel(nullptr), m_tableCurrentLine(nullptr), m_dataViewUpdated(false), m_dataViewSizeChanged(false)
 {
 	//set default params
 	*m_propertyMinSize = wxSize(300, 100);
@@ -296,6 +296,7 @@ wxObject* CValueTableBox::Create(wxWindow* wxparent, IVisualHost* visualHost)
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
 		tableCtrl->Bind(wxEVT_SIZE, &CValueTableBox::OnSize, this);
+		tableCtrl->Bind(wxEVT_IDLE, &CValueTableBox::OnIdle, this);
 
 		tableCtrl->Bind(wxEVT_MENU, &CValueTableBox::OnCommandMenu, this);
 		tableCtrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, &CValueTableBox::OnContextMenu, this);
@@ -393,6 +394,9 @@ void CValueTableBox::OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVisualHo
 				m_tableCurrentLine->GetLineItem()
 			);
 		}
+
+		m_dataViewUpdated = true;
+		m_dataViewSize = tableCtrl->GetSize();
 	}
 }
 

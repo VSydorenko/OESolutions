@@ -56,18 +56,14 @@ CDialogAuthentication::~CDialogAuthentication()
 	m_buttonCancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CDialogAuthentication::OnCancelButtonClick), nullptr, this);
 }
 
-void CDialogAuthentication::OnOKButtonClick(wxCommandEvent &event)
+void CDialogAuthentication::OnOKButtonClick(wxCommandEvent& event)
 {
-	//if (!appData->AuthenticationUser(m_comboBoxLogin->GetValue(), m_textCtrlPassword->GetValue())) {
-	//	wxMessageBox(_("Wrong user or password entered!"));
-	//}
-	//else {
-	//	event.Skip();
-	//}
-	event.Skip();
+	bool succes = appData->AuthenticationAndSetUser(m_comboBoxLogin->GetValue(), m_textCtrlPassword->GetValue());
+	if (succes) event.Skip();
+	else wxMessageBox(_("Wrong user or password entered!"));
 }
 
-void CDialogAuthentication::OnCancelButtonClick(wxCommandEvent &event)
+void CDialogAuthentication::OnCancelButtonClick(wxCommandEvent& event)
 {
 	event.Skip();
 }
