@@ -62,7 +62,7 @@ void ITabularSectionDataObject::AddValue(unsigned int before)
 
 void ITabularSectionDataObject::CopyValue()
 {
-	wxDataViewItem currentItem = GetSelection();
+	const wxDataViewItem& currentItem = GetSelection();
 	if (!currentItem.IsOk())
 		return;
 	wxValueTableRow* node = GetViewData<wxValueTableRow>(currentItem);
@@ -88,12 +88,26 @@ void ITabularSectionDataObject::CopyValue()
 
 void ITabularSectionDataObject::EditValue()
 {
-	IValueTable::RowValueStartEdit(GetSelection());
+	const wxDataViewItem& currentItem = GetSelection();
+	if (!currentItem.IsOk())
+		return;
+	if (m_srcNotifier != nullptr) {
+		
+		wxDataViewColumn* currentColunn = m_srcNotifier->GetCurrentColumn();
+		wxASSERT(currentColunn);
+		if (m_metaTable->IsNumberLine(currentColunn->GetModelColumn()))
+			return;
+	
+		IValueTable::RowValueStartEdit(currentItem, currentColunn->GetModelColumn());
+	}
+	else {
+		IValueTable::RowValueStartEdit(currentItem);
+	}
 }
 
 void ITabularSectionDataObject::DeleteValue()
 {
-	wxDataViewItem currentItem = GetSelection();
+	const wxDataViewItem& currentItem = GetSelection();
 	if (!currentItem.IsOk())
 		return;
 	wxValueTableRow* node = GetViewData<wxValueTableRow>(currentItem);

@@ -13,7 +13,7 @@ namespace stringUtils
 #if wxUSE_UNICODE
 		return std::to_wstring(num);
 #else 
-		return std::to_wtring(num);
+		return std::to_string(num);
 #endif
 	}
 
@@ -21,7 +21,7 @@ namespace stringUtils
 #if wxUSE_UNICODE
 		return std::to_wstring(num);
 #else 
-		return std::to_wtring(num);
+		return std::to_string(num);
 #endif
 	}
 

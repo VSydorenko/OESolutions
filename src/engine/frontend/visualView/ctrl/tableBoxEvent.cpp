@@ -139,13 +139,11 @@ void CValueTableBox::OnItemStartEditing(wxDataViewEvent& event)
 		wxDataViewColumn* currentColumn = dataViewCtrl->GetCurrentColumn();
 		if (currentColumn != nullptr) {
 			wxDataViewRenderer* renderer = currentColumn->GetRenderer();
-			if (renderer != nullptr)
-				renderer->FinishEditing();
+			if (renderer != nullptr) renderer->FinishEditing();
 		}
 	}
 	if (!m_tableModel->EditableLine(item, event.GetColumn())) {
-		if (m_tableModel != nullptr)
-			m_tableModel->EditValue();
+		if (m_tableModel != nullptr) m_tableModel->EditValue();
 		event.Veto(); /*!!!*/
 	}
 	else
