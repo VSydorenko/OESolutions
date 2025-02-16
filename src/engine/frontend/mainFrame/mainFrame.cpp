@@ -30,7 +30,7 @@ CDocMDIFrame* CDocMDIFrame::s_instance = nullptr;
 
 void CDocMDIFrame::InitFrame(CDocMDIFrame* frame)
 {
-	if (s_instance == nullptr && frame != nullptr) {		
+	if (s_instance == nullptr && frame != nullptr) {
 		s_instance = frame;
 		wxTheApp->SetTopWindow(s_instance);
 		s_instance->CreateGUI();
@@ -142,8 +142,8 @@ wxWindow* CDocMDIFrame::CreateChildFrame(CMetaView* view, const wxPoint& pos, co
 
 void CDocMDIFrame::RefreshFrame()
 {
-	for (auto doc : docManager->GetDocumentsVector()) {
-		doc->UpdateAllViews();
+	if (m_docManager != nullptr) {
+		for (auto& doc : m_docManager->GetDocumentsVector()) doc->UpdateAllViews();
 	}
 
 	Refresh();
