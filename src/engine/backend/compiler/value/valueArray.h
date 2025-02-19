@@ -3,7 +3,7 @@
 
 #include "value.h"
 
-//Поддержка массивов
+//Array support
 class BACKEND_API CValueArray : public CValue {
 	wxDECLARE_DYNAMIC_CLASS(CValueArray);
 private:
@@ -47,15 +47,15 @@ public:
 
 public:
 
-	//Атрибут -> Строковый ключ
-	//работа с массивом как с агрегатным объектом
+	//Attribute -> String key
+	//working with array as an aggregate object
 	static CMethodHelper m_methodHelper;
 
-	virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+	virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 		return &m_methodHelper;
 	}
-	virtual void PrepareNames() const;                         //этот метод автоматически вызывается для инициализации имен атрибутов и методов
-	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       //вызов метода
+	virtual void PrepareNames() const;                         // this method is automatically called to initialize attribute and method names.
+	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       //method call
 
 	//Расширенные методы
 	void Add(const CValue& varValue) {
@@ -93,7 +93,7 @@ public:
 	virtual bool SetAt(const CValue& varKeyValue, const CValue& varValue);
 	virtual bool GetAt(const CValue& varKeyValue, CValue& pvarValue);
 
-	//Работа с итераторами 
+	//Working with iterators
 	virtual bool HasIterator() const {
 		return true;
 	}

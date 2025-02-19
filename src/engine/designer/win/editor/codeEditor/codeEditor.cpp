@@ -74,7 +74,7 @@ CCodeEditor::CCodeEditor(CMetaDocument* document, wxWindow* parent, wxWindowID i
 	SetMouseDwellTime(200);
 
 	// Setup caret line
-	SetCaretLineVisible(true);
+	//SetCaretLineVisible(true);
 
 	// miscellaneous
 	SetLayoutCache(wxSTC_CACHE_PAGE);
@@ -301,7 +301,7 @@ void CCodeEditor::AppendText(const wxString& text)
 
 		SaveModule();
 
-		debugClient->PatchBreakpoints(moduleObject->GetDocPath(),
+		debugClient->PatchBreakpointCollection(moduleObject->GetDocPath(),
 			lastLine, wxStyledTextCtrl::GetLineCount() - lastLine - 1
 		);
 
@@ -340,7 +340,7 @@ void CCodeEditor::Replace(long from, long to, const wxString& text)
 		SaveModule();
 		if (moduleObject != nullptr) {
 			if (patchLine > (lineEnd - lineStart)) {
-				debugClient->PatchBreakpoints(moduleObject->GetDocPath(),
+				debugClient->PatchBreakpointCollection(moduleObject->GetDocPath(),
 					lineStart, patchLine
 				);
 			}
@@ -895,8 +895,7 @@ void CCodeEditor::OnTextChange(wxStyledTextEvent& event)
 				if (moduleManager->FindCompileModule(m_document->GetMetaObject(), pRefData)) {
 					CCompileCode* compileModule = pRefData->GetCompileModule();
 					wxASSERT(compileModule);
-					if (!compileModule->m_changeCode)
-						compileModule->m_changeCode = true;
+					if (!compileModule->m_changedCode) compileModule->m_changedCode = true;
 				}
 			}
 
@@ -929,13 +928,13 @@ void CCodeEditor::OnTextChange(wxStyledTextEvent& event)
 			}
 
 			if (patchLine != 0) {
-				debugClient->PatchBreakpoints(moduleObject->GetDocPath(), needChangePos ? currLine + 1 : currLine, patchLine);
+				debugClient->PatchBreakpointCollection(moduleObject->GetDocPath(), needChangePos ? currLine + 1 : currLine, patchLine);
 			}
 
-#ifndef _USE_OLD_TEXT_PARSER_IN_CODE_EDITOR 	
+#if _USE_OLD_TEXT_PARSER_IN_CODE_EDITOR == 0	
 			m_precompileModule->Load(codeText);
-			m_precompileModule->m_nCurLine = currLine > 0 ? currLine - 1 : 0;
-			m_precompileModule->m_nCurPos = wxString::FromUTF8(strBuffer.substr(0, startPos)).Length();
+			m_precompileModule->m_currentLine = currLine > 0 ? currLine - 1 : 0;
+			m_precompileModule->m_currentPos = wxString::FromUTF8(strBuffer.substr(0, startPos)).Length();
 			try {
 				m_precompileModule->PatchLexem(currLine, patchLine, length, modFlags);
 			}

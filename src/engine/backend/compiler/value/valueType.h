@@ -104,8 +104,8 @@ public:
 	typeDescription_t m_typeDescription;
 public:
 
-	//эти методы нужно переопределить в ваших агрегатных объектах:
-	virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+	// these methods need to be overridden in your aggregate objects:
+	virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames(); 
 		return m_methodHelper;
 	}

@@ -10,57 +10,58 @@ struct CVariable {
 	bool m_bExport;
 	bool m_bContext;
 	bool m_bTempVar;
-	unsigned int m_nNumber;
-	wxString m_strName;       //Имя переменной
-	wxString m_strType;       //тип значени
-	wxString m_strContextVar; //имя контекстной переменной
-	wxString m_strRealName;   //Имя переменной реальное
+	unsigned int m_numVariable;
+	wxString m_strName; // Variable name
+	wxString m_strType; // Value type
+	wxString m_strContextVar; // Context variable name
+	wxString m_strRealName; // Real variable name
 
 public:
 
-	CVariable() : m_bExport(false), m_bContext(false), m_bTempVar(false), m_nNumber(0) {};
-	CVariable(const wxString& sVariableName) : m_strName(sVariableName), m_bExport(false), m_bContext(false), m_bTempVar(false), m_nNumber(0) {};
+	CVariable() : m_bExport(false), m_bContext(false), m_bTempVar(false), m_numVariable(0) {};
+	CVariable(const wxString& sVariableName) : m_strName(sVariableName), m_bExport(false), m_bContext(false), m_bTempVar(false), m_numVariable(0) {};
 };
 
-struct CParamVariable
-{
+struct CParamVariable {
+
 	bool m_bByRef;
-	wxString m_strName;   //Имя переменной
-	wxString m_strType;   //тип значения
-	CParamUnit m_vData; //Значение по умолчанию
+	wxString m_strName; // Variable name
+	wxString m_strType; // Value type
+	CParamUnit m_valData; // Default value
+
 public:
 
 	CParamVariable() : m_bByRef(false) {
-		m_vData.m_nArray = -1;
-		m_vData.m_nIndex = -1;
+		m_valData.m_numArray = -1;
+		m_valData.m_numIndex = -1;
 	};
 };
 
-//определение функции
+//function definition
 struct CFunction {
 
 	bool m_bExport, m_bContext;
 
-	wxString m_strRealName; //Имя функции
-	wxString m_strName; //Имя функции в верхнем регистре
-	wxString m_strType;	 //тип (в англ. нотации), если это типизированная функция
+	wxString m_strRealName; //Function name
+	wxString m_strName; //Function name in uppercase
+	wxString m_strType; //type (in English notation), if it is a typed function
 
-	CCompileContext* m_pContext;//конекст компиляции
+	CCompileContext* m_compileContext;//compilation context
 
-	unsigned int m_lVarCount;//число локальных переменных
-	unsigned int m_nStart;//стартовая позиция в массиве байт-кодов
-	unsigned int m_nFinish;//конечная позиция в массиве байт-кодов
+	unsigned int m_lVarCount;// number of local variables
+	unsigned int m_nStart;// starting position in bytecode array
+	unsigned int m_nFinish;//final position in bytecode array
 
-	CParamUnit m_realRetValue;//для хранения переменной при реальном вызове
+	CParamUnit m_realRetValue;//for storing variable during real call
 
-	//для IntelliSense
-	unsigned int m_nNumberLine;	//номер строки исходного текста (для точек останова)
+	//for IntelliSense
+	unsigned int m_numLine; //source line number (for breakpoints)
 
-	wxString m_strShortDescription;//включает в себя всю строку после ключевого слова Функция(Процедура)
-	wxString m_strLongDescription;//включает в себя весь слитный (т.е.е буз пустых строк) блок комментарий до определения функции (процедуры)
-	wxString m_strContextVar; //имя конткстной переменной
+	wxString m_strShortDescription;//includes the entire line after the Function (Procedure) keyword
+	wxString m_strLongDescription;//includes the entire merged (i.e. without empty lines) comment block before the function (procedure) definition
+	wxString m_strContextVar; //name of the context variable
 
-	std::vector<CParamVariable> m_aParamList;
+	std::vector<CParamVariable> m_listParam;
 
 public:
 
@@ -69,84 +70,82 @@ public:
 };
 
 struct CLabel {
+	int		 m_numLine;
+	int		 m_numError;
 	wxString m_strName;
-	int		m_nLine;
-	int		m_nError;
 };
 
 struct CCompileContext {
 
 	CFunction* m_functionContext;
-	CCompileContext* m_parentContext; //родительский контекст
+	CCompileContext* m_parentContext; //parent context
 	CCompileCode* m_compileModule;
 
-	//ПЕРЕМЕННЫЕ
-	std::map <wxString, CVariable> m_cVariables;
+	//VARIABLES
+	std::map <wxString, CVariable> m_listVariable;
 
-	int m_nTempVar;//номер текущей временной переменной
-	int m_nFindLocalInParent;//признак поиска переменных в родителе (на один уровень), в остальных случаях в родителях ищутся только экспортные переменные)
+	int m_numTempVar;//current temporary variable number
+	int m_numFindLocalInParent;//flag for searching variables in the parent (one level up), in other cases only export variables are searched in parents)
 
-	//ФУНКЦИИ И ПРОЦЕДУРЫ
-	std::map<wxString, CFunction*>	m_cFunctions;//список встретившихся определений функций
+	//FUNCTIONS AND PROCEDURES
+	std::map<wxString, CFunction*> m_listFunction; //list of encountered function definitions
 
-	short m_nReturn;//режим обработки оператора RETURN : RETURN_NONE,RETURN_PROCEDURE,RETURN_FUNCTION
-	wxString m_strCurFuncName;//имя текущей компилируемой функции (для обработки варианта вызова рекурсивной функции)
+	short m_numReturn;//RETURN operator processing mode: RETURN_NONE,RETURN_PROCEDURE,RETURN_FUNCTION
+	wxString m_strCurFuncName;//name of the current compiled function (for processing the recursive function call option)
 
-	//ЦИКЛЫ
-	//Служебные атрибуты
-	unsigned short m_nDoNumber;//номер вложенного цикла
+	//LOOPS
+	//Service attributes
+	unsigned short m_numDoNumber;//nested loop number
 
-	std::map<unsigned short, std::vector<int>*> aContinueList;//адреса операторов Continue
-	std::map<unsigned short, std::vector<int>*> aBreakList;//адреса операторов Break
+	std::map<unsigned short, std::vector<int>*> m_listContinue;//addresses of Continue operators
+	std::map<unsigned short, std::vector<int>*> m_listBreak;//addresses of Break operators
 
-	//МЕТКИ
-	std::map<wxString, unsigned int> m_cLabelsDef;	//объявления
-	std::vector <CLabel> m_cLabels;	//список встретившихся переходов на метки
+	//LABELS
+	std::map<wxString, unsigned int> m_listLabelDef; //declarations
+	std::vector <CLabel> m_listLabel; //list of encountered transitions to labels
 
 public:
 
-	//Установка адресов перехода для команд Continue и Break
+	//Setting jump addresses for Continue and Break commands
 	void StartDoList() {
-		//создаем списки для команд Continue и Break (в них будут хранится адреса байт кодов, где встретились соответствующие команды)
-		m_nDoNumber++;
-		aContinueList[m_nDoNumber] = new std::vector<int>();
-		aBreakList[m_nDoNumber] = new std::vector<int>();
+		//create lists for Continue and Break commands (they will store the addresses of byte codes where the corresponding commands were encountered)
+		m_numDoNumber++;
+		m_listContinue[m_numDoNumber] = new std::vector<int>();
+		m_listBreak[m_numDoNumber] = new std::vector<int>();
 	}
 
-	//Установка адресов перехода для команд Continue и Break
+	//Setting jump addresses for Continue and Break commands
 	void FinishDoList(CByteCode& cByteCode, int gotoContinue, int gotoBreak) {
-		std::vector<int>* pListC = (std::vector<int>*)aContinueList[m_nDoNumber];
-		std::vector<int>* pListB = (std::vector<int>*)aBreakList[m_nDoNumber];
+		std::vector<int>* pListC = m_listContinue[m_numDoNumber];
+		std::vector<int>* pListB = m_listBreak[m_numDoNumber];
 		if (pListC == 0 || pListB == 0) {
 #ifdef DEBUG 
 			wxLogDebug("Error (FinishDoList) gotoContinue=%d, gotoBreak=%d\n", gotoContinue, gotoBreak);
-			wxLogDebug("m_nDoNumber=%d\n", m_nDoNumber);
+			wxLogDebug("m_numDoNumber=%d\n", m_numDoNumber);
 #endif 
-			m_nDoNumber--;
+			m_numDoNumber--;
 			return;
 		}
 		for (unsigned int i = 0; i < pListC->size(); i++) {
-			cByteCode.m_aCodeList[*pListC[i].data()].m_param1.m_nIndex = gotoContinue;
+			cByteCode.m_listCode[*pListC[i].data()].m_param1.m_numIndex = gotoContinue;
 		}
 		for (unsigned int i = 0; i < pListB->size(); i++) {
-			cByteCode.m_aCodeList[*pListB[i].data()].m_param1.m_nIndex = gotoBreak;
+			cByteCode.m_listCode[*pListB[i].data()].m_param1.m_numIndex = gotoBreak;
 		}
-		aContinueList.erase(m_nDoNumber);
-		aContinueList.erase(m_nDoNumber);
+		m_listContinue.erase(m_numDoNumber);
+		m_listContinue.erase(m_numDoNumber);
 		delete pListC;
 		delete pListB;
-		m_nDoNumber--;
+		m_numDoNumber--;
 	}
 
 	void DoLabels();
 
-	void SetModule(CCompileCode* module) {
-		m_compileModule = module;
-	}
+	void SetModule(CCompileCode* module) { m_compileModule = module; }
 
-	void SetFunction(CFunction* function) {
-		m_functionContext = function;
-	}
+	CParamUnit CreateVariable(const wxString strPrefix = wxT("@temp_"));
+
+	void SetFunction(CFunction* function) { m_functionContext = function; }
 
 	CParamUnit AddVariable(const wxString& strVarName, const wxString& strType = wxEmptyString, bool bExport = false, bool bContext = false, bool bTempVar = false);
 	CParamUnit GetVariable(const wxString& strVarName, bool bFindInParent = true, bool bCheckError = false, bool bContext = false, bool bTempVar = false);
@@ -154,12 +153,12 @@ public:
 	bool FindVariable(const wxString& strVarName, CVariable*& foundedVar, bool context = false);
 	bool FindFunction(const wxString& funcName, CFunction*& foundedFunc, bool context = false);
 
-	CCompileContext(CCompileContext* hSetParent = nullptr) : m_parentContext(hSetParent),
-		m_nDoNumber(0), m_nReturn(0), m_nTempVar(0), m_nFindLocalInParent(1),
-		m_compileModule(nullptr), m_functionContext(nullptr) {
+	CCompileContext(CCompileContext* parentContext = nullptr) : m_parentContext(parentContext),
+		m_numDoNumber(0), m_numReturn(0), m_numTempVar(0), m_numFindLocalInParent(1),
+		m_compileModule(nullptr) {
 	};
 
-	~CCompileContext();
+	virtual ~CCompileContext();
 };
 
 #endif

@@ -26,7 +26,7 @@ public:
 	virtual wxString GetString() const = 0;
 
 protected:
-	std::vector<wxString> m_aEnumsString;
+	std::vector<wxString> m_listEnumString;
 };
 
 template <typename valT>

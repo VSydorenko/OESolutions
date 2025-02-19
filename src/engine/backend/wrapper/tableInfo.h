@@ -257,7 +257,7 @@ public:
 		IValueModelColumnCollection() : CValue(eValueTypes::TYPE_VALUE, true) {}
 		virtual ~IValueModelColumnCollection() {}
 
-		//Работа с итераторами 
+		//Working with iterators
 		virtual bool HasIterator() const {
 			return true;
 		}

@@ -20,7 +20,7 @@
 #include "backend/metadataConfiguration.h"
 
 IModuleManager::IModuleManager(IMetaData* metadata, CMetaObjectModule* obj) :
-	CValue(eValueTypes::TYPE_VALUE), IModuleInfo(new CCompileGlobalModule(obj)),
+	CValue(eValueTypes::TYPE_VALUE), IModuleInfo(new CCompileModule(obj)),
 	m_methodHelper(new CMethodHelper()),
 	m_initialized(false)
 {
@@ -707,7 +707,7 @@ void IModuleManager::PrepareNames() const
 	if (m_procUnit != nullptr) {
 		CByteCode* byteCode = m_procUnit->GetByteCode();
 		if (byteCode != nullptr) {
-			for (auto exportFunction : byteCode->m_aExportFuncList) {
+			for (auto exportFunction : byteCode->m_listExportFunc) {
 				m_methodHelper->AppendMethod(
 					exportFunction.first,
 					byteCode->GetNParams(exportFunction.second),
@@ -716,7 +716,7 @@ void IModuleManager::PrepareNames() const
 					eProcUnit
 				);
 			}
-			for (auto exportVariable : byteCode->m_aExportVarList) {
+			for (auto exportVariable : byteCode->m_listExportVar) {
 				m_methodHelper->AppendProp(
 					exportVariable.first,
 					exportVariable.second,
@@ -748,14 +748,14 @@ bool IModuleManager::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CVa
 	);
 }
 
-bool IModuleManager::SetPropVal(const long lPropNum, const CValue& varPropVal)        //установка атрибута
+bool IModuleManager::SetPropVal(const long lPropNum, const CValue& varPropVal)        //setting attribute
 {
 	if (m_procUnit != nullptr)
 		return m_procUnit->SetPropVal(lPropNum, varPropVal);
 	return false;
 }
 
-bool IModuleManager::GetPropVal(const long lPropNum, CValue& pvarPropVal)                   //значение атрибута
+bool IModuleManager::GetPropVal(const long lPropNum, CValue& pvarPropVal)                   //attribute value
 {
 	if (m_procUnit != nullptr)
 		return m_procUnit->GetPropVal(lPropNum, pvarPropVal);
@@ -793,7 +793,7 @@ void CModuleManagerExternalDataProcessor::PrepareNames() const
 	if (m_procUnit != nullptr) {
 		CByteCode* byteCode = m_procUnit->GetByteCode();
 		if (byteCode != nullptr) {
-			for (auto exportFunction : byteCode->m_aExportFuncList) {
+			for (auto exportFunction : byteCode->m_listExportFunc) {
 				m_methodHelper->AppendMethod(
 					exportFunction.first,
 					byteCode->GetNParams(exportFunction.second),
@@ -802,7 +802,7 @@ void CModuleManagerExternalDataProcessor::PrepareNames() const
 					eProcUnit
 				);
 			}
-			for (auto exportVariable : byteCode->m_aExportVarList) {
+			for (auto exportVariable : byteCode->m_listExportVar) {
 				m_methodHelper->AppendProp(
 					exportVariable.first,
 					exportVariable.second,
@@ -888,7 +888,7 @@ void CModuleManagerExternalReport::PrepareNames() const
 	if (m_procUnit != nullptr) {
 		CByteCode* byteCode = m_procUnit->GetByteCode();
 		if (byteCode != nullptr) {
-			for (auto exportFunction : byteCode->m_aExportFuncList) {
+			for (auto exportFunction : byteCode->m_listExportFunc) {
 				m_methodHelper->AppendMethod(
 					exportFunction.first,
 					byteCode->GetNParams(exportFunction.second),
@@ -897,7 +897,7 @@ void CModuleManagerExternalReport::PrepareNames() const
 					eProcUnit
 				);
 			}
-			for (auto exportVariable : byteCode->m_aExportVarList) {
+			for (auto exportVariable : byteCode->m_listExportVar) {
 				m_methodHelper->AppendProp(
 					exportVariable.first,
 					exportVariable.second,
@@ -920,7 +920,7 @@ bool CModuleManagerExternalReport::CallAsFunc(const long lMethodNum, CValue& pva
 	);
 }
 
-bool CModuleManagerExternalReport::SetPropVal(const long lPropNum, const CValue& varPropVal)        //установка атрибута
+bool CModuleManagerExternalReport::SetPropVal(const long lPropNum, const CValue& varPropVal)        //setting attribute
 {
 	if (m_objectValue &&
 		m_objectValue->FindProp(GetPropName(lPropNum)) != wxNOT_FOUND) {
@@ -934,7 +934,7 @@ bool CModuleManagerExternalReport::SetPropVal(const long lPropNum, const CValue&
 	return false;
 }
 
-bool CModuleManagerExternalReport::GetPropVal(const long lPropNum, CValue& pvarPropVal)                   //значение атрибута
+bool CModuleManagerExternalReport::GetPropVal(const long lPropNum, CValue& pvarPropVal)                   //attribute value
 {
 	if (m_objectValue &&
 		m_objectValue->FindProp(GetPropName(lPropNum)) != wxNOT_FOUND) {

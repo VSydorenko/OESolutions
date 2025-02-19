@@ -5,8 +5,8 @@
 #include "backend/compiler/compileCode.h"
 
 struct CParamValue {
-	wxString m_paramName;//имя переменной 
-	wxString m_paramType;//тип переменной в англ. нотации (в случае явной типизации)
+	wxString m_paramName;//variable name 
+	wxString m_paramType;//variable type in English notation (in case of explicit typing)
 	CValue m_paramObject;
 };
 
@@ -94,8 +94,8 @@ struct CPrecompileFunction
 	bool bExport;
 	bool bContext;
 	CPrecompileContext* m_pContext;//конекст компиляции
-	int nVarCount;//число локальных переменных
-	int nStart;//стартовая позиция в массиве байт-кодов
+	int nVarCount;// number of local variables
+	int nStart;// starting position в массиве байт-кодов
 	int nFinish;//конечная позиция в массиве байт-кодов
 
 	CValue m_valContext;
@@ -105,7 +105,7 @@ struct CPrecompileFunction
 	wxString strType;		//тип (в англ. нотации), если это типизированная функция
 
 	//для IntelliSense
-	int	nNumberLine;	//номер строки исходного текста (для точек останова)
+	int	nNumberLine;	//source line number (for breakpoints)
 	wxString strShortDescription;//включает в себя всю строку после ключевого слова Функция(Процедура)
 	wxString sLongDescription;//включает в себя весь слитный (т.е.е буз пустых строк) блок комментарий до определения функции (процедуры)
 
@@ -134,7 +134,7 @@ struct CPrecompileFunction
 //*******************************************************************
 class CPrecompileModule : public CTranslateCode
 {
-	int m_nCurrentCompile;		//текущее положение в массиве лексем
+	int m_numCurrentCompile;		//текущее положение в массиве лексем
 
 	CMetaObjectModule* m_moduleObject;
 

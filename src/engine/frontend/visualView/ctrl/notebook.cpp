@@ -120,7 +120,7 @@ enum Func {
 	enActivePage
 };
 
-void CValueNotebook::PrepareNames() const //этот метод автоматически вызывается для инициализации имен атрибутов и методов
+void CValueNotebook::PrepareNames() const // this method is automatically called to initialize attribute and method names.
 {
 	IValueFrame::PrepareNames();
 
@@ -130,7 +130,7 @@ void CValueNotebook::PrepareNames() const //этот метод автоматически вызывается 
 
 #include "backend/compiler/value/valueMap.h"
 
-bool CValueNotebook::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)       //вызов метода
+bool CValueNotebook::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)       //method call
 {
 	switch (lMethodNum)
 	{

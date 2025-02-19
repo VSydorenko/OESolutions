@@ -37,7 +37,7 @@ CValue::CValue()
 	DEBUG_VALUE_CREATE();
 }
 
-//конструктор копирования:
+//copy constructor:
 CValue::CValue(const CValue& varValue)
 	: m_typeClass(eValueTypes::TYPE_EMPTY), m_refCount(0), m_pRef(nullptr), m_bReadOnly(false)
 {
@@ -109,7 +109,7 @@ CValue::CValue(eValueTypes type, bool readOnly)
 	DEBUG_VALUE_CREATE();
 }
 
-//Конструкторы по типам:
+//Constructors by types:
 #define CVALUE_BYTYPE(v_parclass, v_type, v_value) \
 CValue::CValue (v_parclass cParam) \
     : m_typeClass(v_type), m_refCount(0), m_pRef(nullptr), m_bReadOnly(false) \
@@ -1007,7 +1007,7 @@ const CValue& CValue::operator-(const CValue& cParam)
 }
 
 //*************************************************************
-//           РАБОТА КАК АГРЕГАТНОГО ОБЪЕКТА                   *
+//				WORK AS AN AGGREGATE OBJECT                   *
 //*************************************************************
 
 void CValue::PrepareNames() const
@@ -1165,13 +1165,13 @@ bool CValue::CallAsFunc(const long lMethodNum,
 	return false;
 }
 
-//получить текущее значение (актуального для агрегатных объектов или объектов диалога)
+//get the current value (relevant for aggregate objects or dialog objects)
 CValue CValue::GetValue(bool getThis)
 {
 	if (getThis)
 		return this;
 	if (m_pRef != nullptr && m_typeClass == eValueTypes::TYPE_REFFER)
-		return m_pRef->GetValue(true); // true - признак создания новой переменной - ссылки на агрегатный объект
+		return m_pRef->GetValue(true); // true - a sign of creating a new variable - a reference to an aggregate object
 	return *this;
 }
 

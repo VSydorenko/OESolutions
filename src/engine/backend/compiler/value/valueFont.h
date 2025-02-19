@@ -3,7 +3,7 @@
 
 #include "backend/compiler/value/value.h"
 
-//ѕоддержка массивов
+//Array support
 class BACKEND_API CValueFont : public CValue
 {
 	wxDECLARE_DYNAMIC_CLASS(CValueFont);
@@ -28,14 +28,14 @@ public:
 
 	static CMethodHelper m_methodHelper;
 
-	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //установка атрибута
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //значение атрибута
+	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //setting attribute
+	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //attribute value
 
 	virtual CMethodHelper* GetPMethods() const {
 		//PrepareNames();
 		return &m_methodHelper;
 	}
-	virtual void PrepareNames() const;                         //этот метод автоматически вызываетс€ дл€ инициализации имен атрибутов и методов
+	virtual void PrepareNames() const;                         // this method is automatically called to initialize attribute and method names.
 
 	operator wxFont() {
 		return m_font;

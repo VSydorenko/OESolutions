@@ -10,8 +10,8 @@ class BACKEND_API CMetaObjectModule;
 
 class BACKEND_API CCompileModule : public CCompileCode {
 public:
-	virtual bool Recompile(); //ѕерекомпил¤ци¤ текущего модул¤ из мета-объекта
-	virtual bool Compile(); //ѕерекомпил¤ци¤ текущего модул¤ из мета-объекта
+	virtual bool Recompile(); // recompile current module from meta-object
+	virtual bool Compile(); // compile current module from meta-object
 public:
 
 	CCompileModule(CMetaObjectModule* moduleObject, bool onlyFunction = false);

@@ -191,13 +191,13 @@ void CValueForm::PrepareNames() const
 	if (m_procUnit != nullptr) {
 		CByteCode* byteCode = m_procUnit->GetByteCode();
 		if (byteCode != nullptr) {
-			for (auto exportVariable : byteCode->m_aExportVarList)
+			for (auto exportVariable : byteCode->m_listExportVar)
 				m_methodHelper->AppendProp(
 					exportVariable.first,
 					exportVariable.second,
 					eProcUnit
 				);
-			for (auto exportFunction : byteCode->m_aExportFuncList)
+			for (auto exportFunction : byteCode->m_listExportFunc)
 				m_methodHelper->AppendMethod(
 					exportFunction.first,
 					byteCode->GetNParams(exportFunction.second),

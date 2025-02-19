@@ -915,7 +915,7 @@ protected:
 	IRecordDataObject(const IRecordDataObject& source);
 
 	//standart override 
-	virtual CMethodHelper* GetPMethods() const final { //получить ссылку на класс помощник разбора имен атрибутов и методов
+	virtual CMethodHelper* GetPMethods() const final { // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames(); 
 		return m_methodHelper;
 	}
@@ -1212,7 +1212,7 @@ public:
 	virtual ~CRecordKeyObject();
 
 	//standart override 
-	virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+	virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames(); 
 		return m_methodHelper;
 	}
@@ -1350,14 +1350,14 @@ public:
 			return m_ownerTable;
 		}
 
-		virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+		virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 			//PrepareNames(); 
 			return m_methodHelper;
 		}
 		virtual void PrepareNames() const;
 
-		virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal); //установка атрибута
-		virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal); //значение атрибута
+		virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal); //setting attribute
+		virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal); //attribute value
 
 		friend class IRecordSetObject;
 	private:
@@ -1382,16 +1382,16 @@ public:
 			//*                              Support methods                             *
 			//****************************************************************************
 
-			virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+			virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 				//PrepareNames(); 
 				return m_methodHelper;
 			}
 
-			virtual void PrepareNames() const;                             // этот метод автоматически вызывается для инициализации имен атрибутов и методов
-			virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       // вызов метода
+			virtual void PrepareNames() const;                             // this method is automatically called to initialize attribute and method names
+			virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       // method call
 
-			virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);//установка атрибута
-			virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);//значение атрибута
+			virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);//setting attribute
+			virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);//attribute value
 
 		protected:
 			meta_identifier_t m_metaId;
@@ -1412,16 +1412,16 @@ public:
 		//*                              Support methods                             *
 		//****************************************************************************
 
-		virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+		virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 			//PrepareNames(); 
 			return m_methodHelper;
 		}
 
-		virtual void PrepareNames() const;                             // этот метод автоматически вызывается для инициализации имен атрибутов и методов
-		virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       // вызов метода
+		virtual void PrepareNames() const;                             // this method is automatically called to initialize attribute and method names
+		virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       // method call
 
-		virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);//установка атрибута
-		virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);//значение атрибута
+		virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);//setting attribute
+		virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);//attribute value
 
 	protected:
 		IRecordSetObject* m_recordSet;
@@ -1456,7 +1456,7 @@ public:
 	}
 
 	//standart override 
-	virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+	virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames(); 
 		return m_methodHelper;
 	}
@@ -1528,7 +1528,7 @@ public:
 		return this;
 	}
 
-	//Работа с итераторами 
+	//Working with iterators
 	virtual bool HasIterator() const override {
 		return true;
 	}
@@ -1614,7 +1614,7 @@ public:
 	virtual IRecordManagerObject* CopyRegisterValue();
 
 	//standart override 
-	virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+	virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames(); 
 		return m_methodHelper;
 	}

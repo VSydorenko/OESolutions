@@ -33,7 +33,7 @@ struct moduleElement_t
 
 class CParserModule : public CTranslateCode
 {
-	int m_nCurrentCompile;//текущее положение в массиве лексем
+	int m_numCurrentCompile;//текущее положение в массиве лексем
 	std::vector<moduleElement_t> m_aContentModule;
 
 protected:

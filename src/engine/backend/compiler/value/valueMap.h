@@ -16,8 +16,8 @@ private:
 	};
 public:
 
-	//Атрибут -> Строковый ключ
-	//работа с массивом как с агрегатным объектом:
+	//Attribute -> String key
+	//working with an array as an aggregate object:
 
 	virtual bool GetAt(const CValue& varKeyValue, CValue& pvarValue);
 	virtual bool SetAt(const CValue& varKeyValue, const CValue& cValue);
@@ -51,14 +51,14 @@ public:
 			PrepareNames();
 		}
 
-		virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+		virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 			//PrepareNames(); 
 			return &m_methodHelper;
 		}
 		virtual void PrepareNames() const;
 
-		virtual bool SetPropVal(const long lPropNum, CValue& cValue);        //установка атрибута
-		virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //значение атрибута
+		virtual bool SetPropVal(const long lPropNum, CValue& cValue);        //setting attribute
+		virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //attribute value
 	};
 
 public:
@@ -69,15 +69,15 @@ public:
 
 	virtual ~CValueContainer();
 
-	virtual bool SetPropVal(const long lPropNum, const CValue& cValue);        //установка атрибута
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //значение атрибута
+	virtual bool SetPropVal(const long lPropNum, const CValue& cValue);        //setting attribute
+	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //attribute value
 
-	virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+	virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames(); 
 		return m_methodHelper;
 	}
-	virtual void PrepareNames() const;                         //этот метод автоматически вызывается для инициализации имен атрибутов и методов
-	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       //вызов метода
+	virtual void PrepareNames() const;                         // this method is automatically called to initialize attribute and method names.
+	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       //method call
 
 	//Расширенные методы:
 	virtual void Insert(const CValue& varKeyValue, const CValue& cValue);

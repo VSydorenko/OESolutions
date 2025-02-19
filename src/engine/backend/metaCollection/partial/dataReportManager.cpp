@@ -81,7 +81,7 @@ void CReportManager::PrepareNames() const
 
 	CValue* pRefData = moduleManager->FindCommonModule(m_metaObject->GetModuleManager());
 	if (pRefData != nullptr) {
-		//добавляем методы из контекста
+		// add methods from context
 		for (long idx = 0; idx < pRefData->GetNMethods(); idx++) {
 			m_methodHelper->CopyMethod(pRefData->GetPMethods(), idx);
 		}

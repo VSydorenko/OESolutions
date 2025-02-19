@@ -10,8 +10,8 @@ public:
 	CValueHTMLBox(); 
 
 	//methods 
-	virtual void PrepareNames() const;                         //этот метод автоматически вызывается для инициализации имен атрибутов и методов
-	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       //вызов метода
+	virtual void PrepareNames() const;                         // this method is automatically called to initialize attribute and method names.
+	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       //method call
 
 	virtual wxObject* Create(wxWindow* wxparent, IVisualHost *visualHost) override;
 	virtual void OnCreated(wxObject* wxobject, wxWindow* wxparent, IVisualHost *visualHost, bool firstСreated) override;

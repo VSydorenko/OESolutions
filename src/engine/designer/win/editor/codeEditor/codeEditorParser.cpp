@@ -7,7 +7,7 @@
 
 #pragma warning(disable : 4018)
 
-CParserModule::CParserModule() : CTranslateCode(), m_nCurrentCompile(wxNOT_FOUND)
+CParserModule::CParserModule() : CTranslateCode(), m_numCurrentCompile(wxNOT_FOUND)
 {
 }
 
@@ -28,48 +28,48 @@ bool CParserModule::ParseModule(const wxString& sModule)
 
 	lexem_t lex;
 
-	while ((lex = GETLexem()).m_nType != ERRORTYPE)
+	while ((lex = GETLexem()).m_lexType != ERRORTYPE)
 	{
 		//пропускаем условие
-		if (lex.m_nType == KEYWORD && lex.m_nData == KEY_IF)
+		if (lex.m_lexType == KEYWORD && lex.m_numData == KEY_IF)
 		{
-			while (m_nCurrentCompile + 1 < m_listLexem.size())
+			while (m_numCurrentCompile + 1 < m_listLexem.size())
 			{
 				lex = GETLexem();
-				if (lex.m_nType == KEYWORD && lex.m_nData == KEY_THEN) break;
+				if (lex.m_lexType == KEYWORD && lex.m_numData == KEY_THEN) break;
 			}
 
 			lex = GETLexem();
 		}
 
 		//пропускаем заголовок циклов WHILE
-		if (lex.m_nType == KEYWORD && lex.m_nData == KEY_WHILE)
+		if (lex.m_lexType == KEYWORD && lex.m_numData == KEY_WHILE)
 		{
-			while (m_nCurrentCompile + 1 < m_listLexem.size())
+			while (m_numCurrentCompile + 1 < m_listLexem.size())
 			{
 				lex = GETLexem();
-				if (lex.m_nType == KEYWORD && lex.m_nData == KEY_DO) break;
+				if (lex.m_lexType == KEYWORD && lex.m_numData == KEY_DO) break;
 			}
 			lex = GETLexem();
 		}
 
 		//пропускаем тернарное выражение
-		if (lex.m_nType == DELIMITER && lex.m_nData == '?')
+		if (lex.m_lexType == DELIMITER && lex.m_numData == '?')
 		{
-			while (m_nCurrentCompile + 1 < m_listLexem.size())
+			while (m_numCurrentCompile + 1 < m_listLexem.size())
 			{
 				lex = GETLexem();
-				if (lex.m_nType == DELIMITER && lex.m_nData == ';') break;
+				if (lex.m_lexType == DELIMITER && lex.m_numData == ';') break;
 			}
 			lex = GETLexem();
 		}
 
 		//ќбъ€вление переменных
-		if (lex.m_nType == KEYWORD && lex.m_nData == KEY_VAR) {
-			while (m_nCurrentCompile + 1 < m_listLexem.size()) {
+		if (lex.m_lexType == KEYWORD && lex.m_numData == KEY_VAR) {
+			while (m_numCurrentCompile + 1 < m_listLexem.size()) {
 				wxString strName = GETIdentifier(true);
 				int nArrayCount = -1;
-				if (IsNextDelimeter('[')) { //это объ€вление массива
+				if (IsNextDelimeter('[')) { // this is an array declaration
 					nArrayCount = 0;
 					GETDelimeter('[');
 					if (!IsNextDelimeter(']')) {
@@ -89,7 +89,7 @@ bool CParserModule::ParseModule(const wxString& sModule)
 					bExport = true;
 				}
 
-				if (IsNextDelimeter('='))//начальна€ инициализаци€ - работает только внутри текста модулей (но не пере объ€вл. процедур и функций)
+				if (IsNextDelimeter('='))// initial initialization - works only inside the text of modules (but not re-declaring procedures and functions)
 				{
 					if (nArrayCount >= 0) GETDelimeter(',');//Error!
 					GETDelimeter('=');
@@ -97,8 +97,8 @@ bool CParserModule::ParseModule(const wxString& sModule)
 
 				moduleElement_t data;
 				data.strName = strName;
-				data.nLineStart = lex.m_nNumberLine;
-				data.nLineEnd = lex.m_nNumberLine;
+				data.nLineStart = lex.m_numLine;
+				data.nLineEnd = lex.m_numLine;
 				data.nImage = 358;
 
 				if (bExport)
@@ -113,19 +113,19 @@ bool CParserModule::ParseModule(const wxString& sModule)
 		}
 
 		//ќбъ€вление функций и процедур 
-		if (lex.m_nType == KEYWORD && (lex.m_nData == KEY_FUNCTION || lex.m_nData == KEY_PROCEDURE)) {
-			bool isFunction = lex.m_nData == KEY_FUNCTION;
-			//вытаскиваем текст объ€влени€ функции
+		if (lex.m_lexType == KEYWORD && (lex.m_numData == KEY_FUNCTION || lex.m_numData == KEY_PROCEDURE)) {
+			bool isFunction = lex.m_numData == KEY_FUNCTION;
+			// pull out the text of the function declaration
 			lex = PreviewGetLexem();
 			wxString strShortDescription;
-			int m_nNumberLine = lex.m_nNumberLine;
-			int nRes = m_strBuffer.find('\n', lex.m_nNumberString);
+			int m_numLine = lex.m_numLine;
+			int nRes = m_strBuffer.find('\n', lex.m_numString);
 			if (nRes >= 0) {
-				strShortDescription = m_strBuffer.Mid(lex.m_nNumberString, nRes - lex.m_nNumberString - 1);
+				strShortDescription = m_strBuffer.Mid(lex.m_numString, nRes - lex.m_numString - 1);
 				nRes = strShortDescription.find_first_of('/');
 				if (nRes > 0)
 				{
-					if (strShortDescription[nRes - 1] == '/') {//итак - это комментарий
+					if (strShortDescription[nRes - 1] == '/') {// so this is a comment
 						strShortDescription = strShortDescription.Mid(nRes + 1);
 					}
 				}
@@ -138,11 +138,11 @@ bool CParserModule::ParseModule(const wxString& sModule)
 
 			wxString strFuncName = GETIdentifier(true);
 
-			//компилируем список формальных параметров + регистрируем их как локальные
+			// compile the list of formal parameters + register them as local
 			GETDelimeter('(');
 			if (!IsNextDelimeter(')'))
 			{
-				while (m_nCurrentCompile + 1 < m_listLexem.size())
+				while (m_numCurrentCompile + 1 < m_listLexem.size())
 				{
 					if (IsNextKeyWord(KEY_VAL))
 					{
@@ -151,7 +151,7 @@ bool CParserModule::ParseModule(const wxString& sModule)
 
 					/*wxString strName =*/ (void)GETIdentifier(true);
 
-					if (IsNextDelimeter('['))//это массив
+					if (IsNextDelimeter('['))// this is an array
 					{
 						GETDelimeter('[');
 						GETDelimeter(']');
@@ -180,8 +180,8 @@ bool CParserModule::ParseModule(const wxString& sModule)
 			moduleElement_t data;
 			data.strName = strFuncName;
 			data.strShortDescription = strShortDescription;
-			data.nLineStart = lex.m_nNumberLine;
-			data.nLineEnd = lex.m_nNumberLine;
+			data.nLineStart = lex.m_numLine;
+			data.nLineEnd = lex.m_numLine;
 
 			if (isFunction) {
 				data.nImage = 353;
@@ -198,14 +198,14 @@ bool CParserModule::ParseModule(const wxString& sModule)
 				else { data.eType = eContentType::eProcedure; }
 			}
 
-			while (m_nCurrentCompile < (m_listLexem.size() - 1)) {
+			while (m_numCurrentCompile < (m_listLexem.size() - 1)) {
 
 				if (IsNextKeyWord(KEY_ENDFUNCTION)) {
-					data.nLineEnd = m_listLexem[m_nCurrentCompile + 1].m_nNumberLine;
+					data.nLineEnd = m_listLexem[m_numCurrentCompile + 1].m_numLine;
 					GETKeyWord(KEY_ENDFUNCTION); break;
 				}
 				else if (IsNextKeyWord(KEY_ENDPROCEDURE)) {
-					data.nLineEnd = m_listLexem[m_nCurrentCompile + 1].m_nNumberLine;
+					data.nLineEnd = m_listLexem[m_numCurrentCompile + 1].m_numLine;
 					GETKeyWord(KEY_ENDPROCEDURE); break;
 				}
 
@@ -216,7 +216,7 @@ bool CParserModule::ParseModule(const wxString& sModule)
 		}
 	}
 
-	if (m_nCurrentCompile + 1 < m_listLexem.size() - 1)
+	if (m_numCurrentCompile + 1 < m_listLexem.size() - 1)
 		return false;
 	return true;
 }
@@ -280,8 +280,8 @@ wxArrayString CParserModule::GetProcedures(bool bOnlyExport)
 lexem_t CParserModule::GetLexem()
 {
 	lexem_t lex;
-	if (m_nCurrentCompile + 1 < m_listLexem.size()) {
-		lex = m_listLexem[++m_nCurrentCompile];
+	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
+		lex = m_listLexem[++m_numCurrentCompile];
 	}
 	return lex;
 }
@@ -292,10 +292,10 @@ lexem_t CParserModule::PreviewGetLexem()
 	lexem_t lex;
 	while (true) {
 		lex = GetLexem();
-		if (!(lex.m_nType == DELIMITER && (lex.m_nData == ';' || lex.m_nData == '\n')))
+		if (!(lex.m_lexType == DELIMITER && (lex.m_numData == ';' || lex.m_numData == '\n')))
 			break;
 	}
-	m_nCurrentCompile--;
+	m_numCurrentCompile--;
 	return lex;
 }
 
@@ -309,7 +309,7 @@ lexem_t CParserModule::PreviewGetLexem()
 lexem_t CParserModule::GETLexem()
 {
 	const lexem_t& lex = GetLexem();
-	if (lex.m_nType == ERRORTYPE) {}
+	if (lex.m_lexType == ERRORTYPE) {}
 	return lex;
 }
 /**
@@ -322,8 +322,8 @@ lexem_t CParserModule::GETLexem()
 void CParserModule::GETDelimeter(const wxUniChar& c)
 {
 	lexem_t lex = GETLexem();
-	while (!(lex.m_nType == DELIMITER && c == lex.m_nData)) {
-		if (m_nCurrentCompile + 1 >= m_listLexem.size())
+	while (!(lex.m_lexType == DELIMITER && c == lex.m_numData)) {
+		if (m_numCurrentCompile + 1 >= m_listLexem.size())
 			break;
 		lex = GETLexem();
 	}
@@ -337,9 +337,9 @@ void CParserModule::GETDelimeter(const wxUniChar& c)
  */
 bool CParserModule::IsNextDelimeter(const wxUniChar& c)
 {
-	if (m_nCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_nCurrentCompile + 1];
-		if (lex.m_nType == DELIMITER && c == lex.m_nData)
+	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
+		const lexem_t& lex = m_listLexem[m_numCurrentCompile + 1];
+		if (lex.m_lexType == DELIMITER && c == lex.m_numData)
 			return true;
 	}
 	return false;
@@ -354,9 +354,9 @@ bool CParserModule::IsNextDelimeter(const wxUniChar& c)
  */
 bool CParserModule::IsNextKeyWord(int nKey)
 {
-	if (m_nCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_nCurrentCompile + 1];
-		if (lex.m_nType == KEYWORD && lex.m_nData == nKey)
+	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
+		const lexem_t& lex = m_listLexem[m_numCurrentCompile + 1];
+		if (lex.m_lexType == KEYWORD && lex.m_numData == nKey)
 			return true;
 	}
 	return false;
@@ -371,8 +371,8 @@ bool CParserModule::IsNextKeyWord(int nKey)
 void CParserModule::GETKeyWord(int nKey)
 {
 	lexem_t lex = GETLexem();
-	while (!(lex.m_nType == KEYWORD && lex.m_nData == nKey)) {
-		if (m_nCurrentCompile + 1 >= m_listLexem.size())
+	while (!(lex.m_lexType == KEYWORD && lex.m_numData == nKey)) {
+		if (m_numCurrentCompile + 1 >= m_listLexem.size())
 			break;
 		lex = GETLexem();
 	}
@@ -388,14 +388,14 @@ wxString CParserModule::GETIdentifier(bool strRealName)
 {
 	const lexem_t& lex = GETLexem();
 
-	if (lex.m_nType != IDENTIFIER) {
-		if (strRealName && lex.m_nType == KEYWORD)
+	if (lex.m_lexType != IDENTIFIER) {
+		if (strRealName && lex.m_lexType == KEYWORD)
 			return lex.m_strData;
 		return wxEmptyString;
 	}
 
 	if (strRealName)
-		return lex.m_vData.m_sData;
+		return lex.m_valData.m_sData;
 	else
 		return lex.m_strData;
 }
@@ -419,17 +419,17 @@ CValue CParserModule::GETConstant()
 
 	lex = GETLexem();
 
-	if (lex.m_nType != CONSTANT)
-		return lex.m_vData;
+	if (lex.m_lexType != CONSTANT)
+		return lex.m_valData;
 
 	if (iNumRequire) {
-		//проверка на то чтобы константа имела числовой тип	
-		if (lex.m_vData.GetType() != eValueTypes::TYPE_NUMBER)
-			return lex.m_vData;
-		//мен€ем знак при минусе
+		// check that the constant is of numeric type	
+		if (lex.m_valData.GetType() != eValueTypes::TYPE_NUMBER)
+			return lex.m_valData;
+		// change sign for minus
 		if (iNumRequire == -1)
-			lex.m_vData.m_fData = -lex.m_vData.m_fData;
+			lex.m_valData.m_fData = -lex.m_valData.m_fData;
 	}
-	return lex.m_vData;
+	return lex.m_valData;
 }
 

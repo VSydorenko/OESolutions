@@ -6,7 +6,7 @@
 //default base class for all enumerations
 template <typename valT>
 class IEnumeration : public IEnumerationValue<valT> {
-	std::map<valT, wxString> m_aEnumValues;
+	std::map<valT, wxString> m_listEnumValue;
 protected:
 
 	template <typename valType>
@@ -81,7 +81,7 @@ protected:
 	};
 
 	virtual wxString GetEnumName(valT val) const {
-		return m_aEnumValues.at(val);
+		return m_listEnumValue.at(val);
 	}
 
 	virtual wxString GetEnumDescription(valT val) const {
@@ -93,7 +93,7 @@ protected:
 private:
 
 	inline void CreateEnumeration(valT val) {
-		wxASSERT(m_aEnumValues.find(val) != m_aEnumValues.end());
+		wxASSERT(m_listEnumValue.find(val) != m_listEnumValue.end());
 		if (m_value != nullptr) {
 			m_value->CreateEnumeration(
 				GetEnumName(val),
@@ -106,9 +106,9 @@ private:
 public:
 
 	inline void AddEnumeration(valT val, const wxString& name, const wxString& descr = wxEmptyString) {
-		wxASSERT(m_aEnumValues.find(val) == m_aEnumValues.end());
-		m_aEnumValues.insert_or_assign(val, name);
-		m_aEnumsString.push_back(name);
+		wxASSERT(m_listEnumValue.find(val) == m_listEnumValue.end());
+		m_listEnumValue.insert_or_assign(val, name);
+		m_listEnumString.push_back(name);
 	}
 
 	IEnumeration() : IEnumerationValue(true), m_value(nullptr) {}
@@ -130,9 +130,9 @@ public:
 	}
 
 	virtual valT GetDefaultEnumValue() const {
-		auto itEnums = m_aEnumValues.begin();
+		auto itEnums = m_listEnumValue.begin();
 		std::advance(itEnums, 1);
-		if (itEnums != m_aEnumValues.end())
+		if (itEnums != m_listEnumValue.end())
 			return itEnums->first;
 		return valT();
 	};
@@ -171,10 +171,10 @@ public:
 		return m_value;
 	}
 
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal) override { //значение атрибута
-		auto itEnums = m_aEnumValues.begin();
+	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal) override { //attribute value
+		auto itEnums = m_listEnumValue.begin();
 		std::advance(itEnums, lPropNum);
-		if (itEnums != m_aEnumValues.end()) {
+		if (itEnums != m_listEnumValue.end()) {
 			CEnumerationVariant<valT>* enumValue =
 				new CEnumerationVariant<valT>(itEnums->first, CValue::GetClassType());
 			if (enumValue != nullptr) {

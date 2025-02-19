@@ -55,8 +55,8 @@ public:
 	virtual void Cleanup(wxObject* obj, IVisualHost* visualHost) override;
 
 	//methods 
-	virtual void PrepareNames() const;                          //этот метод автоматически вызывается для инициализации имен атрибутов и методов
-	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray) override;       //вызов метода
+	virtual void PrepareNames() const;                          // this method is automatically called to initialize attribute and method names.
+	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray) override;       //method call
 
 	/**
 	* Support default menu

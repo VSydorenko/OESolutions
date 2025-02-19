@@ -220,15 +220,15 @@ void CDebuggerServer::DoDebugLoop(const wxString& filePath, const wxString& strM
 void CDebuggerServer::EnterDebugger(CRunContext* runContext, CByteUnit& CurCode, long& nPrevLine)
 {
 	if (m_bUseDebug) {
-		if (CurCode.m_nOper != OPER_FUNC && CurCode.m_nOper != OPER_END
-			&& CurCode.m_nOper != OPER_SET && CurCode.m_nOper != OPER_SETCONST && CurCode.m_nOper != OPER_SET_TYPE
-			&& CurCode.m_nOper != OPER_TRY && CurCode.m_nOper != OPER_ENDTRY) {
-			if (CurCode.m_nNumberLine != nPrevLine) {
+		if (CurCode.m_numOper != OPER_FUNC && CurCode.m_numOper != OPER_END
+			&& CurCode.m_numOper != OPER_SET && CurCode.m_numOper != OPER_SETCONST && CurCode.m_numOper != OPER_SET_TYPE
+			&& CurCode.m_numOper != OPER_TRY && CurCode.m_numOper != OPER_ENDTRY) {
+			if (CurCode.m_numLine != nPrevLine) {
 				int offsetPoint = 0; m_bDoLoop = false;
 				if (m_bDebugStopLine &&
-					CurCode.m_nNumberLine >= 0) { //шагнуть в 
+					CurCode.m_numLine >= 0) { //шагнуть в 
 					std::map<unsigned int, int> offsetPointList = m_offsetPoints[CurCode.m_strDocPath];
-					std::map<unsigned int, int>::iterator foundedOffsetList = offsetPointList.find(CurCode.m_nNumberLine);
+					std::map<unsigned int, int>::iterator foundedOffsetList = offsetPointList.find(CurCode.m_numLine);
 					m_bDebugStopLine = false;
 					m_bDoLoop = true;
 					if (foundedOffsetList != offsetPointList.end()) {
@@ -237,9 +237,9 @@ void CDebuggerServer::EnterDebugger(CRunContext* runContext, CByteUnit& CurCode,
 				}
 				else if (m_nCurrentNumberStopContext &&
 					m_nCurrentNumberStopContext >= CProcUnit::GetCountRunContext() &&
-					CurCode.m_nNumberLine >= 0) { // шагнуть через
+					CurCode.m_numLine >= 0) { // шагнуть через
 					std::map<unsigned int, int> aOffsetPointList = m_offsetPoints[CurCode.m_strDocPath];
-					std::map<unsigned int, int>::iterator foundedOffsetList = aOffsetPointList.find(CurCode.m_nNumberLine);
+					std::map<unsigned int, int>::iterator foundedOffsetList = aOffsetPointList.find(CurCode.m_numLine);
 					m_nCurrentNumberStopContext = CProcUnit::GetCountRunContext();
 					m_bDoLoop = true;
 					if (foundedOffsetList != aOffsetPointList.end()) {
@@ -247,9 +247,9 @@ void CDebuggerServer::EnterDebugger(CRunContext* runContext, CByteUnit& CurCode,
 					}
 				}
 				else {//произвольная точка останова
-					if (CurCode.m_nNumberLine >= 0) {
+					if (CurCode.m_numLine >= 0) {
 						std::map<unsigned int, int> debugPointList = m_listBreakpoint[CurCode.m_strDocPath];
-						std::map<unsigned int, int>::iterator foundedDebugPoint = debugPointList.find(CurCode.m_nNumberLine);
+						std::map<unsigned int, int>::iterator foundedDebugPoint = debugPointList.find(CurCode.m_numLine);
 
 						if (foundedDebugPoint != debugPointList.end()) {
 							offsetPoint = foundedDebugPoint->second; m_bDoLoop = true;
@@ -260,12 +260,12 @@ void CDebuggerServer::EnterDebugger(CRunContext* runContext, CByteUnit& CurCode,
 					DoDebugLoop(
 						CurCode.m_strFileName,
 						CurCode.m_strDocPath,
-						CurCode.m_nNumberLine + offsetPoint + 1,
+						CurCode.m_numLine + offsetPoint + 1,
 						runContext
 					);
 				}
 			}
-			nPrevLine = CurCode.m_nNumberLine;
+			nPrevLine = CurCode.m_numLine;
 		}
 	}
 }
@@ -345,11 +345,11 @@ void CDebuggerServer::SendLocalVariables()
 
 	CCompileContext* compileContext = m_runContext->m_compileContext;
 	wxASSERT(compileContext);
-	commandChannel.w_u32(compileContext->m_cVariables.size());
+	commandChannel.w_u32(compileContext->m_listVariable.size());
 
-	for (auto variable : compileContext->m_cVariables) {
+	for (auto variable : compileContext->m_listVariable) {
 		const CVariable& currentVariable = variable.second;
-		const CValue* locRefValue = m_runContext->m_pRefLocVars[currentVariable.m_nNumber];
+		const CValue* locRefValue = m_runContext->m_pRefLocVars[currentVariable.m_numVariable];
 		//send temp var 
 		commandChannel.w_u8(currentVariable.m_bTempVar);
 		//send attribute body
@@ -383,19 +383,19 @@ void CDebuggerServer::SendStack()
 			continue;
 		if (byteCode != nullptr) {
 			long lCurLine = runContext->m_lCurLine;
-			if (lCurLine >= 0 && lCurLine <= (long)byteCode->m_aCodeList.size()) {
-				wxString strFullName = byteCode->m_aCodeList[lCurLine].m_strModuleName;
+			if (lCurLine >= 0 && lCurLine <= (long)byteCode->m_listCode.size()) {
+				wxString strFullName = byteCode->m_listCode[lCurLine].m_strModuleName;
 				strFullName += wxT(".");
 				if (compileContext->m_functionContext) {
 					strFullName += compileContext->m_functionContext->m_strRealName;
 					strFullName += wxT("(");
-					for (unsigned int j = 0; j < compileContext->m_functionContext->m_aParamList.size(); j++) {
-						const wxString& valStr = runContext->m_pRefLocVars[compileContext->m_cVariables[stringUtils::MakeUpper(compileContext->m_functionContext->m_aParamList[j].m_strName)].m_nNumber]->GetString();
-						if (j != compileContext->m_functionContext->m_aParamList.size() - 1) {
-							strFullName += compileContext->m_functionContext->m_aParamList[j].m_strName + wxT(" = ") + valStr + wxT(", ");
+					for (unsigned int j = 0; j < compileContext->m_functionContext->m_listParam.size(); j++) {
+						const wxString& valStr = runContext->m_pRefLocVars[compileContext->m_listVariable[stringUtils::MakeUpper(compileContext->m_functionContext->m_listParam[j].m_strName)].m_numVariable]->GetString();
+						if (j != compileContext->m_functionContext->m_listParam.size() - 1) {
+							strFullName += compileContext->m_functionContext->m_listParam[j].m_strName + wxT(" = ") + valStr + wxT(", ");
 						}
 						else {
-							strFullName += compileContext->m_functionContext->m_aParamList[j].m_strName + wxT(" = ") + valStr;
+							strFullName += compileContext->m_functionContext->m_listParam[j].m_strName + wxT(" = ") + valStr;
 						}
 					}
 					strFullName += wxT(")");
@@ -404,7 +404,7 @@ void CDebuggerServer::SendStack()
 					strFullName += wxT("<initializer>");
 				}
 				commandChannel.w_stringZ(strFullName);
-				commandChannel.w_u32(byteCode->m_aCodeList[lCurLine].m_nNumberLine + 1);
+				commandChannel.w_u32(byteCode->m_listCode[lCurLine].m_numLine + 1);
 			}
 		}
 	}

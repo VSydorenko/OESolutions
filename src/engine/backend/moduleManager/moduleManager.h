@@ -61,18 +61,18 @@ public:
 			return m_moduleObject ? m_moduleObject->IsGlobalModule() : false;
 		}
 
-		//РАБОТА КАК АГРЕГАТНОГО ОБЪЕКТА
+		//WORK AS AN AGGREGATE OBJECT
 
-		//эти методы нужно переопределить в ваших агрегатных объектах:
-		virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+		// these methods need to be overridden in your aggregate objects:
+		virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 			//PrepareNames();
 			return m_methodHelper;
 		}
 
-		//этот метод автоматически вызывается для инициализации имен атрибутов и методов
+		// this method is automatically called to initialize attribute and method names.
 		virtual void PrepareNames() const;
 
-		//вызов метода
+		//method call
 		virtual bool CallAsProc(const long lMethodNum, CValue** paParams, const long lSizeArray) override;
 		virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray) override;
 
@@ -153,19 +153,19 @@ public:
 			return false;
 		}
 
-		//эти методы нужно переопределить в ваших агрегатных объектах:
+		// these methods need to be overridden in your aggregate objects:
 		virtual CMethodHelper* GetPMethods() const { 
 			//PrepareNames();  
 			return m_methodHelper; }
 		
-		virtual void PrepareNames() const; //этот метод автоматически вызывается для инициализации имен атрибутов и методов
+		virtual void PrepareNames() const; // this method is automatically called to initialize attribute and method names.
 
 		//****************************************************************************
 		//*                              Override attribute                          *
 		//****************************************************************************
 
-		virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal) override;        //установка атрибута
-		virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal) override;                   //значение атрибута
+		virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal) override;        //setting attribute
+		virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal) override;                   //attribute value
 
 	protected:
 		IMetaData* m_metaData;
@@ -196,19 +196,19 @@ public:
 	//exit common module
 	virtual bool ExitMainModule(bool force = false) = 0;
 
-	//эти методы нужно переопределить в ваших агрегатных объектах:
-	virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+	// these methods need to be overridden in your aggregate objects:
+	virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames(); 
 		return m_methodHelper; 
 	}
-	//этот метод автоматически вызывается для инициализации имен атрибутов и методов
+	// this method is automatically called to initialize attribute and method names.
 	virtual void PrepareNames() const;
-	//вызов метода
+	//method call
 	virtual bool CallAsProc(const long lMethodNum, CValue** paParams, const long lSizeArray);
 	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);
 
-	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //установка атрибута
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //значение атрибута
+	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //setting attribute
+	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //attribute value
 	virtual long FindProp(const wxString& strName) const;
 
 	//check is empty
@@ -264,7 +264,7 @@ public:
 	}
 
 	virtual std::map<wxString, CValue*>& GetContextVariables() {
-		return m_compileModule->m_aContextValues;
+		return m_compileModule->m_listContextValue;
 	}
 
 	//return external module
@@ -350,13 +350,13 @@ public:
 	//exit common module
 	virtual bool ExitMainModule(bool force = false);
 
-	//этот метод автоматически вызывается для инициализации имен атрибутов и методов
+	// this method is automatically called to initialize attribute and method names.
 	virtual void PrepareNames() const;
-	//вызов метода
+	//method call
 	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);
 
-	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //установка атрибута
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //значение атрибута
+	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //setting attribute
+	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //attribute value
 
 	virtual long FindProp(const wxString& strName) const;
 };
@@ -391,13 +391,13 @@ public:
 	//exit common module
 	virtual bool ExitMainModule(bool force = false);
 
-	//этот метод автоматически вызывается для инициализации имен атрибутов и методов
+	// this method is automatically called to initialize attribute and method names.
 	virtual void PrepareNames() const;
-	//вызов метода
+	//method call
 	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);
 
-	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //установка атрибута
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //значение атрибута
+	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //setting attribute
+	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //attribute value
 	virtual long FindProp(const wxString& strName) const;
 };
 

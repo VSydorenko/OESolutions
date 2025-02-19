@@ -15,11 +15,8 @@
 //                           Constants
 //////////////////////////////////////////////////////////////////////
 
-std::map<wxString, void*> s_aHelpDescription;//описание ключевых слов и системных функций
-std::map<wxString, void*> s_aHashKeywordList;
-
-//Массив приоритетов математических операций
-static std::array<int, 256> s_aPriority = { 0 };
+// array of mathematical operation priorities
+static std::array<int, 256> gs_operPriority = { 0 };
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction CCompileCode
@@ -27,168 +24,169 @@ static std::array<int, 256> s_aPriority = { 0 };
 
 CCompileCode::CCompileCode() :
 	CTranslateCode(),
-	m_pContext(GetContext()),
-	m_parent(nullptr),
-	m_bExpressionOnly(false), m_changeCode(false),
+	m_parent(nullptr), m_rootContext(new CCompileContext),
+	m_bExpressionOnly(false), m_changedCode(false),
 	m_onlyFunction(false)
 {
 	InitializeCompileModule();
-	//у родительских контекстов локальные переменные не ищем!
-	m_cContext.m_nFindLocalInParent = 0;
+
+	// we don’t look for local variables in parent contexts!
+	m_rootContext->m_numFindLocalInParent = 0;
 }
 
 CCompileCode::CCompileCode(const wxString& strModuleName, const wxString& strDocPath, bool onlyFunction) :
 	CTranslateCode(strModuleName, strDocPath),
-	m_pContext(GetContext()),
-	m_parent(nullptr),
-	m_bExpressionOnly(false), m_changeCode(false),
+	m_parent(nullptr), m_rootContext(new CCompileContext),
+	m_bExpressionOnly(false), m_changedCode(false),
 	m_onlyFunction(onlyFunction)
 {
 	InitializeCompileModule();
-	//у родительских контекстов локальные переменные не ищем!
-	m_cContext.m_nFindLocalInParent = 0;
+
+	// we don’t look for local variables in parent contexts!
+	m_rootContext->m_numFindLocalInParent = 0;
 }
 
 CCompileCode::CCompileCode(const wxString& strFileName) :
 	CTranslateCode(strFileName),
-	m_pContext(GetContext()),
-	m_parent(nullptr),
-	m_bExpressionOnly(false), m_changeCode(false),
+	m_parent(nullptr), m_rootContext(new CCompileContext),
+	m_bExpressionOnly(false), m_changedCode(false),
 	m_onlyFunction(false)
 {
 	InitializeCompileModule();
-	//у родительских контекстов локальные переменные не ищем!
-	m_cContext.m_nFindLocalInParent = 0;
+
+	// we don’t look for local variables in parent contexts!
+	m_rootContext->m_numFindLocalInParent = 0;
 }
 
 CCompileCode::~CCompileCode()
 {
 	Reset();
 
-	m_aExternValues.clear();
-	m_aContextValues.clear();
+	m_listExternValue.clear();
+	m_listContextValue.clear();
+
+	wxDELETE(m_rootContext);
 }
 
 void CCompileCode::InitializeCompileModule()
 {
-	if (s_aPriority[s_aPriority.size() - 1])
+	if (gs_operPriority[gs_operPriority.size() - 1])
 		return;
 
-	s_aPriority['+'] = 10;
-	s_aPriority['-'] = 10;
-	s_aPriority['*'] = 30;
-	s_aPriority['/'] = 30;
-	s_aPriority['%'] = 30;
-	s_aPriority['!'] = 50;
+	gs_operPriority['+'] = 10;
+	gs_operPriority['-'] = 10;
+	gs_operPriority['*'] = 30;
+	gs_operPriority['/'] = 30;
+	gs_operPriority['%'] = 30;
+	gs_operPriority['!'] = 50;
 
-	s_aPriority[KEY_OR] = 1;
-	s_aPriority[KEY_AND] = 2;
+	gs_operPriority[KEY_OR] = 1;
+	gs_operPriority[KEY_AND] = 2;
 
-	s_aPriority['>'] = 3;
-	s_aPriority['<'] = 3;
-	s_aPriority['='] = 3;
+	gs_operPriority['>'] = 3;
+	gs_operPriority['<'] = 3;
+	gs_operPriority['='] = 3;
 
-	s_aPriority[s_aPriority.size() - 1] = true;
+	gs_operPriority[gs_operPriority.size() - 1] = true;
 }
 
 void CCompileCode::Reset()
 {
-	m_pContext = nullptr;
-
-	m_aHashConstList.clear();
+	m_listHashConst.clear();
 	m_cByteCode.Reset();
 
-	m_cContext.m_nDoNumber = 0;
-	m_cContext.m_nReturn = 0;
-	m_cContext.m_nTempVar = 0;
-	m_cContext.m_nFindLocalInParent = 1;
+	m_rootContext->m_numDoNumber = 0;
+	m_rootContext->m_numReturn = 0;
+	m_rootContext->m_numTempVar = 0;
+	m_rootContext->m_numFindLocalInParent = 1;
 
-	m_cContext.aContinueList.clear();
-	m_cContext.aBreakList.clear();
+	m_rootContext->m_listContinue.clear();
+	m_rootContext->m_listBreak.clear();
 
-	m_cContext.m_cLabels.clear();
-	m_cContext.m_cLabelsDef.clear();
+	m_rootContext->m_listLabel.clear();
+	m_rootContext->m_listLabelDef.clear();
 
-	m_cContext.m_strCurFuncName = "";
+	m_rootContext->m_strCurFuncName = wxEmptyString;
 
-	//clear functions & variables 
-	for (auto& function : m_cContext.m_cFunctions) {
+	// clear functions & variables 
+	for (auto& function : m_rootContext->m_listFunction) {
 		wxDELETE(function.second);
 	}
 
-	m_cContext.m_cVariables.clear();
-	m_cContext.m_cFunctions.clear();
+	m_rootContext->m_listVariable.clear();
+	m_rootContext->m_listFunction.clear();
 
-	for (auto& function : m_apCallFunctions) {
-		wxDELETE(function);
-	}
-
-	m_apCallFunctions.clear();
+	m_listCallFunc.clear();
 }
 
 void CCompileCode::PrepareModuleData()
 {
-	for (auto externValue : m_aExternValues) {
-		m_cContext.AddVariable(externValue.first, wxEmptyString, true);
-		m_cByteCode.m_aExternValues.push_back(externValue.second);
+	for (auto& externValue : m_listExternValue) {
+		m_rootContext->AddVariable(externValue.first, wxEmptyString, true);
+		m_cByteCode.m_listExternValue.push_back(externValue.second);
 	}
-	for (auto contextValue : m_aContextValues) {
-		m_cContext.AddVariable(contextValue.first, wxEmptyString, true);
-		m_cByteCode.m_aExternValues.push_back(contextValue.second);
+	for (auto& contextValue : m_listContextValue) {
+		m_rootContext->AddVariable(contextValue.first, wxEmptyString, true);
+		m_cByteCode.m_listExternValue.push_back(contextValue.second);
 	}
-	for (auto pair : m_aContextValues) {
+
+	for (auto& pair : m_listContextValue) {
 
 		CValue* contextValue = pair.second;
+		wxASSERT(contextValue);
 		contextValue->PrepareNames();
 
-		//добавляем переменные из контекста
+		// adding variables from context
 		for (unsigned int i = 0; i < contextValue->GetNProps(); i++) {
-			const wxString& strPropName = contextValue->GetPropName(i);
-			//определяем номер и тип переменной
-			CVariable cVariables(strPropName);
-			cVariables.m_strContextVar = pair.first;
-			cVariables.m_bContext = true;
-			cVariables.m_bExport = true;
-			cVariables.m_nNumber = i;
 
-			GetContext()->m_cVariables.insert_or_assign(
-				stringUtils::MakeUpper(strPropName), cVariables
+			const wxString& strPropName = contextValue->GetPropName(i);
+
+			// determine the number and type of the variable
+			CVariable contextVariable(strPropName);
+			contextVariable.m_strContextVar = pair.first;
+			contextVariable.m_bContext = true;
+			contextVariable.m_bExport = true;
+			contextVariable.m_numVariable = i;
+
+			GetContext()->m_listVariable.insert_or_assign(
+				stringUtils::MakeUpper(strPropName), contextVariable
 			);
 		}
 
-		//добавляем методы из контекста
+		CCompileContext* mainContext = GetContext();
+
+		// add methods from context
 		for (long i = 0; i < contextValue->GetNMethods(); i++) {
 
 			const wxString& strMethodName = contextValue->GetMethodName(i);
 
-			CCompileContext* compileContext = new CCompileContext(GetContext());
+			CCompileContext* compileContext(new CCompileContext(mainContext));
 			compileContext->SetModule(this);
 
-			if (contextValue->HasRetVal(i))
-				compileContext->m_nReturn = RETURN_FUNCTION;
-			else
-				compileContext->m_nReturn = RETURN_PROCEDURE;
+			if (contextValue->HasRetVal(i)) compileContext->m_numReturn = RETURN_FUNCTION;
+			else compileContext->m_numReturn = RETURN_PROCEDURE;
 
-			//определяем номер и тип функции
-			CFunction* pFunction = new CFunction(strMethodName, compileContext);
-			pFunction->m_nStart = i;
-			pFunction->m_bContext = true;
-			pFunction->m_bExport = true;
-			pFunction->m_strContextVar = pair.first;
+			// define the number and type of the function
+			CFunction* contextFunction = new CFunction(strMethodName, compileContext);
+			contextFunction->m_nStart = i;
+			contextFunction->m_bContext = true;
+			contextFunction->m_bExport = true;
+			contextFunction->m_strContextVar = pair.first;
 
 			CParamVariable contextVariable;
-			contextVariable.m_vData.m_nArray = DEF_VAR_DEFAULT;
-			contextVariable.m_vData.m_nIndex = DEF_VAR_DEFAULT;
-			for (int n = 0; n < contextValue->GetNParams(i); n++) {
-				pFunction->m_aParamList.push_back(contextVariable);
+			contextVariable.m_valData.m_numArray = DEF_VAR_DEFAULT;
+			contextVariable.m_valData.m_numIndex = DEF_VAR_DEFAULT;
+
+			for (long arg = 0; arg < contextValue->GetNParams(i); arg++) {
+				contextFunction->m_listParam.push_back(contextVariable);
 			}
 
-			pFunction->m_strRealName = strMethodName;
-			pFunction->m_strShortDescription = contextValue->GetMethodHelper(i);
+			contextFunction->m_strRealName = strMethodName;
+			contextFunction->m_strShortDescription = contextValue->GetMethodHelper(i);
 
-			//проверка на типизированность
-			GetContext()->m_cFunctions.insert_or_assign(
-				stringUtils::MakeUpper(strMethodName), pFunction
+			// check for typing
+			GetContext()->m_listFunction.insert_or_assign(
+				stringUtils::MakeUpper(strMethodName), contextFunction
 			);
 		}
 	}
@@ -196,28 +194,37 @@ void CCompileCode::PrepareModuleData()
 
 /**
  * SetError
- * Назначение:
- * Запомнить ошибку трансляции и вызвать исключение
- * Возвращаемое значение:
- * Метод не возвращает управление!
+ * Purpose:
+ * Remember the translation error and throw an exception
+ * Return value:
+ * The method does not return control!
  */
+
 void CCompileCode::SetError(int codeError, const wxString& errorDesc)
 {
 	wxString strFileName, strModuleName, strDocPath; int currPos = 0, currLine = 0;
 
-	if (m_nCurrentCompile >= m_listLexem.size()) {
-		m_nCurrentCompile = m_listLexem.size() - 1;
+	if (m_numCurrentCompile >= m_listLexem.size()) {
+		m_numCurrentCompile = m_listLexem.size() - 1;
 	}
 
-	if (m_nCurrentCompile >= 0 && m_nCurrentCompile < m_listLexem.size()) {
-		
-		const lexem_t& lex = m_listLexem.at(m_nCurrentCompile);
-	
+	if (m_numCurrentCompile >= 0 && m_numCurrentCompile < m_listLexem.size()) {
+
+		const lexem_t& lex = m_listLexem.at(m_numCurrentCompile);
+
 		strFileName = lex.m_strFileName;
 		strModuleName = lex.m_strModuleName;
 		strDocPath = lex.m_strDocPath;
-		currPos = lex.m_nNumberString;
-		currLine = lex.m_nNumberLine;
+
+		if (lex.m_lexType == ENDPROGRAM) {
+			const lexem_t& prevLex = m_listLexem.at(m_numCurrentCompile - 1);
+			currLine = prevLex.line();
+			currPos = prevLex.back();
+		}
+		else {
+			currLine = lex.line();
+			currPos = lex.back();
+		}
 	}
 
 	CTranslateCode::SetError(codeError,
@@ -227,8 +234,9 @@ void CCompileCode::SetError(int codeError, const wxString& errorDesc)
 }
 
 /**
- * другой вариант функции
+ * another function option
  */
+
 void CCompileCode::SetError(int nErr, const wxUniChar& c)
 {
 	SetError(nErr, wxString::Format(wxT("%c"), c));
@@ -236,10 +244,10 @@ void CCompileCode::SetError(int nErr, const wxUniChar& c)
 
 /**
  * ProcessError
- * Назначение:
- * Запомнить ошибку трансляции и вызвать исключение
- * Возвращаемое значение:
- * Метод не возвращает управление!strCurWord
+ * Purpose:
+ * Remember the translation error and throw an exception
+ * Return value:
+ * The method does not return control!
  */
 
 void CCompileCode::ProcessError(const wxString& strFileName,
@@ -260,99 +268,103 @@ void CCompileCode::ProcessError(const wxString& strFileName,
 //////////////////////////////////////////////////////////////////////
 
 /**
- *добавление в байт код информации о текущей строке
+ *adding information about the current line to the byte code
  */
+
 void CCompileCode::AddLineInfo(CByteUnit& code)
 {
 	code.m_strModuleName = m_strModuleName;
 	code.m_strDocPath = m_strDocPath;
 	code.m_strFileName = m_strFileName;
 
-	if (m_nCurrentCompile >= 0) {
-		if (m_nCurrentCompile < m_listLexem.size()) {
-			if (m_listLexem[m_nCurrentCompile].m_nType != ENDPROGRAM) {
-				code.m_strModuleName = m_listLexem[m_nCurrentCompile].m_strModuleName;
-				code.m_strDocPath = m_listLexem[m_nCurrentCompile].m_strDocPath;
-				code.m_strFileName = m_listLexem[m_nCurrentCompile].m_strFileName;
-			}
-			code.m_nNumberString = m_listLexem[m_nCurrentCompile].m_nNumberString;
-			code.m_nNumberLine = m_listLexem[m_nCurrentCompile].m_nNumberLine;
+	if (m_numCurrentCompile >= 0 && m_numCurrentCompile < m_listLexem.size()) {
+		if (m_listLexem[m_numCurrentCompile].m_lexType != ENDPROGRAM) {
+			code.m_strModuleName = m_listLexem[m_numCurrentCompile].m_strModuleName;
+			code.m_strDocPath = m_listLexem[m_numCurrentCompile].m_strDocPath;
+			code.m_strFileName = m_listLexem[m_numCurrentCompile].m_strFileName;
 		}
+		code.m_numString = m_listLexem[m_numCurrentCompile].m_numString;
+		code.m_numLine = m_listLexem[m_numCurrentCompile].m_numLine;
 	}
 }
 
 /**
  * GetLexem
- * Назначение:
- * Получить следующую лексему из списка байт кода и увеличть счетчик текущей позиции на 1
- * Возвращаемое значение:
- * 0 или указатель на лексему
+ * Purpose:
+ * Get the next token from the list of byte codes and increment the current position counter by 1
+ * Return value:
+ * 0 or pointer to token
  */
+
 lexem_t CCompileCode::GetLexem()
 {
 	lexem_t lex;
-	if (m_nCurrentCompile + 1 < m_listLexem.size()) {
-		lex = m_listLexem[++m_nCurrentCompile];
+	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
+		lex = m_listLexem[++m_numCurrentCompile];
 	}
 	return lex;
 }
 
-//Получить следующую лексему из списка байт кода без увеличения счетчика текущей позиции
+// get the next token from a list of bytecodes without incrementing the current position counter
 lexem_t CCompileCode::PreviewGetLexem()
 {
 	lexem_t lex;
-	while (true)
-	{
+	while (true) {
 		lex = GetLexem();
-		if (!(lex.m_nType == DELIMITER && lex.m_nData == ';')) break;
+		if (!(lex.m_lexType == DELIMITER && lex.m_numData == ';')) break;
 	}
-	m_nCurrentCompile--;
+	m_numCurrentCompile--;
 	return lex;
 }
 
 /**
  * GETLexem
- * Назначение:
- * Получить следующую лексему из списка байт кода и увеличть счетчик текущей позиции на 1
- * Возвращаемое значение:
- * нет (в случае неудачи генерится исключение)
+ * Purpose:
+ * Get the next token from the list of byte codes and increment the current position counter by 1
+ * Return value:
+ * no (if failure occurs, an exception is thrown)
  */
+
 lexem_t CCompileCode::GETLexem()
 {
 	lexem_t lex = GetLexem();
-	if (lex.m_nType == ERRORTYPE) {
+	if (lex.m_lexType == ERRORTYPE) {
+		m_numCurrentCompile--;
 		SetError(ERROR_CODE_DEFINE);
 	}
 	return lex;
 }
+
 /**
  * GETDelimeter
- * Назначение:
- * Получить следующую лексему как заданный разделитель
- * Возвращаемое значение:
- * нет (в случае неудачи генерится исключение)
+ * Purpose:
+ * Get the next token as the given delimiter
+ * Return value:
+ * no (if failure occurs, an exception is thrown)
  */
+
 void CCompileCode::GETDelimeter(const wxUniChar& c)
 {
 	lexem_t lex = GETLexem();
-	if (!(lex.m_nType == DELIMITER && c == lex.m_nData)) {
-		m_nCurrentCompile--;
+	if (!(lex.m_lexType == DELIMITER && c == lex.m_numData)) {
+		m_numCurrentCompile--;
 		SetError(ERROR_DELIMETER, c);
 	}
 }
 
 /**
  * IsKeyWord
- * Назначение:
- * Проверить является ли текущая лексема байт-кода заданным ключевым словом
- * Возвращаемое значение:
+ * Purpose:
+ * Check if the current bytecode token is a given keyword
+ * Return value:
  * true, false
  */
+
 bool CCompileCode::IsKeyWord(int k)
 {
-	if (m_nCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_nCurrentCompile];
-		if (lex.m_nType == KEYWORD && lex.m_nData == k)
+	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
+		const lexem_t& lex = m_listLexem[m_numCurrentCompile];
+		if (lex.m_lexType == KEYWORD && lex.m_numData == k)
 			return true;
 	}
 	return false;
@@ -360,16 +372,17 @@ bool CCompileCode::IsKeyWord(int k)
 
 /**
  * IsNextKeyWord
- * Назначение:
- * Проверить является ли следующая лексема байт-кода заданным ключевым словом
- * Возвращаемое значение:
+ * Purpose:
+ * Check if the next bytecode token is a given keyword
+ * Return value:
  * true,false
  */
+
 bool CCompileCode::IsNextKeyWord(int k)
 {
-	if (m_nCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_nCurrentCompile + 1];
-		if (lex.m_nType == KEYWORD && k == lex.m_nData)
+	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
+		const lexem_t& lex = m_listLexem[m_numCurrentCompile + 1];
+		if (lex.m_lexType == KEYWORD && k == lex.m_numData)
 			return true;
 	}
 	return false;
@@ -377,16 +390,17 @@ bool CCompileCode::IsNextKeyWord(int k)
 
 /**
  * IsDelimeter
- * Назначение:
- * Проверить является ли текущая лексема байт-кода заданным разделителем
- * Возвращаемое значение:
+ * Purpose:
+ * Check if the current bytecode token is a given delimiter
+ * Return value:
  * true,false
  */
+
 bool CCompileCode::IsDelimeter(const wxUniChar& c)
 {
-	if (m_nCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_nCurrentCompile];
-		if (lex.m_nType == DELIMITER && c == lex.m_nData)
+	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
+		const lexem_t& lex = m_listLexem[m_numCurrentCompile];
+		if (lex.m_lexType == DELIMITER && c == lex.m_numData)
 			return true;
 	}
 	return false;
@@ -394,16 +408,17 @@ bool CCompileCode::IsDelimeter(const wxUniChar& c)
 
 /**
  * IsNextDelimeter
- * Назначение:
- * Проверить является ли следующая лексема байт-кода заданным разделителем
- * Возвращаемое значение:
+ * Purpose:
+ * Check if the next bytecode token is a given delimiter
+ * Return value:
  * true,false
  */
+
 bool CCompileCode::IsNextDelimeter(const wxUniChar& c)
 {
-	if (m_nCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_nCurrentCompile + 1];
-		if (lex.m_nType == DELIMITER && c == lex.m_nData)
+	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
+		const lexem_t& lex = m_listLexem[m_numCurrentCompile + 1];
+		if (lex.m_lexType == DELIMITER && c == lex.m_numData)
 			return true;
 	}
 	return false;
@@ -411,38 +426,40 @@ bool CCompileCode::IsNextDelimeter(const wxUniChar& c)
 
 /**
  * GETKeyWord
- * Получить следующую лексему как заданное ключевое слово
- * Возвращаемое значение:
- * нет (в случае неудачи генерится исключение)
+ * Get the next token as the given keyword
+ * Return value:
+ * no (if failure occurs, an exception is thrown)
  */
+
 void CCompileCode::GETKeyWord(int nKey)
 {
 	const lexem_t& lex = GETLexem();
-	if (!(lex.m_nType == KEYWORD && lex.m_nData == nKey)) {
+	if (!(lex.m_lexType == KEYWORD && lex.m_numData == nKey)) {
+		m_numCurrentCompile--;
 		SetError(ERROR_KEYWORD,
-			wxString::Format(wxT("%s"), s_aKeyWords[nKey].Eng)
+			wxString::Format(wxT("%s"), s_listKeyWord[nKey].Eng)
 		);
 	}
 }
 
 /**
  * GETIdentifier
- * Получить следующую лексему как заданное ключевое слово
- * Возвращаемое значение:
- * строка-идентификатор
+ * Get the next token as the given keyword
+ * Return value:
+ * identifier string
  */
+
 wxString CCompileCode::GETIdentifier(bool strRealName)
 {
 	const lexem_t& lex = GETLexem();
-	if (lex.m_nType != IDENTIFIER) {
-		if (strRealName && lex.m_nType == KEYWORD) {
-			return lex.m_strData;
-		}
+	if (lex.m_lexType != IDENTIFIER) {
+		m_numCurrentCompile--;
 		SetError(ERROR_IDENTIFIER_DEFINE);
+		return wxEmptyString;
 	}
 
 	if (strRealName) {
-		return lex.m_vData.m_sData;
+		return lex.m_valData.m_sData;
 	}
 
 	return lex.m_strData;
@@ -450,10 +467,11 @@ wxString CCompileCode::GETIdentifier(bool strRealName)
 
 /**
  * GETConstant
- * Получить следующую лексему как константу
- * Возвращаемое значение:
- * константа
+ * Get the next token as a constant
+ * Return value:
+ * constant
  */
+
 CValue CCompileCode::GETConstant()
 {
 	lexem_t lex;
@@ -467,129 +485,139 @@ CValue CCompileCode::GETConstant()
 
 	lex = GETLexem();
 
-	if (lex.m_nType != CONSTANT)
+	if (lex.m_lexType != CONSTANT) {
 		SetError(ERROR_CONST_DEFINE);
+		return CValue();
+	}
 
 	if (iNumRequire) {
-		//проверка на то чтобы константа имела числовой тип
-		if (lex.m_vData.GetType() != eValueTypes::TYPE_NUMBER)
+		// check that the constant is of numeric type
+		if (lex.m_valData.GetType() != eValueTypes::TYPE_NUMBER) {
 			SetError(ERROR_CONST_DEFINE);
-		//меняем знак при минусе
-		if (iNumRequire == -1)
-			lex.m_vData.m_fData = -lex.m_vData.m_fData;
+			return CValue();
+		}
+		// change sign for minus
+		if (iNumRequire == -1) {
+			lex.m_valData.m_fData = -lex.m_valData.m_fData;
+		}
 	}
-	return lex.m_vData;
+	return lex.m_valData;
 }
 
-//получение номера константой строки (для определения номера метода)
-int CCompileCode::GetConstString(const wxString& strMethodName)
+// getting the number with a string constant (to determine the method number)
+const int CCompileCode::GetConstString(const wxString& strConstName)
 {
-	auto& it = std::find_if(m_aHashConstList.begin(), m_aHashConstList.end(),
-		[strMethodName](std::pair <const wxString, unsigned int>& pair) {
-			return stringUtils::CompareString(strMethodName, pair.first);
+	auto& it = std::find_if(m_listHashConst.begin(), m_listHashConst.end(),
+		[strConstName](std::pair <const wxString, unsigned int>& pair) {
+			return stringUtils::CompareString(strConstName, pair.first);
 		}
 	);
 
-	if (it != m_aHashConstList.end())
+	if (it != m_listHashConst.end())
 		return it->second - 1;
 
-	m_cByteCode.m_aConstList.push_back(strMethodName);
-	m_aHashConstList.insert_or_assign(strMethodName, m_cByteCode.m_aConstList.size());
+	m_cByteCode.m_listConst.push_back(strConstName);
+	m_listHashConst.insert_or_assign(strConstName, m_cByteCode.m_listConst.size());
 
-	return m_cByteCode.m_aConstList.size() - 1;
+	return m_cByteCode.m_listConst.size() - 1;
 }
 
 /**
  * AddVariable
- * Назначение:
- * Добавить имя и адрес внешней переменной в специальный массив для дальнейшего использования
+ * Purpose:
+ * Add the name and address of an external variable to a special array for later use
  */
+
 void CCompileCode::AddVariable(const wxString& strVarName, const CValue& vObject)
 {
 	if (strVarName.IsEmpty())
 		return;
 
-	//учитываем внешние переменные при компиляции
-	m_aExternValues[strVarName.Upper()] = vObject.m_typeClass == eValueTypes::TYPE_REFFER
+	// take into account external variables during compilation
+	m_listExternValue[strVarName.Upper()] = vObject.m_typeClass == eValueTypes::TYPE_REFFER
 		? vObject.GetRef() : const_cast<CValue*>(&vObject);
 
-	//ставим флаг для перекомпиляции
-	m_changeCode = true;
+	//set the flag for recompilation
+	m_changedCode = true;
 }
 
 /**
  * AddVariable
- * Назначение:
- * Добавить имя и адрес внешней перменной в специальный массив для дальнейшего использования
+ * Purpose:
+ * Add the name and address of an external variable to a special array for later use
  */
+
 void CCompileCode::AddVariable(const wxString& strVarName, CValue* pValue)
 {
 	if (strVarName.IsEmpty())
 		return;
 
-	//учитываем внешние переменные при компиляции
-	m_aExternValues[strVarName.Upper()] = pValue;
+	// take into account external variables during compilation
+	m_listExternValue[strVarName.Upper()] = pValue;
 
-	//ставим флаг для перекомпиляции
-	m_changeCode = true;
+	//set the flag for recompilation
+	m_changedCode = true;
 }
 
 /**
  * AddContextVariable
- * Назначение:
- * Добавить имя и адрес внешней перменной в специальный массив для дальнейшего использования
+ * Purpose:
+ * Add the name and address of an external variable to a special array for later use
  */
+
 void CCompileCode::AddContextVariable(const wxString& strVarName, const CValue& vObject)
 {
 	if (strVarName.IsEmpty())
 		return;
 
-	//добавляем переменные из контекста
-	m_aContextValues[strVarName.Upper()] = vObject.m_typeClass == eValueTypes::TYPE_REFFER ? vObject.GetRef() : const_cast<CValue*>(&vObject);
+	//adding variables from context
+	m_listContextValue[strVarName.Upper()] = vObject.m_typeClass == eValueTypes::TYPE_REFFER ? vObject.GetRef() : const_cast<CValue*>(&vObject);
 
-	//ставим флаг для перекомпиляции
-	m_changeCode = true;
+	//set the flag for recompilation
+	m_changedCode = true;
 }
 
 /**
  * AddContextVariable
- * Назначение:
- * Добавить имя и адрес внешней перменной в специальный массив для дальнейшего использования
+ * Purpose:
+ * Add the name and address of an external variable to a special array for later use
  */
+
 void CCompileCode::AddContextVariable(const wxString& strVarName, CValue* pValue)
 {
 	if (strVarName.IsEmpty())
 		return;
 
-	//добавляем переменные из контекста
-	m_aContextValues[strVarName.Upper()] = pValue;
+	//adding variables from context
+	m_listContextValue[strVarName.Upper()] = pValue;
 
-	//ставим флаг для перекомпиляции
-	m_changeCode = true;
+	//set the flag for recompilation
+	m_changedCode = true;
 }
 
 /**
  * RemoveVariable
- * Назначение:
- * Удалить имя и адрес внешней перменной
+ * Purpose:
+ * Remove the name and address of an external variable
  */
+
 void CCompileCode::RemoveVariable(const wxString& strVarName)
 {
 	if (strVarName.IsEmpty())
 		return;
 
-	m_aExternValues.erase(strVarName.Upper());
-	m_aContextValues.erase(strVarName.Upper());
+	m_listExternValue.erase(strVarName.Upper());
+	m_listContextValue.erase(strVarName.Upper());
 
-	//ставим флаг для перекомпиляции
-	m_changeCode = true;
+	//set the flag for recompilation
+	m_changedCode = true;
 }
 
 /**
  * Recompile
- * Назначение:
- * Трасляция и компиляция исходного кода в байт-код (объектный код)
- * Возвращаемое значение:
+ * Purpose:
+ * Translation and compilation of source code into bytecode (object code)
+ * Return value:
  * true,false
  */
 
@@ -598,20 +626,17 @@ bool CCompileCode::Recompile()
 	//clear functions & variables
 	Reset();
 
-	//контекст самого модуля
-	m_pContext = GetContext();
-
 	//prepare lexem 
 	if (!PrepareLexem()) {
 		return false;
 	}
 
-	//подготовить контекстные переменные
+	// prepare context variables
 	PrepareModuleData();
 
-	//Компиляция 
+	// compilation 
 	if (CompileModule()) {
-		m_changeCode = false;
+		m_changedCode = false;
 		return true;
 	}
 
@@ -620,9 +645,9 @@ bool CCompileCode::Recompile()
 
 /**
  * Compile
- * Назначение:
- * Трасляция и компиляция исходного кода в байт-код (объектный код)
- * Возвращаемое значение:
+ * Purpose:
+ * Translation and compilation of source code into bytecode (object code)
+ * Return value:
  * true,false
  */
 
@@ -631,20 +656,17 @@ bool CCompileCode::Compile()
 	//clear functions & variables
 	Reset();
 
-	//контекст самого модуля
-	m_pContext = GetContext();
-
 	//prepare lexem 
 	if (!PrepareLexem()) {
 		return false;
 	}
 
-	//подготовить контекстные переменные
+	// prepare context variables
 	PrepareModuleData();
 
-	//Компиляция 
+	// compilation 
 	if (CompileModule()) {
-		m_changeCode = false;
+		m_changedCode = false;
 		return true;
 	}
 
@@ -653,18 +675,16 @@ bool CCompileCode::Compile()
 
 /**
  * Compile
- * Назначение:
- * Трасляция и компиляция исходного кода в байт-код (объектный код)
- * Возвращаемое значение:
+ * Purpose:
+ * Translation and compilation of source code into bytecode (object code)
+ * Return value:
  * true,false
  */
+
 bool CCompileCode::Compile(const wxString& strCode)
 {
 	//clear functions & variables
 	Reset();
-
-	//контекст самого модуля
-	m_pContext = GetContext();
 
 	Load(strCode);
 
@@ -673,60 +693,60 @@ bool CCompileCode::Compile(const wxString& strCode)
 		return false;
 	}
 
-	//подготовить контекстные переменные
+	// prepare context variables
 	PrepareModuleData();
 
-	//Компиляция 
+	// compilation 
 	if (CompileModule()) {
-		m_changeCode = false;
+		m_changedCode = false;
 		return true;
 	}
 
 	return false;
 }
 
-bool CCompileCode::IsTypeVar(const wxString& typeVar)
+bool CCompileCode::IsTypeVar(const wxString& strType)
 {
-	if (!typeVar.IsEmpty()) {
-		if (CValue::IsRegisterCtor(typeVar, eCtorObjectType::eCtorObjectType_object_primitive))
+	if (!strType.IsEmpty()) {
+		if (CValue::IsRegisterCtor(strType, eCtorObjectType::eCtorObjectType_object_primitive))
 			return true;
 	}
-	else {
-		const lexem_t& lex = PreviewGetLexem();
-		if (CValue::IsRegisterCtor(lex.m_strData, eCtorObjectType::eCtorObjectType_object_primitive))
-			return true;
-	}
-
+	const lexem_t& lex = PreviewGetLexem();
+	if (CValue::IsRegisterCtor(lex.m_strData, eCtorObjectType::eCtorObjectType_object_primitive))
+		return true;
 	return false;
 }
 
 wxString CCompileCode::GetTypeVar(const wxString& strType)
 {
 	if (!strType.IsEmpty()) {
-		if (!CValue::IsRegisterCtor(strType, eCtorObjectType::eCtorObjectType_object_primitive))
+		if (!CValue::IsRegisterCtor(strType, eCtorObjectType::eCtorObjectType_object_primitive)) {
 			SetError(ERROR_TYPE_DEF);
+			return wxEmptyString;
+		}
 		return strType.Upper();
 	}
-	else {
-		const lexem_t& lex = GETLexem();
-		if (!CValue::IsRegisterCtor(lex.m_strData, eCtorObjectType::eCtorObjectType_object_primitive))
-			SetError(ERROR_TYPE_DEF);
-		return lex.m_strData.Upper();
+	const lexem_t& lex = GETLexem();
+	if (!CValue::IsRegisterCtor(lex.m_strData, eCtorObjectType::eCtorObjectType_object_primitive)) {
+		SetError(ERROR_TYPE_DEF);
+		return wxEmptyString;
 	}
+	return lex.m_strData.Upper();
 }
 
 /**
  * CompileDeclaration
- * Назначение:
- * Компиляция явного объявления переменных
- * Возвращаемое значение:
+ * Purpose:
+ * Compiling explicit variable declarations
+ * Return value:
  * true,false
  */
-bool CCompileCode::CompileDeclaration()
+
+bool CCompileCode::CompileDeclaration(CCompileContext* context)
 {
 	const lexem_t& lex = PreviewGetLexem(); wxString strType;
-	if (IDENTIFIER == lex.m_nType) {
-		strType = GetTypeVar(); //типизированное задание переменных
+	if (lex.m_lexType == IDENTIFIER) {
+		strType = GetTypeVar(); // typed setting of variables
 	}
 	else {
 		GETKeyWord(KEY_VAR);
@@ -735,18 +755,18 @@ bool CCompileCode::CompileDeclaration()
 	while (true) {
 		wxString strRealName = GETIdentifier(true);
 		wxString strName = stringUtils::MakeUpper(strRealName);
-		int nParentNumber = 0;
-		CCompileContext* pCurContext = GetContext();
+		int numParent = 0;
+		CCompileContext* pCurContext = context;
 		while (pCurContext) {
-			nParentNumber++;
-			if (nParentNumber > MAX_OBJECTS_LEVEL) {
+			numParent++;
+			if (numParent > MAX_OBJECTS_LEVEL) {
 				CSystemFunction::Message(pCurContext->m_compileModule->GetModuleName());
-				if (nParentNumber > 2 * MAX_OBJECTS_LEVEL) {
+				if (numParent > 2 * MAX_OBJECTS_LEVEL) {
 					CBackendException::Error("Recursive call of modules!");
 				}
 			}
 			CVariable* currentVariable = nullptr;
-			if (pCurContext->FindVariable(strName, currentVariable)) { //нашли
+			if (pCurContext->FindVariable(strName, currentVariable)) { // found
 				if (currentVariable->m_bExport ||
 					pCurContext->m_compileModule == this) {
 					SetError(ERROR_DEF_VARIABLE, strRealName);
@@ -756,7 +776,7 @@ bool CCompileCode::CompileDeclaration()
 		}
 
 		int nArrayCount = -1;
-		if (IsNextDelimeter('[')) { //это объявление массива
+		if (IsNextDelimeter('[')) { // this is an array declaration
 			nArrayCount = 0;
 			GETDelimeter('[');
 			if (!IsNextDelimeter(']'))
@@ -774,40 +794,39 @@ bool CCompileCode::CompileDeclaration()
 		bool bExport = false;
 
 		if (IsNextKeyWord(KEY_EXPORT)) {
-			if (bExport)//было объявление Экспорт
+			if (bExport) // there was an Export announcement
 				break;
 			GETKeyWord(KEY_EXPORT);
 			bExport = true;
 		}
 
-		//не было еще объявления переменной - добавляем
+		// there was no variable declaration yet - add
 		CParamUnit variable =
-			m_pContext->AddVariable(strRealName, strType, bExport);
+			context->AddVariable(strRealName, strType, bExport);
 
-		if (nArrayCount >= 0) {//записываем информацию о массивах
+		if (nArrayCount >= 0) { // write information about the arrays
 			CByteUnit code;
 			AddLineInfo(code);
-			code.m_nOper = OPER_SET_ARRAY_SIZE;
+			code.m_numOper = OPER_SET_ARRAY_SIZE;
 			code.m_param1 = variable;
-			code.m_param2.m_nArray = nArrayCount;//число элементов в массиве
-			m_cByteCode.m_aCodeList.push_back(code);
+			code.m_param2.m_numArray = nArrayCount;//число элементов в массиве
+			m_cByteCode.m_listCode.push_back(code);
 		}
 
 		AddTypeSet(variable);
 
-		if (IsNextDelimeter('=')) { //начальная инициализация - работает только внутри текста модулей (но не пере объявл. процедур и функций)
-			if (nArrayCount >= 0) {
-				GETDelimeter(',');//Error!
-			}
+		if (IsNextDelimeter('=')) { // initial initialization - works only inside the text of modules (but not re-declaring procedures and functions)
+
+			if (nArrayCount >= 0)  GETDelimeter(','); // error!
 
 			GETDelimeter('=');
 
 			CByteUnit code;
 			AddLineInfo(code);
-			code.m_nOper = OPER_LET;
+			code.m_numOper = OPER_LET;
 			code.m_param1 = variable;
-			code.m_param2 = GetExpression();
-			m_cByteCode.m_aCodeList.push_back(code);
+			code.m_param2 = GetExpression(context);
+			m_cByteCode.m_listCode.push_back(code);
 		}
 
 		if (!IsNextDelimeter(','))
@@ -820,197 +839,201 @@ bool CCompileCode::CompileDeclaration()
 }
 
 /**
- * CompileModule
- * Назначение:
- * Компиляция всего байт-кода (создание из набора лексем объектного кода)
- * Возвращаемое значение:
+ *CompileModule
+ * Purpose:
+ * Compiling all bytecode (creating object code from a set of tokens)
+ * Return value:
  * true,false
 */
+
 bool CCompileCode::CompileModule()
 {
 	lexem_t lex;
 
-	//устанавливаем курсор на начало массива лексем
-	m_nCurrentCompile = -1;
-	m_pContext = GetContext();//контекст самого модуля
-	while ((lex = PreviewGetLexem()).m_nType != ERRORTYPE) {
-		if ((KEYWORD == lex.m_nType && lex.m_nData == KEY_VAR) || (IDENTIFIER == lex.m_nType && IsTypeVar(lex.m_strData))) {
+	// set the cursor to the beginning of the token array
+	m_numCurrentCompile = -1;
+	CCompileContext* mainContext = GetContext(); // context of the module itself
+
+	while ((lex = PreviewGetLexem()).m_lexType != ERRORTYPE) {
+		if ((KEYWORD == lex.m_lexType && lex.m_numData == KEY_VAR) || (IDENTIFIER == lex.m_lexType && IsTypeVar(lex.m_strData))) {
 			if (!m_onlyFunction) {
-				m_pContext = GetContext();
-				CompileDeclaration();//загружаем объявление переменных
+				CompileDeclaration(mainContext); // load variable declaration
 			}
 			else {
 				SetError(ERROR_ONLY_FUNCTION);
+				return false;
 			}
 		}
-		else if (KEYWORD == lex.m_nType && (KEY_PROCEDURE == lex.m_nData || KEY_FUNCTION == lex.m_nData)) {
-			CompileFunction();//загружаем объявление функций
-			//не забываем восстанавливать текущий контекст модуля (если это нужно)...
+		else if (KEYWORD == lex.m_lexType && (KEY_PROCEDURE == lex.m_numData || KEY_FUNCTION == lex.m_numData)) {
+			CompileFunction(mainContext); // load function declaration
+			// don't forget to restore the current module context (if necessary)...
 		}
-		else {
-			break;
-		}
+		else break;
 	}
 
-	//загружаем исполняемое тело модуля
-	m_pContext = GetContext();//контекст самого модуля
-	m_cByteCode.m_lStartModule = 0;//m_cByteCode.m_aCodeList.size() - 1;
-	CompileBlock();
-	m_pContext->DoLabels();
+	// load the executable body of the module
+	m_cByteCode.m_lStartModule = 0;
+	CompileBlock(mainContext);
 
-	//ставим признак конца программы
+	mainContext->DoLabels();
+
+	// set the end of the program
 	CByteUnit code;
 	AddLineInfo(code);
-	code.m_nOper = OPER_END;
-	m_cByteCode.m_aCodeList.push_back(code);
-	m_cByteCode.m_lVarCount = m_pContext->m_cVariables.size();
+	code.m_numOper = OPER_END;
 
-	m_pContext = GetContext();
+	m_cByteCode.m_listCode.push_back(code);
+	m_cByteCode.m_lVarCount = mainContext->m_listVariable.size();
 
-	//дообрабатываем процедуры и функции, вызовы которых были до их объявления
-	//для это в конце массива байт-кодов добавляем новый код по вызову таких функций,
-	//а для корректной работы в места раннего вызова вставляем операторы GOTO
-	for (unsigned int i = 0; i < m_apCallFunctions.size(); i++) {
-		m_cByteCode.m_aCodeList[m_apCallFunctions[i]->m_nAddLine].m_param1.m_nIndex =
-			m_cByteCode.m_aCodeList.size(); //переход на вызов функции
-		if (AddCallFunction(m_apCallFunctions[i])) {
-			//корректрируем переходы
+	// we finish processing procedures and functions that were called before they were declared
+	// for this, at the end of the bytecode array, add new code to call such functions,
+	// and for correct operation we insert GOTO statements into places of early calls
+	for (auto& callFunc : m_listCallFunc) {
+		m_cByteCode.m_listCode[callFunc->m_numAddLine].m_param1.m_numIndex =
+			m_cByteCode.m_listCode.size(); // go to function call
+		if (PushCallFunction(callFunc)) {
+			// correcting labels
 			CByteUnit code;
 			AddLineInfo(code);
-			code.m_nOper = OPER_GOTO;
-			code.m_nNumberLine = m_apCallFunctions[i]->m_nNumberLine;
-			code.m_nNumberString = m_apCallFunctions[i]->m_nNumberString;
-			code.m_param1.m_nIndex = m_apCallFunctions[i]->m_nAddLine + 1; //после вызова функции возвращаемся назад
-			m_cByteCode.m_aCodeList.push_back(code);
+			code.m_numOper = OPER_GOTO;
+			code.m_numLine = callFunc->m_numLine;
+			code.m_numString = callFunc->m_numString;
+			code.m_param1.m_numIndex = callFunc->m_numAddLine + 1; // after calling the function we go back
+			m_cByteCode.m_listCode.push_back(code);
 		}
 	}
 
-	m_pContext = GetContext();
-
-	//Получаем список переменных
-	for (auto it : m_pContext->m_cVariables) {
-		if (it.second.m_bTempVar ||
-			it.second.m_bContext)
+	// get a list of variables
+	for (auto it : mainContext->m_listVariable) {
+		if (it.second.m_bTempVar || it.second.m_bContext)
 			continue;
-		m_cByteCode.m_aVarList[it.first] = it.second.m_nNumber;
+		m_cByteCode.m_listVar[it.first] = it.second.m_numVariable;
 		if (it.second.m_bExport) {
-			m_cByteCode.m_aExportVarList[it.first] = it.second.m_nNumber;
+			m_cByteCode.m_listExportVar[it.first] = it.second.m_numVariable;
 		}
 	}
 
-	if (m_nCurrentCompile + 1 < m_listLexem.size() - 1) {
+	if (m_numCurrentCompile + 1 < m_listLexem.size() - 1) {
 		SetError(ERROR_END_PROGRAM);
+		return false;
 	}
 
 	m_cByteCode.SetModule(this);
-	//компиляция завершена успешно
+
+	// compilation completed successfully
 	m_cByteCode.m_bCompile = true;
 
 	return true;
 }
 
-//поиск определения функции в текущем модуле и во всех родительских
-CFunction* CCompileCode::GetFunction(const wxString& strName, int* pNumber)
+// search for function definition in the current module and all parent ones
+CFunction* CCompileCode::GetFunction(const wxString& strName, int* pNumFunction)
 {
-	int nCanUseLocalInParent = m_cContext.m_nFindLocalInParent - 1;
-	int nNumber = 0;
-	//ищем в текущем модуле
-	CFunction* foundedFunction = nullptr;
-	if (!GetContext()->FindFunction(strName, foundedFunction)) {
+	int numCanUseLocalInParent = m_rootContext->m_numFindLocalInParent - 1;
+	int numFunction = 0;
+	// search in the current module
+	CFunction* foundedFunc = nullptr;
+	if (!GetContext()->FindFunction(strName, foundedFunc)) {
 		CCompileCode* pCurModule = m_parent;
 		while (pCurModule != nullptr) {
-			nNumber++;
-			foundedFunction = pCurModule->m_pContext->m_cFunctions[strName];
-			if (foundedFunction != nullptr) { //нашли
-				//смотрим это экспортная функция или нет
-				if (nCanUseLocalInParent > 0 ||
-					foundedFunction->m_bExport)
+			numFunction++;
+			if (pCurModule->GetContext()->FindFunction(strName, foundedFunc)) { // found
+				// see if this is an export function or not
+				if (numCanUseLocalInParent > 0 || foundedFunc->m_bExport)
 					break;//ок
-				foundedFunction = nullptr;
+				foundedFunc = nullptr;
 			}
-			nCanUseLocalInParent--;
+			numCanUseLocalInParent--;
 			pCurModule = pCurModule->m_parent;
 		}
 	}
-	if (pNumber)
-		*pNumber = nNumber;
-	return foundedFunction;
+	if (pNumFunction)
+		*pNumFunction = numFunction;
+	return foundedFunc;
 }
 
-//Добавление в массив байт-кода вызова функции
-bool CCompileCode::AddCallFunction(CCallFunction* pRealCall)
+// adding the bytecode of the function call to the array
+bool CCompileCode::PushCallFunction(const std::shared_ptr<CCallFunction>& callFunction)
 {
-	int nModuleNumber = 0;
-	//находим определение функции
-	CFunction* foundedFunction = GetFunction(pRealCall->m_strName, &nModuleNumber);
-	if (foundedFunction == nullptr) {
-		m_nCurrentCompile = pRealCall->m_nError;
-		SetError(ERROR_CALL_FUNCTION, pRealCall->m_strRealName);//нет такой функции в модуле
+	int numModule = 0;
+
+	// find the definition of the function
+	CFunction* foundedFunc = GetFunction(callFunction->m_strName, &numModule);
+	if (foundedFunc == nullptr) {
+		m_numCurrentCompile = callFunction->m_numError;
+		SetError(ERROR_CALL_FUNCTION, callFunction->m_strRealName);// there is no such function in the module
 		return false;
 	}
 
-	//проверяем соответствие количество переданных и объявленных параметров
-	unsigned int nRealCount = pRealCall->m_aParamList.size();
-	unsigned int nDefCount = foundedFunction->m_aParamList.size();
+	if (!callFunction->m_numIsSet && foundedFunc->m_compileContext && foundedFunc->m_compileContext->m_numReturn != RETURN_FUNCTION) {
+		m_numCurrentCompile = callFunction->m_numError;
+		SetError(ERROR_USE_PROCEDURE_AS_FUNCTION, foundedFunc->m_strRealName);
+		return false;
+	}
 
-	if (nRealCount > nDefCount) {
-		m_nCurrentCompile = pRealCall->m_nError;
-		SetError(ERROR_MANY_PARAMS);//Слишком много фактических параметров
+	// check the match between the number of passed and declared parameters
+	unsigned int numRealCount = callFunction->m_listParam.size();
+	unsigned int numDefCount = foundedFunc->m_listParam.size();
+
+	if (numRealCount > numDefCount) {
+		m_numCurrentCompile = callFunction->m_numError;
+		SetError(ERROR_MANY_PARAMS);// too many parameters
 		return false;
 	}
 
 	CByteUnit code;
 	AddLineInfo(code);
 
-	code.m_nNumberString = pRealCall->m_nNumberString;
-	code.m_nNumberLine = pRealCall->m_nNumberLine;
-	code.m_strModuleName = pRealCall->m_strModuleName;
+	code.m_numString = callFunction->m_numString;
+	code.m_numLine = callFunction->m_numLine;
+	code.m_strModuleName = callFunction->m_strModuleName;
 
-	if (foundedFunction->m_bContext) {//виртуальная функция - вызов заменям на конструкцию Контекст.ИмяФункции(...)
-		code.m_nOper = OPER_CALL_M;
-		code.m_param1 = pRealCall->m_sRetValue;//переменная, в которую возвращается значение
-		code.m_param2 = pRealCall->m_sContextVal;//переменная у которой вызывается метод
-		code.m_param3.m_nIndex = GetConstString(pRealCall->m_strName);//номер вызываемого метода из списка встретившихся методов
-		code.m_param3.m_nArray = nDefCount;//число параметров
+	if (foundedFunc->m_bContext) { // virtual function - calling replacements with the construct Context.FunctionName(...)
+		code.m_numOper = OPER_CALL_M;
+		code.m_param1 = callFunction->m_puRetValue;		// variable into which the value is returned
+		code.m_param2 = callFunction->m_puContextVal;	// variable on which the method is called
+		code.m_param3.m_numIndex = GetConstString(callFunction->m_strName);	// number of the called method from the list of encountered methods
+		code.m_param3.m_numArray = numDefCount;	// number of parameters
 	}
 	else {
-		code.m_nOper = OPER_CALL;
-		code.m_param1 = pRealCall->m_sRetValue;//переменная, в которую возвращается значение
-		code.m_param2.m_nArray = nModuleNumber;//номер модуля
-		code.m_param2.m_nIndex = foundedFunction->m_nStart;//стартовая позиция
-		code.m_param3.m_nArray = nDefCount;//число параметров
-		code.m_param3.m_nIndex = foundedFunction->m_lVarCount;//число локальных переменных
-		code.m_param4 = pRealCall->m_sContextVal;//контекстная переменная
+		code.m_numOper = OPER_CALL;
+		code.m_param1 = callFunction->m_puRetValue;	// variable into which the value is returned
+		code.m_param2.m_numArray = numModule;		// module number
+		code.m_param2.m_numIndex = foundedFunc->m_nStart;	// starting position
+		code.m_param3.m_numArray = numDefCount;			// number of parameters
+		code.m_param3.m_numIndex = foundedFunc->m_lVarCount;	// number of local variables
+		code.m_param4 = callFunction->m_puContextVal;	// context variable
 	}
 
-	m_cByteCode.m_aCodeList.push_back(code);
+	m_cByteCode.m_listCode.push_back(code);
 
-	for (unsigned int i = 0; i < nDefCount; i++) {
+	for (unsigned int i = 0; i < numDefCount; i++) {
 		CByteUnit code;
 		AddLineInfo(code);
-		code.m_nOper = OPER_SET;//идет передача параметров
+		code.m_numOper = OPER_SET; // parameters are being passed
 		bool defaultValue = false;
-		if (i < nRealCount) {
-			code.m_param1 = pRealCall->m_aParamList[i];
-			if (code.m_param1.m_nArray == DEF_VAR_SKIP) { //нужно подставить значение по умолчанию
+		if (i < numRealCount) {
+			code.m_param1 = callFunction->m_listParam[i];
+			if (code.m_param1.m_numArray == DEF_VAR_SKIP) { // need to substitute the default value
 				defaultValue = true;
 			}
 			else {  //тип передачи значений
-				code.m_param2.m_nIndex = foundedFunction->m_aParamList[i].m_bByRef;
+				code.m_param2.m_numIndex = foundedFunc->m_listParam[i].m_bByRef;
 			}
 		}
 		else {
 			defaultValue = true;
 		}
 		if (defaultValue) {
-			if (foundedFunction->m_aParamList[i].m_vData.m_nArray == DEF_VAR_SKIP) {
-				m_nCurrentCompile = pRealCall->m_nError;
-				SetError(ERROR_FEW_PARAMS);//Недостаточно фактических параметров
+			if (foundedFunc->m_listParam[i].m_valData.m_numArray == DEF_VAR_SKIP) {
+				m_numCurrentCompile = callFunction->m_numError;
+				SetError(ERROR_FEW_PARAMS);	// too few parameters
+				return false;
 			}
-			code.m_nOper = OPER_SETCONST;//значения по умолчанию
-			code.m_param1 = foundedFunction->m_aParamList[i].m_vData;
+			code.m_numOper = OPER_SETCONST;	// default values
+			code.m_param1 = foundedFunc->m_listParam[i].m_valData;
 		}
-		m_cByteCode.m_aCodeList.push_back(code);
+		m_cByteCode.m_listCode.push_back(code);
 	}
 
 	return true;
@@ -1018,194 +1041,202 @@ bool CCompileCode::AddCallFunction(CCallFunction* pRealCall)
 
 /**
  * CompileFunction
- * Назначение:
- * Создание объектного кода для одной функции (процедуры)
- * Алгоритм:
- * -Определить число формальных параметров
- * -Определить способы вызова формальных параметров (по ссылке или по значению)
- * -Определить значения по умолчанию
- * -Определить число локальных переменных
- * -Определить возвращает ли функция значение
+ * Purpose:
+ * Creating object code for one function (procedure)
+ * Algorithm:
+ * - Determine the number of formal parameters
+ * - Define ways to call formal parameters (by reference or by value)
+ * - Define default values
+ * - Determine the number of local variables
+ * - Determine whether the function returns a value
  *
- * Возвращаемое значение:
+ * Return value:
  * true,false
  */
-bool CCompileCode::CompileFunction()
-{
-	//сейчас мы на уровне лексемы, где задано ключевое слово FUNCTION или PROCEDURE
-	lexem_t lex;
 
+bool CCompileCode::CompileFunction(CCompileContext* context)
+{
+	CCompileContext* functionContext = nullptr;
+
+	// we are now at the token level, where the FUNCTION or PROCEDURE keyword is specified
 	if (IsNextKeyWord(KEY_FUNCTION)) {
 		GETKeyWord(KEY_FUNCTION);
-		m_pContext = new CCompileContext(GetContext());//создаем новый контекст, в котором будем компилировать тело функции
-		m_pContext->SetModule(this);
-		m_pContext->m_nReturn = RETURN_FUNCTION;
+		functionContext = new CCompileContext(context);	// create a new context in which we will compile the function body
+		functionContext->SetModule(this);
+		functionContext->m_numReturn = RETURN_FUNCTION;
 	}
 	else if (IsNextKeyWord(KEY_PROCEDURE)) {
 		GETKeyWord(KEY_PROCEDURE);
-		m_pContext = new CCompileContext(GetContext());//создаем новый контекст, в котором будем компилировать тело процедуры
-		m_pContext->SetModule(this);
-		m_pContext->m_nReturn = RETURN_PROCEDURE;
+		functionContext = new CCompileContext(context);	// create a new context in which we will compile the body of the procedure
+		functionContext->SetModule(this);
+		functionContext->m_numReturn = RETURN_PROCEDURE;
 	}
 	else {
 		SetError(ERROR_FUNC_DEFINE);
+		return false;
 	}
 
-	//вытаскиваем текст объявления функции
-	lex = PreviewGetLexem();
+	// pull out the text of the function declaration
+	lexem_t lex = PreviewGetLexem();
 
 	wxString strShortDescription;
-	int m_nNumberLine = lex.m_nNumberLine;
-	int nRes = m_strBuffer.find('\n', lex.m_nNumberString);
-	if (nRes >= 0) {
-		//strShortDescription = m_strBuffer.Mid(lex.m_nNumberString, nRes - lex.m_nNumberString - 1);
-		strShortDescription = m_strBuffer.Mid(lex.m_nNumberString, nRes - lex.m_nNumberString - 1);
-		nRes = strShortDescription.find_first_of('/');
-		if (nRes > 0) {
-			if (strShortDescription[nRes - 1] == '/') { //итак - это комментарий
-				strShortDescription = strShortDescription.Mid(nRes + 1);
+	const int numLine = lex.m_numLine;
+	int numRes = m_strBuffer.find('\n', lex.m_numLine);
+	if (numRes >= 0) {
+		strShortDescription = m_strBuffer.Mid(lex.m_numLine, numRes - lex.m_numLine - 1);
+		numRes = strShortDescription.find_first_of('/');
+		if (numRes > 0) {
+			if (strShortDescription[numRes - 1] == '/') { // so this is a comment
+				strShortDescription = strShortDescription.Mid(numRes + 1);
 			}
 		}
 		else {
-			nRes = strShortDescription.find_first_of(')');
-			strShortDescription = strShortDescription.Left(nRes + 1);
+			numRes = strShortDescription.find_first_of(')');
+			strShortDescription = strShortDescription.Left(numRes + 1);
 		}
 	}
 
-	//получаем имя функции
+	// get the function name
 	const wxString& strFuncRealName = GETIdentifier(true);
 	const wxString& strFuncName = stringUtils::MakeUpper(strFuncRealName);
 
-	int errorPlace = m_nCurrentCompile;
+	const int errorPlace = m_numCurrentCompile;
 
-	CFunction* pFunction = new CFunction(strFuncName, m_pContext);
-	pFunction->m_strRealName = strFuncRealName;
-	pFunction->m_strShortDescription = strShortDescription;
-	pFunction->m_nNumberLine = m_nNumberLine;
+	CFunction* createdFunction = new CFunction(strFuncName, functionContext);
 
-	//компилируем список формальных параметров + регистрируем их как локальные
+	createdFunction->m_strRealName = strFuncRealName;
+	createdFunction->m_strShortDescription = strShortDescription;
+	createdFunction->m_numLine = numLine;
+
+	// compile the list of formal parameters + register them as local
 	GETDelimeter('(');
-	if (!IsNextDelimeter(')')) {
-		while (true) {
-			wxString typeVar = wxEmptyString;
-			//проверка на типизированность
-			if (IsTypeVar())
-				typeVar = GetTypeVar();
 
-			CParamVariable cVariable;
-			if (IsNextKeyWord(KEY_VAL)) {
-				GETKeyWord(KEY_VAL);
-				cVariable.m_bByRef = true;
-			}
-			const wxString& strRealName = GETIdentifier(true);
-			cVariable.m_strName = strRealName;
-			cVariable.m_strType = typeVar;
+	while (!IsNextDelimeter(')')) {
 
-			CVariable* foundedVar = nullptr;
-			//регистрируем эту переменную как локальную
-			if (m_pContext->FindVariable(strRealName, foundedVar)) { //было объявление + повторное объявление = ошибка
-				SetError(ERROR_IDENTIFIER_DUPLICATE, strRealName);
-			}
-			if (IsNextDelimeter('[')) {//это массив
-				GETDelimeter('[');
-				GETDelimeter(']');
-			}
-			else if (IsNextDelimeter('=')) {
-				GETDelimeter('=');
-				cVariable.m_vData = FindConst(GETConstant());
-			}
-			m_pContext->AddVariable(strRealName, typeVar);
-			pFunction->m_aParamList.push_back(cVariable);
-			if (IsNextDelimeter(')'))
-				break;
-			GETDelimeter(',');
+		// check for typing
+		const wxString typeVar = IsTypeVar() ?
+			GetTypeVar() : wxEmptyString;
+
+		CParamVariable cVariable;
+		if (IsNextKeyWord(KEY_VAL)) {
+			GETKeyWord(KEY_VAL);
+			cVariable.m_bByRef = true;
 		}
+
+		const wxString& strRealName = GETIdentifier(true);
+
+		cVariable.m_strName = strRealName;
+		cVariable.m_strType = typeVar;
+
+		CVariable* foundedVar = nullptr;
+
+		// register this variable as local
+		if (functionContext->FindVariable(strRealName, foundedVar)) { // there was an announcement + repeated announcement = error
+			SetError(ERROR_IDENTIFIER_DUPLICATE, strRealName);
+			return false; 
+		}
+	
+		if (IsNextDelimeter('[')) { // this is an array
+			GETDelimeter('[');
+			GETDelimeter(']');
+		}
+		else if (IsNextDelimeter('=')) {
+			GETDelimeter('=');
+			cVariable.m_valData = FindConst(GETConstant());
+		}
+
+		functionContext->AddVariable(strRealName, typeVar);
+		createdFunction->m_listParam.push_back(cVariable);
+		if (!IsNextDelimeter(',') || IsNextDelimeter(')'))
+			break;
+		GETDelimeter(',');
 	}
 	GETDelimeter(')');
 	if (IsNextKeyWord(KEY_EXPORT)) {
 		GETKeyWord(KEY_EXPORT);
-		pFunction->m_bExport = true;
+		createdFunction->m_bExport = true;
 	}
 
-	int nParentNumber = 0;
-	CCompileContext* pCurContext = GetContext();
-	while (pCurContext) {
-		nParentNumber++;
-		if (nParentNumber > MAX_OBJECTS_LEVEL) {
+	int numParent = 0;
+	CCompileContext* pCurContext = context;
+	while (pCurContext != nullptr) {
+		numParent++;
+		if (numParent > MAX_OBJECTS_LEVEL) {
 			CSystemFunction::Message(pCurContext->m_compileModule->GetModuleName());
-			if (nParentNumber > 2 * MAX_OBJECTS_LEVEL) {
+			if (numParent > 2 * MAX_OBJECTS_LEVEL) {
 				CBackendException::Error("Recursive call of modules!");
 			}
 		}
+
 		CFunction* foundedFunc = nullptr;
-		if (pCurContext->FindFunction(strFuncName, foundedFunc)) { //нашли
-			if (foundedFunc->m_bExport ||
-				pCurContext->m_compileModule == this) {
-				m_nCurrentCompile = errorPlace;
+		if (pCurContext->FindFunction(strFuncName, foundedFunc)) { // found
+			if (foundedFunc != createdFunction && foundedFunc->m_bExport) {
+				m_numCurrentCompile = errorPlace;
 				SetError(ERROR_DEF_FUNCTION, strFuncRealName);
+				return false;
 			}
 		}
+
 		pCurContext = pCurContext->m_parentContext;
 	}
 
-	//проверка на типизированность
-	GetContext()->m_cFunctions[strFuncName] = pFunction;
+	context->m_listFunction[strFuncName] = createdFunction;
 
-	//вставляем информацию о функции в массив байт-кодов:
+	// insert information about the function into the bytecode array:
 	CByteUnit code0;
 	AddLineInfo(code0);
-	code0.m_nOper = OPER_FUNC;
+	code0.m_numOper = OPER_FUNC;
 #if defined(_LP64) || defined(__LP64__) || defined(__arch64__) || defined(_WIN64)
-	code0.m_param1.m_nArray = reinterpret_cast<wxLongLong_t>(m_pContext);
+	code0.m_param1.m_numArray = reinterpret_cast<wxLongLong_t>(functionContext);
 #else
-	code0.m_param1.m_nArray = reinterpret_cast<int>(m_pContext);
+	code0.m_param1.m_numArray = reinterpret_cast<int>(functionContext);
 #endif
-	m_cByteCode.m_aCodeList.push_back(code0);
+	m_cByteCode.m_listCode.push_back(code0);
 
-	const long lAddres = pFunction->m_nStart = m_cByteCode.m_aCodeList.size() - 1;
+	const long lAddres = createdFunction->m_nStart = m_cByteCode.m_listCode.size() - 1;
 
-	m_cByteCode.m_aFuncList[strFuncName] = {
-		(long)pFunction->m_aParamList.size(),
+	m_cByteCode.m_listFunc[strFuncName] = {
+		(long)createdFunction->m_listParam.size(),
 		lAddres,
-		m_pContext->m_nReturn == RETURN_FUNCTION
+		functionContext->m_numReturn == RETURN_FUNCTION
 	};
 
-	if (pFunction->m_bExport) {
-		m_cByteCode.m_aExportFuncList[strFuncName] = {
-			(long)pFunction->m_aParamList.size(),
+	if (createdFunction->m_bExport) {
+		m_cByteCode.m_listExportFunc[strFuncName] = {
+			(long)createdFunction->m_listParam.size(),
 			lAddres,
-			m_pContext->m_nReturn == RETURN_FUNCTION
+			functionContext->m_numReturn == RETURN_FUNCTION
 		};
 	}
 
-	for (unsigned int i = 0; i < pFunction->m_aParamList.size(); i++) {
+	for (unsigned int i = 0; i < createdFunction->m_listParam.size(); i++) {
 		//add set oper
 		CByteUnit code;
 		AddLineInfo(code);
-		if (pFunction->m_aParamList[i].m_vData.m_nArray == DEF_VAR_CONST) {
-			code.m_nOper = OPER_SETCONST;//идет передача параметров
+		if (createdFunction->m_listParam[i].m_valData.m_numArray == DEF_VAR_CONST) {
+			code.m_numOper = OPER_SETCONST;// parameters are being passed
 		}
 		else {
-			code.m_nOper = OPER_SET;//идет передача параметров
+			code.m_numOper = OPER_SET;// parameters are being passed
 		}
-		code.m_param1 = pFunction->m_aParamList[i].m_vData;
-		code.m_param2.m_nIndex = pFunction->m_aParamList[i].m_bByRef;
-		m_cByteCode.m_aCodeList.push_back(code);
+		code.m_param1 = createdFunction->m_listParam[i].m_valData;
+		code.m_param2.m_numIndex = createdFunction->m_listParam[i].m_bByRef;
+		m_cByteCode.m_listCode.push_back(code);
 
 		//Set type variable
 		CParamUnit variable;
-		variable.m_strType = pFunction->m_aParamList[i].m_strType;
-		variable.m_nArray = 0;
-		variable.m_nIndex = i;//индекс совпадает с номером
+		variable.m_strType = createdFunction->m_listParam[i].m_strType;
+		variable.m_numArray = 0;
+		variable.m_numIndex = i;// index matches the number
 		AddTypeSet(variable);
 	}
 
-	GetContext()->m_strCurFuncName = strFuncName;
-	CompileBlock();
-	m_pContext->DoLabels();
-	GetContext()->m_strCurFuncName = wxEmptyString;
+	context->m_strCurFuncName = strFuncName;
+	CompileBlock(functionContext);
+	functionContext->DoLabels();
+	context->m_strCurFuncName = wxEmptyString;
 
-	if (m_pContext->m_nReturn == RETURN_FUNCTION) {
+	if (functionContext->m_numReturn == RETURN_FUNCTION) {
 		GETKeyWord(KEY_ENDFUNCTION);
 	}
 	else {
@@ -1214,36 +1245,36 @@ bool CCompileCode::CompileFunction()
 
 	CByteUnit code;
 	AddLineInfo(code);
-	code.m_nOper = OPER_ENDFUNC;
-	m_cByteCode.m_aCodeList.push_back(code);
+	code.m_numOper = OPER_ENDFUNC;
+	m_cByteCode.m_listCode.push_back(code);
 
-	pFunction->m_nFinish = m_cByteCode.m_aCodeList.size() - 1;
-	pFunction->m_lVarCount = m_pContext->m_cVariables.size();
+	createdFunction->m_nFinish = m_cByteCode.m_listCode.size() - 1;
+	createdFunction->m_lVarCount = functionContext->m_listVariable.size();
 
-	m_cByteCode.m_aCodeList[lAddres].m_param3.m_nIndex = pFunction->m_lVarCount;//число локальных переменных
-	m_cByteCode.m_aCodeList[lAddres].m_param3.m_nArray = pFunction->m_aParamList.size();//число формальных параметров
+	m_cByteCode.m_listCode[lAddres].m_param3.m_numIndex = createdFunction->m_lVarCount;// number of local variables
+	m_cByteCode.m_listCode[lAddres].m_param3.m_numArray = createdFunction->m_listParam.size();//number of formal parameters
 
-	m_pContext->SetFunction(pFunction);
+	functionContext->SetFunction(createdFunction);
 	return true;
 }
 
 /**
- * записываем информацию о типе переменной
+ * record information about the type of variable
  */
-void CCompileCode::AddTypeSet(const CParamUnit& sVariable)
+
+void CCompileCode::AddTypeSet(const CParamUnit& variable)
 {
-	const wxString& typeName = sVariable.m_strType;
-	if (!typeName.IsEmpty()) {
+	if (!variable.m_strType.IsEmpty()) {
 		CByteUnit code;
 		AddLineInfo(code);
-		code.m_nOper = OPER_SET_TYPE;
-		code.m_param1 = sVariable;
-		code.m_param2.m_nArray = CValue::GetIDObjectFromString(typeName);
-		m_cByteCode.m_aCodeList.push_back(code);
+		code.m_numOper = OPER_SET_TYPE;
+		code.m_param1 = variable;
+		code.m_param2.m_numArray = CValue::GetIDObjectFromString(variable.m_strType);
+		m_cByteCode.m_listCode.push_back(code);
 	}
 }
 
-//Макрос проверки переменной Var типу Str
+// macro checking variable Var for type Str
 #define CheckTypeDef(var,type) if(wxStrlen(type) > 0)\
 	{\
 		if(var.m_strType!=type)\
@@ -1254,95 +1285,97 @@ void CCompileCode::AddTypeSet(const CParamUnit& sVariable)
 			else if (CValue::CompareObjectName(type, eValueTypes::TYPE_DATE)) SetError(ERROR_BAD_TYPE_EXPRESSION_D);\
 			else SetError(ERROR_BAD_TYPE_EXPRESSION);\
 		}\
-		if (CValue::CompareObjectName(type, eValueTypes::TYPE_NUMBER)) code.m_nOper+=TYPE_DELTA1;\
-		else if (CValue::CompareObjectName(type, eValueTypes::TYPE_STRING)) code.m_nOper+=TYPE_DELTA2;\
-		else if (CValue::CompareObjectName(type, eValueTypes::TYPE_DATE)) code.m_nOper+=TYPE_DELTA3;\
-        else if (CValue::CompareObjectName(type, eValueTypes::TYPE_BOOLEAN)) code.m_nOper+=TYPE_DELTA4;\
+		if (CValue::CompareObjectName(type, eValueTypes::TYPE_NUMBER)) code.m_numOper+=TYPE_DELTA1;\
+		else if (CValue::CompareObjectName(type, eValueTypes::TYPE_STRING)) code.m_numOper+=TYPE_DELTA2;\
+		else if (CValue::CompareObjectName(type, eValueTypes::TYPE_DATE)) code.m_numOper+=TYPE_DELTA3;\
+        else if (CValue::CompareObjectName(type, eValueTypes::TYPE_BOOLEAN)) code.m_numOper+=TYPE_DELTA4;\
 	}
 
-
-//Макрос корректировки операции по типу переменной
-//если она типизированна, то будет выполняться типизированная операция
+// macro for adjusting the operation by variable type
+// if it is typed, then the typed operation will be performed
 #define CorrectTypeDef(sKey)\
 if(!sKey.m_strType.IsEmpty())\
 {\
-	if (CValue::CompareObjectName(sKey.m_strType, eValueTypes::TYPE_NUMBER)) code.m_nOper+=TYPE_DELTA1;\
-	else if (CValue::CompareObjectName(sKey.m_strType, eValueTypes::TYPE_STRING)) code.m_nOper+=TYPE_DELTA2;\
-	else if (CValue::CompareObjectName(sKey.m_strType, eValueTypes::TYPE_DATE)) code.m_nOper+=TYPE_DELTA3;\
-    else if (CValue::CompareObjectName(sKey.m_strType, eValueTypes::TYPE_BOOLEAN))  code.m_nOper+=TYPE_DELTA4;\
+	if (CValue::CompareObjectName(sKey.m_strType, eValueTypes::TYPE_NUMBER)) code.m_numOper+=TYPE_DELTA1;\
+	else if (CValue::CompareObjectName(sKey.m_strType, eValueTypes::TYPE_STRING)) code.m_numOper+=TYPE_DELTA2;\
+	else if (CValue::CompareObjectName(sKey.m_strType, eValueTypes::TYPE_DATE)) code.m_numOper+=TYPE_DELTA3;\
+    else if (CValue::CompareObjectName(sKey.m_strType, eValueTypes::TYPE_BOOLEAN))  code.m_numOper+=TYPE_DELTA4;\
 	else SetError(ERROR_BAD_TYPE_EXPRESSION);\
 }
 
 /**
  * CompileBlock
- * Назначение:
- * Создание объектного кода для одного блока (куска кода между какими-либо
- * операторными скобками типа ЦИКЛ...КОНЕЦИКЛА, ЕСЛИ...КОНЕЦЕСЛИ и т.п.
- * nIterNumber - номер вложенного блока
- * Возвращаемое значение:
+ * Purpose:
+ * Creating object code for one block (a piece of code between any
+ * operator brackets like LOOP...ENDDO, IF...ENDIF, etc.
+ * nIterNumber - nested block number
+ * Return value:
  * true,false
  */
-bool CCompileCode::CompileBlock()
+
+bool CCompileCode::CompileBlock(CCompileContext* context)
 {
 	lexem_t lex;
-	while ((lex = PreviewGetLexem()).m_nType != ERRORTYPE)
+	while ((lex = PreviewGetLexem()).m_lexType != ERRORTYPE)
 	{
-		/*if (IDENTIFIER == lex.m_nType && IsTypeVar(lex.m_strData))
+		/*if (IDENTIFIER == lex.m_lexType && IsTypeVar(lex.m_strData))
 		{
 			CompileDeclaration();
 		}
 		else*/
-		if (KEYWORD == lex.m_nType)
+		if (KEYWORD == lex.m_lexType)
 		{
-			switch (lex.m_nData)
+			switch (lex.m_numData)
 			{
-			case KEY_VAR://задание переменных и массивов
-				CompileDeclaration();
-				break;
+			case KEY_VAR: // setting variables and arrays
+			CompileDeclaration(context);
+			break;
 			case KEY_NEW:
-				CompileNewObject();
-				break;
+			CompileNewObject(context);
+			break;
 			case KEY_IF:
-				CompileIf();
-				break;
+			CompileIf(context);
+			break;
 			case KEY_WHILE:
-				CompileWhile();
-				break;
+			CompileWhile(context);
+			break;
 			case KEY_FOREACH:
-				CompileForeach();
-				break;
+			CompileForeach(context);
+			break;
 			case KEY_FOR:
-				CompileFor();
-				break;
+			CompileFor(context);
+			break;
 			case KEY_GOTO:
-				CompileGoto();
-				break;
+			CompileGoto(context);
+			break;
 			case KEY_RETURN:
 			{
 				GETKeyWord(KEY_RETURN);
 
-				if (m_pContext->m_nReturn == RETURN_NONE) {
-					SetError(ERROR_USE_RETURN); //Оператор Return (Возврат) не может употребляться вне процедуры или функции
+				if (context->m_numReturn == RETURN_NONE) {
+					SetError(ERROR_USE_RETURN); // return operator cannot be used outside a procedure or function
+					return false;
 				}
 
 				CByteUnit code;
 				AddLineInfo(code);
-				code.m_nOper = OPER_RET;
+				code.m_numOper = OPER_RET;
 
-				if (m_pContext->m_nReturn == RETURN_FUNCTION) { //возвращается какое-то значение
+				if (context->m_numReturn == RETURN_FUNCTION) { // some value is returned
 
 					if (IsNextDelimeter(';')) {
 						SetError(ERROR_EXPRESSION_REQUIRE);
+						return false;
 					}
 
-					code.m_param1 = GetExpression();
+					code.m_param1 = GetExpression(context);
 				}
 				else {
-					code.m_param1.m_nArray = DEF_VAR_NORET;
-					code.m_param1.m_nIndex = DEF_VAR_NORET;
+					code.m_param1.m_numArray = DEF_VAR_NORET;
+					code.m_param1.m_numIndex = DEF_VAR_NORET;
 				}
 
-				m_cByteCode.m_aCodeList.push_back(code);
+				m_cByteCode.m_listCode.push_back(code);
 				break;
 			}
 			case KEY_TRY:
@@ -1350,22 +1383,24 @@ bool CCompileCode::CompileBlock()
 				GETKeyWord(KEY_TRY);
 				CByteUnit code;
 				AddLineInfo(code);
-				code.m_nOper = OPER_TRY;
-				m_cByteCode.m_aCodeList.push_back(code);
-				int nLineTry = m_cByteCode.m_aCodeList.size() - 1;
+				code.m_numOper = OPER_TRY;
+				m_cByteCode.m_listCode.push_back(code);
+				
+				const int lineTry = m_cByteCode.m_listCode.size() - 1;
 
-				CompileBlock();
-				code.m_nOper = OPER_ENDTRY;
-				m_cByteCode.m_aCodeList.push_back(code);
-				int nAddrLine = m_cByteCode.m_aCodeList.size() - 1;
+				CompileBlock(context);
+				code.m_numOper = OPER_ENDTRY;
+				m_cByteCode.m_listCode.push_back(code);
+			
+				const int addrLine = m_cByteCode.m_listCode.size() - 1;
 
-				m_cByteCode.m_aCodeList[nLineTry].m_param1.m_nIndex = m_cByteCode.m_aCodeList.size();
+				m_cByteCode.m_listCode[lineTry].m_param1.m_numIndex = m_cByteCode.m_listCode.size();
 
 				GETKeyWord(KEY_EXCEPT);
-				CompileBlock();
+				CompileBlock(context);
 				GETKeyWord(KEY_ENDTRY);
 
-				m_cByteCode.m_aCodeList[nAddrLine].m_param1.m_nIndex = m_cByteCode.m_aCodeList.size();
+				m_cByteCode.m_listCode[addrLine].m_param1.m_numIndex = m_cByteCode.m_listCode.size();
 				break;
 			}
 			case KEY_RAISE:
@@ -1374,48 +1409,50 @@ bool CCompileCode::CompileBlock()
 				CByteUnit code;
 				AddLineInfo(code);
 				if (IsNextDelimeter('(')) {
-					code.m_nOper = OPER_RAISE_T;
+					code.m_numOper = OPER_RAISE_T;
 					GETDelimeter('(');
-					code.m_param1 = GetExpression();
+					code.m_param1 = GetExpression(context);
 					GETDelimeter(')');
 				}
 				else {
-					code.m_nOper = OPER_RAISE;
+					code.m_numOper = OPER_RAISE;
 				}
-				m_cByteCode.m_aCodeList.push_back(code);
+				m_cByteCode.m_listCode.push_back(code);
 				break;
 			}
 			case KEY_CONTINUE:
 			{
 				GETKeyWord(KEY_CONTINUE);
-				if (m_pContext->aContinueList[m_pContext->m_nDoNumber]) {
+				if (context->m_listContinue[context->m_numDoNumber]) {
 					CByteUnit code;
 					AddLineInfo(code);
-					code.m_nOper = OPER_GOTO;
-					m_cByteCode.m_aCodeList.push_back(code);
-					int nAddrLine = m_cByteCode.m_aCodeList.size() - 1;
-					std::vector<int>* pList = m_pContext->aContinueList[m_pContext->m_nDoNumber];
-					pList->push_back(nAddrLine);
+					code.m_numOper = OPER_GOTO;
+					m_cByteCode.m_listCode.push_back(code);
+					const int addrLine = m_cByteCode.m_listCode.size() - 1;
+					std::vector<int>* pList = context->m_listContinue[context->m_numDoNumber];
+					pList->push_back(addrLine);
 				}
 				else {
-					SetError(ERROR_USE_CONTINUE);//Опереатор Continue (Продолжить)  может употребляться только внутри цикла		
+					SetError(ERROR_USE_CONTINUE); // continue statement can only be used inside a loop
 				}
 				break;
 			}
 			case KEY_BREAK:
 			{
 				GETKeyWord(KEY_BREAK);
-				if (m_pContext->aBreakList[m_pContext->m_nDoNumber])
-				{
+				if (context->m_listBreak[context->m_numDoNumber] != nullptr) {
 					CByteUnit code;
 					AddLineInfo(code);
-					code.m_nOper = OPER_GOTO;
-					m_cByteCode.m_aCodeList.push_back(code);
-					int nAddrLine = m_cByteCode.m_aCodeList.size() - 1;
-					std::vector<int>* pList = m_pContext->aBreakList[m_pContext->m_nDoNumber];
-					pList->push_back(nAddrLine);
+					code.m_numOper = OPER_GOTO;
+					m_cByteCode.m_listCode.push_back(code);
+					const int addrLine = m_cByteCode.m_listCode.size() - 1;
+					std::vector<int>* pList = context->m_listBreak[context->m_numDoNumber];
+					pList->push_back(addrLine);
 				}
-				else SetError(ERROR_USE_BREAK);//Опереатор Break(Прервать)  может употребляться только внутри цикла
+				else {
+					SetError(ERROR_USE_BREAK); // break operator can only be used inside a loop
+					return false;
+				}
 				break;
 			}
 			case KEY_FUNCTION:
@@ -1423,35 +1460,39 @@ bool CCompileCode::CompileBlock()
 			{
 				GetLexem();
 				SetError(ERROR_USE_BLOCK);
+				return false;
 				break;
 			}
-			default: return true;//значит встретилась завершающая данный блок операторная скобка (например КОНЕЦЕСЛИ, КОНЕЦЦИКЛА, КОНЕЦФУНКЦИИ и т.п.)		
+			default: 
+			return true;	// means the operator bracket ending this block has been encountered (for example, ENDIF, ENDDO, ENDFUNCTION, etc.)
 			}
 		}
 		else
 		{
 			lex = GetLexem();
 
-			if (IDENTIFIER == lex.m_nType) {
-				m_pContext->m_nTempVar = 0;
-				if (IsNextDelimeter(':')) {//это встретилось задание метки
-					unsigned int pLabel = m_pContext->m_cLabelsDef[lex.m_strData];
-					if (pLabel > 0)
-						SetError(ERROR_IDENTIFIER_DUPLICATE, lex.m_strData);//произошло дублированное определения меток
-					//записываем адрес перехода:
-					m_pContext->m_cLabelsDef[lex.m_strData] = m_cByteCode.m_aCodeList.size() - 1;
+			if (IDENTIFIER == lex.m_lexType) {
+				context->m_numTempVar = 0;
+				if (IsNextDelimeter(':')) {// this is a label task encountered
+					unsigned int pLabel = context->m_listLabelDef[lex.m_strData];
+					if (pLabel > 0) {
+						SetError(ERROR_IDENTIFIER_DUPLICATE, lex.m_strData);// duplicate label definitions occurred
+						return false;
+					}
+					// write the address of the label:
+					context->m_listLabelDef[lex.m_strData] = m_cByteCode.m_listCode.size() - 1;
 					GETDelimeter(':');
 				}
-				else { //здесь обрабатываются вызовы функций, методов, присваиваение выражений
-					m_nCurrentCompile--;//шаг назад
-					int nSet = 1;
-					if (m_onlyFunction && m_pContext == GetContext()) SetError(ERROR_ONLY_FUNCTION);
-					CParamUnit variable = GetCurrentIdentifier(nSet);//получаем левую часть выражения (до знака '=')
-					if (nSet) { //если есть правая часть, т.е. знак '='
-						GETDelimeter('=');//это присваивание переменной какого-то выражения
-						CParamUnit expression = GetExpression();
+				else { //function and method calls, expression assignments are processed here
+					m_numCurrentCompile--;// step back
+					int numSet = 1;
+					if (m_onlyFunction && context == GetContext()) SetError(ERROR_ONLY_FUNCTION);
+					CParamUnit variable = GetCurrentIdentifier(context, numSet);//get the left side of the expression (before the '=' sign)
+					if (numSet) { //if there is a right side, i.e. the '=' sign
+						GETDelimeter('=');//this is an assignment of some expression to a variable
+						CParamUnit expression = GetExpression(context);
 						CByteUnit code;
-						code.m_nOper = OPER_LET;
+						code.m_numOper = OPER_LET;
 						AddLineInfo(code);
 
 						CheckTypeDef(expression, variable.m_strType);
@@ -1459,10 +1500,10 @@ bool CCompileCode::CompileBlock()
 
 						bool bShortLet = false; int n = 0;
 
-						if (DEF_VAR_TEMP == expression.m_nArray) { //сокращаем только временные переменные
-							n = m_cByteCode.m_aCodeList.size() - 1;
+						if (DEF_VAR_TEMP == expression.m_numArray) { //reduce only temporary variables
+							n = m_cByteCode.m_listCode.size() - 1;
 							if (n >= 0) {
-								int nOperation = m_cByteCode.m_aCodeList[n].m_nOper;
+								int nOperation = m_cByteCode.m_listCode[n].m_numOper % TYPE_DELTA1;
 								nOperation = nOperation % TYPE_DELTA1;
 								if (OPER_MULT == nOperation ||
 									OPER_DIV == nOperation ||
@@ -1477,28 +1518,28 @@ bool CCompileCode::CompileBlock()
 									OPER_EQ == nOperation
 									)
 								{
-									bShortLet = true;//сокращаем одно присваивание
+									bShortLet = true;//shorten one assignment
 								}
 							}
 						}
 
 						if (bShortLet) {
-							m_cByteCode.m_aCodeList[n].m_param1 = variable;
+							m_cByteCode.m_listCode[n].m_param1 = variable;
 						}
 						else {
 							code.m_param1 = variable;
 							code.m_param2 = expression;
-							m_cByteCode.m_aCodeList.push_back(code);
+							m_cByteCode.m_listCode.push_back(code);
 						}
 					}
 				}
 			}
 			else {
-				if (DELIMITER == lex.m_nType
-					&& ';' == lex.m_nData)
+				if (DELIMITER == lex.m_lexType
+					&& ';' == lex.m_numData)
 				{
 				}
-				else if (ENDPROGRAM == lex.m_nType) {
+				else if (ENDPROGRAM == lex.m_lexType) {
 					break;
 				}
 				else {
@@ -1510,36 +1551,31 @@ bool CCompileCode::CompileBlock()
 	return true;
 }//CompileBlock
 
-bool CCompileCode::CompileNewObject()
+bool CCompileCode::CompileNewObject(CCompileContext* context)
 {
 	GETKeyWord(KEY_NEW);
 
 	wxString sObjectName = GETIdentifier(true);
-	int nNumber = GetConstString(sObjectName);
+	int num = GetConstString(sObjectName);
 
-	std::vector <CParamUnit> aParamList;
+	std::vector <CParamUnit> listParam;
 
-	if (IsNextDelimeter('('))//это вызов метода
-	{
+	if (IsNextDelimeter('(')) { // this is a method call
 		GETDelimeter('(');
-
-		while (!IsNextDelimeter(')'))
-		{
-			if (IsNextDelimeter(','))
-			{
+		while (!IsNextDelimeter(')')) {
+			if (IsNextDelimeter(',')) {
 				CParamUnit data;
-				data.m_nArray = DEF_VAR_SKIP;//пропущенный параметр
-				data.m_nIndex = DEF_VAR_SKIP;
-				aParamList.push_back(data);
+				data.m_numArray = DEF_VAR_SKIP;// missing parameter
+				data.m_numIndex = DEF_VAR_SKIP;
+				listParam.push_back(data);
 			}
-			else
-			{
-				aParamList.emplace_back(GetExpression());
-				if (IsNextDelimeter(')')) break;
+			else {
+				listParam.emplace_back(GetExpression(context));
+				if (!IsNextDelimeter(',') || IsNextDelimeter(')'))
+					break;
 			}
 			GETDelimeter(',');
 		}
-
 		GETDelimeter(')');
 	}
 
@@ -1549,21 +1585,22 @@ bool CCompileCode::CompileNewObject()
 	CByteUnit code;
 	AddLineInfo(code);
 
-	code.m_nOper = OPER_NEW;
-	code.m_param2.m_nIndex = nNumber;//номер вызываемого метода из списка встретившихся методов
-	code.m_param2.m_nArray = aParamList.size();//число параметров
+	code.m_numOper = OPER_NEW;
+	code.m_param2.m_numIndex = num;//number of the called method from the list of encountered methods
+	code.m_param2.m_numArray = listParam.size();// number of parameters
 
-	CParamUnit variable = GetVariable();
-	code.m_param1 = variable;//переменная, в которую возвращается значение
-	m_cByteCode.m_aCodeList.push_back(code);
+	CParamUnit variable = context->CreateVariable();
+	code.m_param1 = variable;// variable into which the value is returned
+	m_cByteCode.m_listCode.push_back(code);
 
-	for (unsigned int i = 0; i < aParamList.size(); i++)
-	{
+	for (unsigned int arg = 0; arg < listParam.size(); arg++) {
+		
 		CByteUnit code;
 		AddLineInfo(code);
-		code.m_nOper = OPER_SET;
-		code.m_param1 = aParamList[i];
-		m_cByteCode.m_aCodeList.push_back(code);
+		code.m_numOper = OPER_SET;
+		code.m_param1 = listParam[arg];
+		
+		m_cByteCode.m_listCode.push_back(code);
 	}
 
 	return true;
@@ -1571,206 +1608,203 @@ bool CCompileCode::CompileNewObject()
 
 /**
  * CompileGoto
- * Назначение:
- * Компилирование оператора GOTO (определение расположение метки перехода
- * для последующей ее замены на адрес и тип = LABEL)
- * Возвращаемое значение:
+ * Purpose:
+ * Compiling the GOTO statement (determining the location of the jump label
+ * for subsequent replacement with address and type = LABEL)
+ * Return value:
  * true,false
  */
-bool CCompileCode::CompileGoto()
+
+bool CCompileCode::CompileGoto(CCompileContext* context)
 {
 	GETKeyWord(KEY_GOTO);
 
 	CLabel data;
 	data.m_strName = GETIdentifier();
-	data.m_nLine = m_cByteCode.m_aCodeList.size();//запоминаем те переходы, которые потом надо будет обработать
-	data.m_nError = m_nCurrentCompile;
-	m_pContext->m_cLabels.push_back(data);
+	data.m_numLine = m_cByteCode.m_listCode.size();//запоминаем те переходы, которые потом надо будет обработать
+	data.m_numError = m_numCurrentCompile;
+	
+	context->m_listLabel.push_back(data);
 
 	CByteUnit code;
 	AddLineInfo(code);
-	code.m_nOper = OPER_GOTO;
-	m_cByteCode.m_aCodeList.push_back(code);
+	code.m_numOper = OPER_GOTO;
+	m_cByteCode.m_listCode.push_back(code);
 
 	return true;
 }
 
 /*
  * GetCurrentIdentifier
- * Назначение:
- * Компилирование идентификатора (определение его типа как переменной,атрибута или функции,метода)
- * nIsSet - на входе:  1 - признак того что возможно ожидается присваивание выражения (если встретится знак '=')
- * Возвращаемое значение:
- * nIsSet - на выходе: 1 - признак того что точно ожидается присваивание выражения (т.е. должен встретиться знак '=')
- * номер идекса переменной, где лежит значение идентификатора
+ * Purpose:
+ * Compiling an identifier (defining its type as a variable, attribute or function, method)
+ * numIsSet - at the input: 1 - a sign that an expression assignment may be expected (if the '=' sign is encountered)
+ * Return value:
+ * numIsSet - at the output: 1 - a sign that the assignment of the expression is exactly expected (i.e. the '=' sign must be encountered)
+ * index number of the variable where the identifier value lies
 */
-CParamUnit CCompileCode::GetCurrentIdentifier(int& nIsSet)
+
+CParamUnit CCompileCode::GetCurrentIdentifier(CCompileContext* context, int& numIsSet)
 {
-	CParamUnit variable; int nPrevSet = nIsSet;
+	CParamUnit variable; int numPrevSet = numIsSet;
 
-	wxString strRealName = GETIdentifier(true);
-	wxString strName = stringUtils::MakeUpper(strRealName);
+	const wxString& strRealName = GETIdentifier(true);
+	const wxString& strName = stringUtils::MakeUpper(strRealName);
 
-	if (IsNextDelimeter('(')) { //это вызов функции
-		CFunction* foundedFunction = nullptr;
-		if (m_cContext.FindFunction(strName, foundedFunction, true)) {
-			int nNumber = GetConstString(strRealName);
-			std::vector <CParamUnit> aParamList;
+	if (IsNextDelimeter('(')) { // this is a function call
+		CFunction* foundedFunc = nullptr;
+		if (m_rootContext->FindFunction(strName, foundedFunc, true)) {
+			const int numConst = GetConstString(strRealName);
+			std::vector <CParamUnit> listParam;
 			GETDelimeter('(');
 			while (!IsNextDelimeter(')')) {
 				if (IsNextDelimeter(',')) {
 					CParamUnit data;
-					data.m_nArray = DEF_VAR_SKIP;//пропущенный параметр
-					data.m_nIndex = DEF_VAR_SKIP;
-					aParamList.push_back(data);
+					data.m_numArray = DEF_VAR_SKIP; // missing parameter
+					data.m_numIndex = DEF_VAR_SKIP;
+					listParam.push_back(data);
 				}
 				else {
-					aParamList.emplace_back(GetExpression());
-					if (IsNextDelimeter(')'))
+					listParam.emplace_back(GetExpression(context));
+					if (!IsNextDelimeter(',') || IsNextDelimeter(')'))
 						break;
 				}
 				GETDelimeter(',');
 			}
 			GETDelimeter(')');
-			if (!nIsSet && foundedFunction != nullptr &&
-				foundedFunction->m_pContext && foundedFunction->m_pContext->m_nReturn == RETURN_PROCEDURE) {
-				SetError(ERROR_USE_PROCEDURE_AS_FUNCTION, foundedFunction->m_strRealName);
+			if (!numIsSet && foundedFunc != nullptr &&
+				foundedFunc->m_compileContext && foundedFunc->m_compileContext->m_numReturn != RETURN_FUNCTION) {
+				SetError(ERROR_USE_PROCEDURE_AS_FUNCTION, foundedFunc->m_strRealName);
 			}
-			if (aParamList.size() > foundedFunction->m_aParamList.size()) {
-				SetError(ERROR_MANY_PARAMS); //Слишком много фактических параметров
+			if (listParam.size() > foundedFunc->m_listParam.size()) {
+				SetError(ERROR_MANY_PARAMS); // too many parameters
 			}
 			CByteUnit code;
 			AddLineInfo(code);
-			code.m_nOper = OPER_CALL_M;
-			// переменная у которой вызывается метод
-			code.m_param2 = GetVariable(foundedFunction->m_strContextVar, false, true);
-			code.m_param3.m_nIndex = nNumber;//номер вызываемого метода из списка встретившихся методов
-			code.m_param3.m_nArray = aParamList.size();//число параметров
-			variable = GetVariable();
-			code.m_param1 = variable;//переменная, в которую возвращается значение
-			m_cByteCode.m_aCodeList.push_back(code);
-			for (unsigned int i = 0; i < aParamList.size(); i++) {
+			code.m_numOper = OPER_CALL_M;
+
+			// variable on which the method is called
+			code.m_param2 = context->GetVariable(foundedFunc->m_strContextVar, true, false, true);
+			code.m_param3.m_numIndex = numConst;//number of the called method from the list of encountered methods
+			code.m_param3.m_numArray = listParam.size();// number of parameters
+			variable = context->CreateVariable();
+			code.m_param1 = variable;// variable into which the value is returned
+			m_cByteCode.m_listCode.push_back(code);
+
+			for (unsigned int i = 0; i < listParam.size(); i++) {
 				CByteUnit code;
 				AddLineInfo(code);
-				code.m_nOper = OPER_SET;
-				code.m_param1 = aParamList[i];
-				m_cByteCode.m_aCodeList.push_back(code);
+				code.m_numOper = OPER_SET;
+				code.m_param1 = listParam[i];
+				m_cByteCode.m_listCode.push_back(code);
 			}
 		}
 		else {
-			CFunction* foundedFunc = nullptr;
-			if (m_bExpressionOnly)
-				foundedFunc = GetFunction(strName);
-			else if (!GetContext()->FindFunction(strName, foundedFunc))
-				SetError(ERROR_CALL_FUNCTION, strRealName);
-			if (!nIsSet && foundedFunc && foundedFunc->m_pContext && foundedFunc->m_pContext->m_nReturn == RETURN_PROCEDURE) {
-				SetError(ERROR_USE_PROCEDURE_AS_FUNCTION, foundedFunc->m_strRealName);
-			}
-			variable = GetCallFunction(strRealName);
+			variable = GetCallFunction(context, strRealName, numIsSet);
 		}
 		if (IsTypeVar(strRealName)) {
-			variable.m_strType = GetTypeVar(strRealName);//это приведение типов
+			variable.m_strType = GetTypeVar(strRealName);	// this is a type cast
 		}
-		nIsSet = 0;
+		numIsSet = 0;
 	}
 	else { //это вызов переменной
-		CVariable* foundedVar = nullptr; nIsSet = 1;
-		if (m_cContext.FindVariable(strRealName, foundedVar, true)) {
+		CVariable* foundedVar = nullptr; numIsSet = 1;
+		if (m_rootContext->FindVariable(strRealName, foundedVar, true)) {
 			CByteUnit code;
 			AddLineInfo(code);
-			int nNumber = GetConstString(strRealName);
-			if (IsNextDelimeter('=') && nPrevSet == 1) {
-				GETDelimeter('='); nIsSet = 0;
-				code.m_nOper = OPER_SET_A;
-				code.m_param1 = GetVariable(foundedVar->m_strContextVar, false, true);//переменная у которой вызывается атрибут
-				code.m_param2.m_nIndex = nNumber;//номер вызываемого метода из списка встретившихся атрибутов и методов
-				code.m_param3 = GetExpression();
-				m_cByteCode.m_aCodeList.push_back(code);
+			int numConst = GetConstString(strRealName);
+			if (IsNextDelimeter('=') && numPrevSet == 1) {
+				GETDelimeter('='); numIsSet = 0;
+				code.m_numOper = OPER_SET_A;
+				code.m_param1 = context->GetVariable(foundedVar->m_strContextVar, true, false, true);//variable for which the attribute is called
+				code.m_param2.m_numIndex = numConst;//number of the called method from the list of encountered attributes and methods
+				code.m_param3 = GetExpression(context);
+				m_cByteCode.m_listCode.push_back(code);
 				return variable;
 			}
 			else {
-				code.m_nOper = OPER_GET_A;
-				code.m_param2 = GetVariable(foundedVar->m_strContextVar, false, true);//переменная у которой вызывается атрибут
-				code.m_param3.m_nIndex = nNumber;//номер вызываемого атрибута из списка встретившихся атрибутов и методов
-				variable = GetVariable();
-				code.m_param1 = variable;//переменная, в которую возвращается значение
-				m_cByteCode.m_aCodeList.push_back(code);
+				code.m_numOper = OPER_GET_A;
+				code.m_param2 = context->GetVariable(foundedVar->m_strContextVar, true, false, true);//variable for which the attribute is called
+				code.m_param3.m_numIndex = numConst;//number of the attribute to be called from the list of attributes and methods encountered
+				variable = context->CreateVariable();
+				code.m_param1 = variable;// variable into which the value is returned
+				m_cByteCode.m_listCode.push_back(code);
 			}
 		}
 		else {
-			bool bCheckError = !nPrevSet;
-			if (IsNextDelimeter('.'))//эта переменная содержит вызов метода
+			bool bCheckError = !numPrevSet;
+			if (IsNextDelimeter('.'))//this variable contains a method call
 				bCheckError = true;
-			variable = GetVariable(strRealName, bCheckError);
+			variable = context->GetVariable(strRealName, true, bCheckError);
 		}
 	}
 
-MLabel:
+loopLabel:
 
-	if (IsNextDelimeter('[')) { //это массив
+	if (IsNextDelimeter('[')) { // this is an array
 		GETDelimeter('[');
-		CParamUnit sKey = GetExpression();
+		CParamUnit variableKey = GetExpression(context);
 		GETDelimeter(']');
-		//определяем тип вызова (т.е. это установка значения массива или получение)
-		//Пример:
-		//Мас[10]=12; - Set
-		//А=Мас[10]; - Get
-		//Мас[10][2]=12; - Get,Set
-		nIsSet = 0;
-		if (IsNextDelimeter('[')) { //проверки типа переменной массива (поддержка многомерных массивов)
+		//determine the call type (i.e. is it setting or getting an array value)
+		//Example:
+		//Arr[10]=12; - Set
+		//А=Arr[10]; - Get
+		//Arr[10][2]=12; - Get,Set
+		numIsSet = 0;
+		if (IsNextDelimeter('[')) { //check the array variable type (multidimensional array support)
 			CByteUnit code;
 			AddLineInfo(code);
-			code.m_nOper = OPER_CHECK_ARRAY;
-			code.m_param1 = variable;//переменная - массив
-			code.m_param2 = sKey;//индекс массива
-			m_cByteCode.m_aCodeList.push_back(code);
+			code.m_numOper = OPER_CHECK_ARRAY;
+			code.m_param1 = variable;//variable is an array
+			code.m_param2 = variableKey;//array index
+			m_cByteCode.m_listCode.push_back(code);
 		}
-		if (IsNextDelimeter('=') && nPrevSet == 1) {
+		if (IsNextDelimeter('=') && numPrevSet == 1) {
 			GETDelimeter('=');
 			CByteUnit code;
 			AddLineInfo(code);
-			code.m_nOper = OPER_SET_ARRAY;
-			code.m_param1 = variable;//переменная - массив
-			code.m_param2 = sKey;//индекс массива (точнее ключ т.к. используется ассоциативный массив)
-			code.m_param3 = GetExpression();
+			code.m_numOper = OPER_SET_ARRAY;
+			code.m_param1 = variable;//variable is an array
+			code.m_param2 = variableKey;//array index (more precisely, key since an associative array is used)
+			code.m_param3 = GetExpression(context);
 
-			CorrectTypeDef(sKey);//проверка типа значения индексной переменной
+			CorrectTypeDef(variableKey);// check value type of index variable
 
-			m_cByteCode.m_aCodeList.push_back(code);
+			m_cByteCode.m_listCode.push_back(code);
 			return variable;
 		}
 		else {
 			CByteUnit code;
 			AddLineInfo(code);
-			code.m_nOper = OPER_GET_ARRAY;
-			code.m_param2 = variable;//переменная - массив
-			code.m_param3 = sKey;//индекс массива (точнее ключ т.к. используется ассоциативный массив)
-			variable = GetVariable();
-			code.m_param1 = variable;//переменная, в которую возвращается значение
-			CorrectTypeDef(sKey);//проверка типа значения индексной переменной
-			m_cByteCode.m_aCodeList.push_back(code);
+			code.m_numOper = OPER_GET_ARRAY;
+			code.m_param2 = variable;//variable - array
+			code.m_param3 = variableKey;//array index (more precisely key since associative array is used)
+			variable = context->CreateVariable();
+			code.m_param1 = variable;// variable into which the value is returned
+			CorrectTypeDef(variableKey);// check value type индексной переменной
+			m_cByteCode.m_listCode.push_back(code);
 		}
-		goto MLabel;
+		goto loopLabel;
 	}
 
-	if (IsNextDelimeter('.')) { //это вызов метода или атрибута агрегатного объекта
+	if (IsNextDelimeter('.')) { // this is a method call или атрибута агрегатного объекта
 		GETDelimeter('.');
-		wxString strRealMethod = GETIdentifier(true);
-		//wxString sMethod = stringUtils::MakeUpper(strRealMethod);
-		int nNumber = GetConstString(strRealMethod);
-		if (IsNextDelimeter('(')) { //это вызов метода
-			std::vector <CParamUnit> aParamList;
+		wxString strIdentifier = GETIdentifier(true);
+		const int numConst = GetConstString(strIdentifier);
+		if (IsNextDelimeter('(')) { // this is a method call
+			std::vector <CParamUnit> listParam;
 			GETDelimeter('(');
 			while (!IsNextDelimeter(')')) {
 				if (IsNextDelimeter(',')) {
 					CParamUnit data;
-					data.m_nArray = DEF_VAR_SKIP;//пропущенный параметр
-					data.m_nIndex = DEF_VAR_SKIP;
-					aParamList.push_back(data);
+					data.m_numArray = DEF_VAR_SKIP;// missing parameter
+					data.m_numIndex = DEF_VAR_SKIP;
+					listParam.push_back(data);
 				}
 				else {
-					aParamList.emplace_back(GetExpression());
-					if (IsNextDelimeter(')')) break;
+					listParam.emplace_back(GetExpression(context));
+					if (!IsNextDelimeter(',') || IsNextDelimeter(')'))
+						break;
 				}
 				GETDelimeter(',');
 			}
@@ -1778,179 +1812,179 @@ MLabel:
 
 			CByteUnit code;
 			AddLineInfo(code);
-			code.m_nOper = OPER_CALL_M;
-			code.m_param2 = variable; // переменная у которой вызывается метод
-			code.m_param3.m_nIndex = nNumber;//номер вызываемого метода из списка встретившихся методов
-			code.m_param3.m_nArray = aParamList.size();//число параметров
-			variable = GetVariable();
-			code.m_param1 = variable;//переменная, в которую возвращается значение
-			m_cByteCode.m_aCodeList.push_back(code);
-			for (unsigned int i = 0; i < aParamList.size(); i++) {
+			code.m_numOper = OPER_CALL_M;
+			code.m_param2 = variable; // variable on which the method is called
+			code.m_param3.m_numIndex = numConst;//number of the called method from the list of encountered methods
+			code.m_param3.m_numArray = listParam.size();// number of parameters
+			variable = context->CreateVariable();
+			code.m_param1 = variable;// variable into which the value is returned
+			m_cByteCode.m_listCode.push_back(code);
+			for (unsigned int i = 0; i < listParam.size(); i++) {
 				CByteUnit code;
 				AddLineInfo(code);
-				code.m_nOper = OPER_SET;
-				code.m_param1 = aParamList[i];
-				m_cByteCode.m_aCodeList.push_back(code);
+				code.m_numOper = OPER_SET;
+				code.m_param1 = listParam[i];
+				m_cByteCode.m_listCode.push_back(code);
 			}
 
-			nIsSet = 0;
+			numIsSet = 0;
 		}
-		else { //иначе - вызов атрибута
-			//определяем тип вызова (т.е. это установка атрибута или получение)
-			//Пример:
-			//А=Спр.Товар; - Get
-			//Спр.Товар=0; - Set
-			//Спр.Товар.Код=0;  - Get,Set
+		else { //otherwise - attribute call
+			//define the call type (i.e. is it attribute setting or getting)
+			//Example:
+			//A=Cat.Product; - Get
+			//Cat.Product=0; - Set
+			//Cat.Product.Code=0; - Get,Set
 			CByteUnit code;
 			AddLineInfo(code);
-			if (IsNextDelimeter('=') && nPrevSet == 1) {
-				GETDelimeter('='); 	nIsSet = 0;
-				code.m_nOper = OPER_SET_A;
-				code.m_param1 = variable;//переменная у которой вызывается атрибут
-				code.m_param2.m_nIndex = nNumber;//номер вызываемого метода из списка встретившихся атрибутов и методов
-				code.m_param3 = GetExpression();
-				m_cByteCode.m_aCodeList.push_back(code);
+			if (IsNextDelimeter('=') && numPrevSet == 1) {
+				GETDelimeter('='); 	numIsSet = 0;
+				code.m_numOper = OPER_SET_A;
+				code.m_param1 = variable;//variable for which the attribute is called
+				code.m_param2.m_numIndex = numConst;//number of the called method from the list of encountered attributes and methods
+				code.m_param3 = GetExpression(context);
+				m_cByteCode.m_listCode.push_back(code);
 				return variable;
 			}
 			else {
-				code.m_nOper = OPER_GET_A;
-				code.m_param2 = variable;//переменная у которой вызывается атрибут
-				code.m_param3.m_nIndex = nNumber;//номер вызываемого атрибута из списка встретившихся атрибутов и методов
-				variable = GetVariable();
-				code.m_param1 = variable;//переменная, в которую возвращается значение
-				m_cByteCode.m_aCodeList.push_back(code);
+				code.m_numOper = OPER_GET_A;
+				code.m_param2 = variable;//variable for which the attribute is called
+				code.m_param3.m_numIndex = numConst;//number of the called attribute from the list of encountered attributes and methods
+				variable = context->CreateVariable();
+				code.m_param1 = variable;// variable into which the value is returned
+				m_cByteCode.m_listCode.push_back(code);
 			}
 		}
-		goto MLabel;
+		goto loopLabel;
 	}
 	return variable;
 }
 
-bool CCompileCode::CompileIf()
+bool CCompileCode::CompileIf(CCompileContext* context)
 {
-	std::vector <int>aAddrLine;
+	std::vector <int> listAddrLine;
 
 	GETKeyWord(KEY_IF);
 
 	CParamUnit sParam;
 	CByteUnit code;
 	AddLineInfo(code);
-	code.m_nOper = OPER_IF;
+	code.m_numOper = OPER_IF;
 
-	sParam = GetExpression();
+	sParam = GetExpression(context);
 	code.m_param1 = sParam;
-	CorrectTypeDef(sParam);//проверка типа значения
+	CorrectTypeDef(sParam);// check value type
 
-	m_cByteCode.m_aCodeList.push_back(code);
+	m_cByteCode.m_listCode.push_back(code);
 
-	int nLastIFLine = m_cByteCode.m_aCodeList.size() - 1;
+	int nLastIFLine = m_cByteCode.m_listCode.size() - 1;
 
 	GETKeyWord(KEY_THEN);
-	CompileBlock();
+	CompileBlock(context);
 
 	while (IsNextKeyWord(KEY_ELSEIF)) {
-		//Записываем выход из всех проверок для предыдущего блока
-		code.m_nOper = OPER_GOTO;
-		m_cByteCode.m_aCodeList.push_back(code);
-		aAddrLine.push_back(m_cByteCode.m_aCodeList.size() - 1);//параметр для оператора GOTO будет известен потом
+		// write the output from all checks for the previous block
+		code.m_numOper = OPER_GOTO;
+		m_cByteCode.m_listCode.push_back(code);
+		listAddrLine.push_back(m_cByteCode.m_listCode.size() - 1);//the parameter for the GOTO operator will be known later
 
-		//для предыдущего условия устанавливаем адрес прехода при несовпадении условия
-		m_cByteCode.m_aCodeList[nLastIFLine].m_param2.m_nIndex = m_cByteCode.m_aCodeList.size();
+		//for the previous condition, set the jump address if the condition does not match
+		m_cByteCode.m_listCode[nLastIFLine].m_param2.m_numIndex = m_cByteCode.m_listCode.size();
 
 		GETKeyWord(KEY_ELSEIF);
 		AddLineInfo(code);
-		code.m_nOper = OPER_IF;
+		code.m_numOper = OPER_IF;
 
-		sParam = GetExpression();
+		sParam = GetExpression(context);
 		code.m_param1 = sParam;
-		CorrectTypeDef(sParam);//проверка типа значения
+		CorrectTypeDef(sParam);// check value type
 
-		m_cByteCode.m_aCodeList.push_back(code);
-		nLastIFLine = m_cByteCode.m_aCodeList.size() - 1;
+		m_cByteCode.m_listCode.push_back(code);
+		nLastIFLine = m_cByteCode.m_listCode.size() - 1;
 
 		GETKeyWord(KEY_THEN);
-		CompileBlock();
+		CompileBlock(context);
 	}
 
 	if (IsNextKeyWord(KEY_ELSE)) {
-		//Записываем выход из всех проверок для предыдущего блока
+		// write the output from all checks for the previous block
 		AddLineInfo(code);
-		code.m_nOper = OPER_GOTO;
-		m_cByteCode.m_aCodeList.push_back(code);
-		aAddrLine.push_back(m_cByteCode.m_aCodeList.size() - 1);//параметр для оператора GOTO будет известен потом
+		code.m_numOper = OPER_GOTO;
+		m_cByteCode.m_listCode.push_back(code);
+		listAddrLine.push_back(m_cByteCode.m_listCode.size() - 1);//the parameter for the GOTO operator will be known later
 
-		//для предыдущего условия устанавливаем адрес прехода при несовпадении условия
-		m_cByteCode.m_aCodeList[nLastIFLine].m_param2.m_nIndex = m_cByteCode.m_aCodeList.size();
+		//for the previous condition, set the jump address if the condition does not match
+		m_cByteCode.m_listCode[nLastIFLine].m_param2.m_numIndex = m_cByteCode.m_listCode.size();
 		nLastIFLine = 0;
 
 		GETKeyWord(KEY_ELSE);
-		CompileBlock();
+		CompileBlock(context);
 	}
 
 	GETKeyWord(KEY_ENDIF);
 
-	int nCurCompile = m_cByteCode.m_aCodeList.size();
+	const int numCurCompile = m_cByteCode.m_listCode.size();
 
-	//для последнего условия устанавливаем адрес прехода при несовпадении условия
-	m_cByteCode.m_aCodeList[nLastIFLine].m_param2.m_nIndex = nCurCompile;
+	//for the last condition, set the jump address if the condition does not match
+	m_cByteCode.m_listCode[nLastIFLine].m_param2.m_numIndex = numCurCompile;
 
-	//Устанавливаем параметр для оператора GOTO - выход из всех локальных условий
-	for (unsigned int i = 0; i < aAddrLine.size(); i++) {
-		m_cByteCode.m_aCodeList[aAddrLine[i]].m_param1.m_nIndex = nCurCompile;
+	//Set the parameter for the GOTO operator - exit from all local conditions
+	for (unsigned int i = 0; i < listAddrLine.size(); i++) {
+		m_cByteCode.m_listCode[listAddrLine[i]].m_param1.m_numIndex = numCurCompile;
 	}
 
 	return true;
 }
 
-bool CCompileCode::CompileWhile()
+bool CCompileCode::CompileWhile(CCompileContext* context)
 {
-	m_pContext->StartDoList();
+	context->StartDoList();
 
-	int nStartWhile = m_cByteCode.m_aCodeList.size();
+	int nStartWhile = m_cByteCode.m_listCode.size();
 
 	GETKeyWord(KEY_WHILE);
 	CByteUnit code;
 	AddLineInfo(code);
-	code.m_nOper = OPER_IF;
+	code.m_numOper = OPER_IF;
 
-	CParamUnit sParam = GetExpression();
+	CParamUnit sParam = GetExpression(context);
 	code.m_param1 = sParam;
-	CorrectTypeDef(sParam);//проверка типа значения
+	CorrectTypeDef(sParam);// check value type
 
-	int nEndWhile = m_cByteCode.m_aCodeList.size();
+	const int numEndWhile = m_cByteCode.m_listCode.size();
 
-	m_cByteCode.m_aCodeList.push_back(code);
+	m_cByteCode.m_listCode.push_back(code);
 
 	GETKeyWord(KEY_DO);
-	CompileBlock();
+	CompileBlock(context);
 	GETKeyWord(KEY_ENDDO);
 
 	CByteUnit code2;
 	AddLineInfo(code2);
-	code2.m_nOper = OPER_GOTO;
-	code2.m_param1.m_nIndex = nStartWhile;
-	m_cByteCode.m_aCodeList.push_back(code2);
+	code2.m_numOper = OPER_GOTO;
+	code2.m_param1.m_numIndex = nStartWhile;
+	m_cByteCode.m_listCode.push_back(code2);
 
-	m_cByteCode.m_aCodeList[nEndWhile].m_param2.m_nIndex = m_cByteCode.m_aCodeList.size();
+	m_cByteCode.m_listCode[numEndWhile].m_param2.m_numIndex = m_cByteCode.m_listCode.size();
 
-	//запоминаем адреса переходов для команд Continue и Break
-	m_pContext->FinishDoList(m_cByteCode, m_cByteCode.m_aCodeList.size() - 1, m_cByteCode.m_aCodeList.size());
+	// remember the transition addresses for the Continue and Break commands
+	context->FinishDoList(m_cByteCode, m_cByteCode.m_listCode.size() - 1, m_cByteCode.m_listCode.size());
 
 	return true;
 }
 
-bool CCompileCode::CompileFor()
+bool CCompileCode::CompileFor(CCompileContext* context)
 {
-	m_pContext->StartDoList();
+	context->StartDoList();
 
 	GETKeyWord(KEY_FOR);
 
 	wxString strRealName = GETIdentifier(true);
 	wxString strName = stringUtils::MakeUpper(strRealName);
 
-	CParamUnit variable = GetVariable(strRealName);
+	CParamUnit variable = context->GetVariable(strRealName);
 
-	//проверка типа переменной
+	// check variable type
 	if (!variable.m_strType.IsEmpty()) {
 		if (!CValue::CompareObjectName(variable.m_strType, eValueTypes::TYPE_NUMBER)) {
 			SetError(ERROR_NUMBER_TYPE);
@@ -1958,16 +1992,16 @@ bool CCompileCode::CompileFor()
 	}
 
 	GETDelimeter('=');
-	CParamUnit Variable2 = GetExpression();
+	CParamUnit Variable2 = GetExpression(context);
 
 	CByteUnit code0;
 	AddLineInfo(code0);
-	code0.m_nOper = OPER_LET;
+	code0.m_numOper = OPER_LET;
 	code0.m_param1 = variable;
 	code0.m_param2 = Variable2;
-	m_cByteCode.m_aCodeList.push_back(code0);
+	m_cByteCode.m_listCode.push_back(code0);
 
-	//проверка типа значения
+	// check value type
 	if (!variable.m_strType.IsEmpty())
 	{
 		if (!CValue::CompareObjectName(Variable2.m_strType, eValueTypes::TYPE_NUMBER)) {
@@ -1977,199 +2011,205 @@ bool CCompileCode::CompileFor()
 
 	GETKeyWord(KEY_TO);
 	CParamUnit VariableTo =
-		m_pContext->GetVariable(strName + wxT("@to"), true, false, false, true); //loop variable
+		context->GetVariable(strName + wxT("@to"), true, false, false, true); //loop variable
 
 	CByteUnit code1;
 	AddLineInfo(code1);
-	code1.m_nOper = OPER_LET;
+	code1.m_numOper = OPER_LET;
 	code1.m_param1 = VariableTo;
-	code1.m_param2 = GetExpression();
-	m_cByteCode.m_aCodeList.push_back(code1);
+	code1.m_param2 = GetExpression(context);
+	m_cByteCode.m_listCode.push_back(code1);
 
 	CByteUnit code;
 	AddLineInfo(code);
-	code.m_nOper = OPER_FOR;
+	code.m_numOper = OPER_FOR;
 	code.m_param1 = variable;
 	code.m_param2 = VariableTo;
-	m_cByteCode.m_aCodeList.push_back(code);
+	m_cByteCode.m_listCode.push_back(code);
 
-	int nStartFOR = m_cByteCode.m_aCodeList.size() - 1;
+	const int nStartFOR = m_cByteCode.m_listCode.size() - 1;
 
 	GETKeyWord(KEY_DO);
-	CompileBlock();
+	CompileBlock(context);
 	GETKeyWord(KEY_ENDDO);
 
 	CByteUnit code2;
 	AddLineInfo(code2);
-	code2.m_nOper = OPER_NEXT;
+	code2.m_numOper = OPER_NEXT;
 	code2.m_param1 = variable;
-	code2.m_param2.m_nIndex = nStartFOR;
-	m_cByteCode.m_aCodeList.push_back(code2);
+	code2.m_param2.m_numIndex = nStartFOR;
+	m_cByteCode.m_listCode.push_back(code2);
 
-	m_cByteCode.m_aCodeList[nStartFOR].m_param3.m_nIndex = m_cByteCode.m_aCodeList.size();
+	m_cByteCode.m_listCode[nStartFOR].m_param3.m_numIndex = m_cByteCode.m_listCode.size();
 
-	//запоминаем адреса переходов для команд Continue и Break
-	m_pContext->FinishDoList(m_cByteCode, m_cByteCode.m_aCodeList.size() - 1, m_cByteCode.m_aCodeList.size());
+	// remember the transition addresses for the Continue and Break commands
+	context->FinishDoList(m_cByteCode, m_cByteCode.m_listCode.size() - 1, m_cByteCode.m_listCode.size());
 
 	return true;
 }
 
-bool CCompileCode::CompileForeach()
+bool CCompileCode::CompileForeach(CCompileContext* context)
 {
-	m_pContext->StartDoList();
+	context->StartDoList();
 
 	GETKeyWord(KEY_FOREACH);
 
 	wxString strRealName = GETIdentifier(true);
 	wxString strName = stringUtils::MakeUpper(strRealName);
 
-	CParamUnit variable = GetVariable(strRealName);
+	CParamUnit variable = context->GetVariable(strRealName);
 
 	GETKeyWord(KEY_IN);
 
 	CParamUnit VariableIn =
-		m_pContext->GetVariable(strName + wxT("@in"), true, false, false, true); //loop variable
+		context->GetVariable(strName + wxT("@in_"), true, false, false, true); //loop variable
 
 	CByteUnit code1;
 	AddLineInfo(code1);
-	code1.m_nOper = OPER_LET;
+	code1.m_numOper = OPER_LET;
 	code1.m_param1 = VariableIn;
-	code1.m_param2 = GetExpression();
-	m_cByteCode.m_aCodeList.push_back(code1);
+	code1.m_param2 = GetExpression(context);
+	m_cByteCode.m_listCode.push_back(code1);
 
 	CParamUnit VariableIt =
-		m_pContext->GetVariable(strName + wxT("@it"), true, false, false, true);  //storage iterpos;
+		context->GetVariable(strName + wxT("@it_"), true, false, false, true);  //storage iterpos;
 
 	CByteUnit code;
 	AddLineInfo(code);
-	code.m_nOper = OPER_FOREACH;
+	code.m_numOper = OPER_FOREACH;
 	code.m_param1 = variable;
 	code.m_param2 = VariableIn;
 	code.m_param3 = VariableIt; // for storage iterpos;
-	m_cByteCode.m_aCodeList.push_back(code);
+	m_cByteCode.m_listCode.push_back(code);
 
-	int nStartFOREACH = m_cByteCode.m_aCodeList.size() - 1;
+	const int numStartFOREACH = m_cByteCode.m_listCode.size() - 1;
 
 	GETKeyWord(KEY_DO);
-	CompileBlock();
+	CompileBlock(context);
 	GETKeyWord(KEY_ENDDO);
 
 	CByteUnit code2;
 	AddLineInfo(code2);
-	code2.m_nOper = OPER_NEXT_ITER;
+	code2.m_numOper = OPER_NEXT_ITER;
 	code2.m_param1 = VariableIt; // for storage iterpos;
-	code2.m_param2.m_nIndex = nStartFOREACH;
-	m_cByteCode.m_aCodeList.push_back(code2);
+	code2.m_param2.m_numIndex = numStartFOREACH;
+	m_cByteCode.m_listCode.push_back(code2);
 
-	m_cByteCode.m_aCodeList[nStartFOREACH].m_param4.m_nIndex = m_cByteCode.m_aCodeList.size();
+	m_cByteCode.m_listCode[numStartFOREACH].m_param4.m_numIndex = m_cByteCode.m_listCode.size();
 
-	//запоминаем адреса переходов для команд Continue и Break
-	m_pContext->FinishDoList(m_cByteCode, m_cByteCode.m_aCodeList.size() - 1, m_cByteCode.m_aCodeList.size());
-
+	// remember the transition addresses for the Continue and Break commands
+	context->FinishDoList(m_cByteCode, m_cByteCode.m_listCode.size() - 1, m_cByteCode.m_listCode.size());
 	return true;
 }
 
 /**
- * обработка вызова функции или процедуры
+ * processing a function or procedure call
  */
-CParamUnit CCompileCode::GetCallFunction(const wxString& strRealName)
+
+CParamUnit CCompileCode::GetCallFunction(CCompileContext* context, const wxString& strRealName, const int& numIsSet)
 {
-	wxString strName = stringUtils::MakeUpper(strRealName);
-	CCallFunction* callFunc = new CCallFunction;
+	std::shared_ptr<CCallFunction> callFunc(new CCallFunction);
 
-	CFunction* foundedFunction = nullptr;
-	if (m_bExpressionOnly)
-		foundedFunction = GetFunction(strName);
-	else if (!GetContext()->FindFunction(strName, foundedFunction))
-		SetError(ERROR_CALL_FUNCTION, strRealName);
-
-	callFunc->m_strName = strName;
+	callFunc->m_strName = stringUtils::MakeUpper(strRealName);
 	callFunc->m_strRealName = strRealName;
-	callFunc->m_nError = m_nCurrentCompile;//для выдачи сообщений при ошибках
+	callFunc->m_numError = m_numCurrentCompile;// to display messages when errors occur
+
 	GETDelimeter('(');
+
 	while (!IsNextDelimeter(')')) {
 		if (IsNextDelimeter(',')) {
 			CParamUnit data;
-			data.m_nArray = DEF_VAR_SKIP;//пропущенный параметр
-			data.m_nIndex = DEF_VAR_SKIP;
-			callFunc->m_aParamList.push_back(data);
+			data.m_numArray = DEF_VAR_SKIP;// missing parameter
+			data.m_numIndex = DEF_VAR_SKIP;
+			callFunc->m_listParam.push_back(data);
 		}
 		else {
-			callFunc->m_aParamList.emplace_back(GetExpression());
-			if (IsNextDelimeter(')'))
+			callFunc->m_listParam.emplace_back(GetExpression(context));
+			if (!IsNextDelimeter(',') || IsNextDelimeter(')'))
 				break;
 		}
 		GETDelimeter(',');
 	}
 
 	GETDelimeter(')');
-	CParamUnit variable = GetVariable();
 
 	CByteUnit code;
 	AddLineInfo(code);
 
-	callFunc->m_nNumberString = code.m_nNumberString;
-	callFunc->m_nNumberLine = code.m_nNumberLine;
+	callFunc->m_numString = code.m_numString;
+	callFunc->m_numLine = code.m_numLine;
 	callFunc->m_strModuleName = code.m_strModuleName;
-	callFunc->m_sRetValue = variable;
+	callFunc->m_puRetValue = context->CreateVariable();
 
-	if (foundedFunction && GetContext()->m_strCurFuncName != strName) {
-		AddCallFunction(callFunc);
-		wxDELETE(callFunc);
+	callFunc->m_numIsSet = numIsSet;
+
+	CFunction* foundedFunc = nullptr;
+
+	if (m_bExpressionOnly) foundedFunc = GetFunction(callFunc->m_strName);
+	else context->FindFunction(callFunc->m_strName, foundedFunc);
+
+	if (foundedFunc != nullptr && context->m_strCurFuncName != callFunc->m_strName) {
+		if (!PushCallFunction(callFunc))
+			return CParamUnit();
 	}
 	else {
-		if (m_bExpressionOnly)
+		if (m_bExpressionOnly) {
 			SetError(ERROR_CALL_FUNCTION, strRealName);
-		code.m_nOper = OPER_GOTO;//переход в конец байт-кода, где будет производиться развернутый вызов
-		m_cByteCode.m_aCodeList.push_back(code);
-		callFunc->m_nAddLine = m_cByteCode.m_aCodeList.size() - 1;
-		m_apCallFunctions.push_back(callFunc);
+			return CParamUnit();
+		}
+		code.m_numOper = OPER_GOTO;// jump to the end of the bytecode where the expanded call will be made
+		m_cByteCode.m_listCode.push_back(code);
+		callFunc->m_numAddLine = m_cByteCode.m_listCode.size() - 1;
+		m_listCallFunc.push_back(callFunc);
 	}
 
+	return callFunc->m_puRetValue;
+}
+
+/**
+ * gets the constant number from a unique list of values
+ * (if such a value is not in the list, it is created)
+ */
+
+CParamUnit CCompileCode::FindConst(const CValue& constData)
+{
+	const wxString& strConstant =
+		wxString::Format(wxT("%d:%s"), constData.GetType(), constData.GetString());
+
+	CParamUnit variable;
+	variable.m_numArray = DEF_VAR_CONST;
+
+	if (m_listHashConst.find(strConstant) != m_listHashConst.end()) {
+		variable.m_numIndex = m_listHashConst.at(strConstant) - 1;
+	}
+	else {
+		variable.m_numIndex = m_cByteCode.m_listConst.size();
+		m_cByteCode.m_listConst.push_back(constData);
+		m_listHashConst.insert_or_assign(strConstant, variable.m_numIndex + 1);
+	}
+	variable.m_strType = GetTypeVar(constData.GetClassName());
 	return variable;
 }
 
-/**
- * Получает номер константы из уникального списка значений
- * (если такого значения в списке нет, то оно создается)
- */
-CParamUnit CCompileCode::FindConst(const CValue& vData)
-{
-	CParamUnit paramConst; paramConst.m_nArray = DEF_VAR_CONST;
-
-	const wxString& strConst =
-		wxString::Format(wxT("%d:%s"), vData.GetType(), vData.GetString());
-
-	if (m_aHashConstList[strConst]) {
-		paramConst.m_nIndex = m_aHashConstList[strConst] - 1;
-	}
-	else {
-		paramConst.m_nIndex = m_cByteCode.m_aConstList.size();
-		m_cByteCode.m_aConstList.push_back(vData);
-		m_aHashConstList[strConst] = paramConst.m_nIndex + 1;
-	}
-
-	paramConst.m_strType = GetTypeVar(vData.GetClassName());
-	return paramConst;
-}
-
-#define SetOper(x)	code.m_nOper=x;
+#define SetOper(x)	code.m_numOper=x;
 
 /**
- * Компиляция произвольного выражения (служебные вызовы из самой функции)
+ * compiling an arbitrary expression (service calls from the function itself)
  */
-CParamUnit CCompileCode::GetExpression(int nPriority)
+
+CParamUnit CCompileCode::GetExpression(CCompileContext* context, int nPriority)
 {
 	CParamUnit variable;
 	lexem_t lex = GETLexem();
 
-	//Сначала обрабатываем Левые операторы
-	if ((lex.m_nType == KEYWORD && lex.m_nData == KEY_NOT) || (lex.m_nType == DELIMITER && lex.m_nData == '!'))
-	{
-		variable = GetVariable();
-		CParamUnit Variable2 = GetExpression(s_aPriority['!']);
+	// first we process Left operators
+	if ((lex.m_lexType == KEYWORD && lex.m_numData == KEY_NOT) || (lex.m_lexType == DELIMITER && lex.m_numData == '!')) {
+
+		variable = context->CreateVariable();
+
+		CParamUnit Variable2 = GetExpression(context, gs_operPriority['!']);
 		CByteUnit code;
-		code.m_nOper = OPER_NOT;
+		code.m_numOper = OPER_NOT;
 		AddLineInfo(code);
 
 		if (!Variable2.m_strType.IsEmpty()) {
@@ -2180,105 +2220,107 @@ CParamUnit CCompileCode::GetExpression(int nPriority)
 
 		code.m_param1 = variable;
 		code.m_param2 = Variable2;
-		m_cByteCode.m_aCodeList.push_back(code);
+		m_cByteCode.m_listCode.push_back(code);
+
 	}
-	else if ((lex.m_nType == KEYWORD && lex.m_nData == KEY_NEW))
+	else if ((lex.m_lexType == KEYWORD && lex.m_numData == KEY_NEW))
 	{
-		wxString sObjectName = GETIdentifier(true);
-		int nNumber = GetConstString(sObjectName);
+		const wxString strObjectName = GETIdentifier(true);
+		const int numConst = GetConstString(strObjectName);
 
-		std::vector <CParamUnit> aParamList;
+		std::vector <CParamUnit> listParam;
 
-		if (IsNextDelimeter('('))//это вызов метода
-		{
+		if (IsNextDelimeter('(')) { // this is a method call
 			GETDelimeter('(');
-
-			while (!IsNextDelimeter(')'))
-			{
+			while (!IsNextDelimeter(')')) {
 				if (IsNextDelimeter(','))
 				{
 					CParamUnit data;
-					data.m_nArray = DEF_VAR_SKIP;//пропущенный параметр
-					data.m_nIndex = DEF_VAR_SKIP;
-					aParamList.push_back(data);
+					data.m_numArray = DEF_VAR_SKIP;// missing parameter
+					data.m_numIndex = DEF_VAR_SKIP;
+					listParam.push_back(data);
 				}
 				else
 				{
-					aParamList.emplace_back(GetExpression());
-					if (IsNextDelimeter(')')) break;
+					listParam.emplace_back(GetExpression(context));
+					if (!IsNextDelimeter(',') || IsNextDelimeter(')'))
+						break;
 				}
 				GETDelimeter(',');
 			}
-
 			GETDelimeter(')');
 		}
 
-		if (lex.m_nData == KEY_NEW && !CValue::IsRegisterCtor(sObjectName, eCtorObjectType::eCtorObjectType_object_value))
-			SetError(ERROR_CALL_CONSTRUCTOR, sObjectName);
+		if (lex.m_numData == KEY_NEW && !CValue::IsRegisterCtor(strObjectName, eCtorObjectType::eCtorObjectType_object_value)) {
+			SetError(ERROR_CALL_CONSTRUCTOR, strObjectName);
+			return CParamUnit();
+		}
 
 		CByteUnit code;
 		AddLineInfo(code);
-		code.m_nOper = OPER_NEW;
+		code.m_numOper = OPER_NEW;
 
-		code.m_param2.m_nIndex = nNumber;//номер вызываемого метода из списка встретившихся методов
-		code.m_param2.m_nArray = aParamList.size();//число параметров
+		code.m_param2.m_numIndex = numConst;//number of the called method from the list of encountered methods
+		code.m_param2.m_numArray = listParam.size();// number of parameters
 
-		variable = GetVariable();
-		code.m_param1 = variable;//переменная, в которую возвращается значение
-		m_cByteCode.m_aCodeList.push_back(code);
+		variable = context->CreateVariable();
+		code.m_param1 = variable;// variable into which the value is returned
+		m_cByteCode.m_listCode.push_back(code);
 
-		for (unsigned int i = 0; i < aParamList.size(); i++)
-		{
+		for (unsigned int arg = 0; arg < listParam.size(); arg++) {
 			CByteUnit code;
 			AddLineInfo(code);
-			code.m_nOper = OPER_SET;
-			code.m_param1 = aParamList[i];
-			m_cByteCode.m_aCodeList.push_back(code);
+			code.m_numOper = OPER_SET;
+			code.m_param1 = listParam[arg];
+			m_cByteCode.m_listCode.push_back(code);
 		}
 	}
-	else if (lex.m_nType == DELIMITER && lex.m_nData == '(')
+	else if (lex.m_lexType == DELIMITER && lex.m_numData == '(')
 	{
-		variable = GetExpression();
+		variable = GetExpression(context);
 		GETDelimeter(')');
 	}
-	else if (lex.m_nType == DELIMITER && lex.m_nData == '?')
+	else if (lex.m_lexType == DELIMITER && lex.m_numData == '?')
 	{
-		variable = GetVariable();
+		variable = context->CreateVariable();
 		CByteUnit code;
 		AddLineInfo(code);
-		code.m_nOper = OPER_ITER;
+		code.m_numOper = OPER_ITER;
 		code.m_param1 = variable;
 		GETDelimeter('(');
-		code.m_param2 = GetExpression();
+		code.m_param2 = GetExpression(context);
 		GETDelimeter(',');
-		code.m_param3 = GetExpression();
+		code.m_param3 = GetExpression(context);
 		GETDelimeter(',');
-		code.m_param4 = GetExpression();
+		code.m_param4 = GetExpression(context);
 		GETDelimeter(')');
-		m_cByteCode.m_aCodeList.push_back(code);
+		m_cByteCode.m_listCode.push_back(code);
 	}
-	else if (lex.m_nType == IDENTIFIER)
+	else if (lex.m_lexType == IDENTIFIER)
 	{
-		m_nCurrentCompile--;//шаг назад
-		int nSet = 0;
-		variable = GetCurrentIdentifier(nSet);
+		m_numCurrentCompile--;// step back
+		int numSet = 0;
+		variable = GetCurrentIdentifier(context, numSet);
 	}
-	else if (lex.m_nType == CONSTANT)
+	else if (lex.m_lexType == CONSTANT)
 	{
-		variable = FindConst(lex.m_vData);
+		variable = FindConst(lex.m_valData);
 	}
-	else if ((lex.m_nType == DELIMITER && lex.m_nData == '+') || (lex.m_nType == DELIMITER && lex.m_nData == '-'))
+	else if ((lex.m_lexType == DELIMITER && lex.m_numData == '+') || (lex.m_lexType == DELIMITER && lex.m_numData == '-'))
 	{
-		//проверяем допустимость такого задания
-		int nCurPriority = s_aPriority[lex.m_nData];
+		// check the admissibility of such assignment
+		const int numCurPriority = gs_operPriority[lex.m_numData];
 
-		if (nPriority >= nCurPriority) SetError(ERROR_EXPRESSION);//сравниваем приоритеты левой (предыдущей операции) и текущей выполняемой операции
+		if (nPriority >= numCurPriority) {
+			SetError(ERROR_EXPRESSION);// сompare the priorities of the left (previous operation) and the currently running operation
+			return CParamUnit();
+		}
 
-		//Это задание пользователем знака выражения
-		if (lex.m_nData == '+')//ничего не делаем (игнорируем)
+		// this is a user-defined expression sign
+		if (lex.m_numData == '+')// do nothing (ignore)
 		{
 			CByteUnit code;
-			variable = GetExpression(nPriority);
+			variable = GetExpression(context, nPriority);
 			if (!variable.m_strType.IsEmpty()) {
 				CheckTypeDef(variable, CValue::GetNameObjectFromVT(eValueTypes::TYPE_NUMBER));
 			}
@@ -2287,71 +2329,73 @@ CParamUnit CCompileCode::GetExpression(int nPriority)
 		}
 		else
 		{
-			variable = GetExpression(100);//сверх высокий приоритет!
+			variable = GetExpression(context, 100);//super high priority!
 			CByteUnit code;
 			AddLineInfo(code);
-			code.m_nOper = OPER_INVERT;
+			code.m_numOper = OPER_INVERT;
 
-			if (!variable.m_strType.IsEmpty())
+			if (!variable.m_strType.IsEmpty()) {
 				CheckTypeDef(variable, CValue::GetNameObjectFromVT(eValueTypes::TYPE_NUMBER));
+			}
 
 			code.m_param2 = variable;
-			variable = GetVariable();
+			variable = context->CreateVariable();
 			variable.m_strType = CValue::GetNameObjectFromVT(eValueTypes::TYPE_NUMBER, true);
 			code.m_param1 = variable;
-			m_cByteCode.m_aCodeList.push_back(code);
+			m_cByteCode.m_listCode.push_back(code);
 		}
 	}
 	else
 	{
-		m_nCurrentCompile--;
+		m_numCurrentCompile--;
 		SetError(ERROR_EXPRESSION);
+		return CParamUnit();
 	}
 
-	//Теперь обрабатываем Правые операторы
-	//итак в variable имеем первый индекс переменной выражения
+	// now we process Right Operators
+	// so in variable we have the first index of the expression variable
 
 delimOperation:
 
 	lex = PreviewGetLexem();
 
-	if (lex.m_nType == DELIMITER && lex.m_nData == ')')
+	if (lex.m_lexType == DELIMITER && lex.m_numData == ')')
 		return variable;
 
-	//смотрим есть ли далее операторы выполнения действий над данной переменной
-	if ((lex.m_nType == DELIMITER && lex.m_nData != ';') || (lex.m_nType == KEYWORD && lex.m_nData == KEY_AND) || (lex.m_nType == KEYWORD && lex.m_nData == KEY_OR))
+	// we look to see if there are any further operators for performing actions on this variable
+	if ((lex.m_lexType == DELIMITER && lex.m_numData != ';') || (lex.m_lexType == KEYWORD && lex.m_numData == KEY_AND) || (lex.m_lexType == KEYWORD && lex.m_numData == KEY_OR))
 	{
-		if (lex.m_nData >= 0 && lex.m_nData <= 255)
+		if (lex.m_numData >= 0 && lex.m_numData <= 255)
 		{
-			int nCurPriority = s_aPriority[lex.m_nData];
-			if (nPriority < nCurPriority)//сравниваем приоритеты левой (предыдущей операции) и текущей выполняемой операции
+			int numCurPriority = gs_operPriority[lex.m_numData];
+			if (nPriority < numCurPriority)// сompare the priorities of the left (previous operation) and the currently running operation
 			{
 				CByteUnit code;
 				AddLineInfo(code);
 				lex = GetLexem();
 
-				if (lex.m_nData == '*') {
+				if (lex.m_numData == '*') {
 					SetOper(OPER_MULT);
 				}
-				else if (lex.m_nData == '/') {
+				else if (lex.m_numData == '/') {
 					SetOper(OPER_DIV);
 				}
-				else if (lex.m_nData == '+') {
+				else if (lex.m_numData == '+') {
 					SetOper(OPER_ADD);
 				}
-				else if (lex.m_nData == '-') {
+				else if (lex.m_numData == '-') {
 					SetOper(OPER_SUB);
 				}
-				else if (lex.m_nData == '%') {
+				else if (lex.m_numData == '%') {
 					SetOper(OPER_MOD);
 				}
-				else if (lex.m_nData == KEY_AND) {
+				else if (lex.m_numData == KEY_AND) {
 					SetOper(OPER_AND);
 				}
-				else if (lex.m_nData == KEY_OR) {
+				else if (lex.m_numData == KEY_OR) {
 					SetOper(OPER_OR);
 				}
-				else if (lex.m_nData == '>')
+				else if (lex.m_numData == '>')
 				{
 					SetOper(OPER_GT);
 					if (IsNextDelimeter('=')) {
@@ -2359,7 +2403,7 @@ delimOperation:
 						SetOper(OPER_GE);
 					}
 				}
-				else if (lex.m_nData == '<')
+				else if (lex.m_numData == '<')
 				{
 					SetOper(OPER_LS);
 					if (IsNextDelimeter('=')) {
@@ -2371,46 +2415,48 @@ delimOperation:
 						SetOper(OPER_NE);
 					}
 				}
-				else if (lex.m_nData == '=') {
+				else if (lex.m_numData == '=') {
 					SetOper(OPER_EQ);
 				}
 				else {
 					SetError(ERROR_EXPRESSION);
+					return CParamUnit();
 				}
 
-				CParamUnit Variable1 = GetVariable();
-				CParamUnit Variable2 = variable;
-				CParamUnit Variable3 = GetExpression(nCurPriority);
+				CParamUnit puVariable1 = context->CreateVariable();
+				CParamUnit puVariable2 = variable;
+				CParamUnit puVariable3 = GetExpression(context, numCurPriority);
 
-				if (DEF_VAR_TEMP != Variable3.m_nArray && DEF_VAR_CONST != Variable3.m_nArray) { //доп. проверка на запрещенные операции
-					if (CValue::CompareObjectName(Variable2.m_strType, eValueTypes::TYPE_STRING)) {
-						if (OPER_DIV == code.m_nOper
-							|| OPER_MOD == code.m_nOper
-							|| OPER_MULT == code.m_nOper
-							|| OPER_AND == code.m_nOper
-							|| OPER_OR == code.m_nOper) {
+				if (puVariable3.m_numArray != DEF_VAR_TEMP && puVariable3.m_numArray != DEF_VAR_CONST) { // extra. checking for prohibited operations
+					if (CValue::CompareObjectName(puVariable2.m_strType, eValueTypes::TYPE_STRING)) {
+						if (OPER_DIV == code.m_numOper
+							|| OPER_MOD == code.m_numOper
+							|| OPER_MULT == code.m_numOper
+							|| OPER_AND == code.m_numOper
+							|| OPER_OR == code.m_numOper) {
 							SetError(ERROR_TYPE_OPERATION);
+							return CParamUnit();
 						}
 					}
 				}
 
-				if (DEF_VAR_CONST != Variable2.m_nArray && DEF_VAR_TEMP != Variable2.m_nArray) { //константы не проверяем  - т.к. они типизированы по дефолту
-					CheckTypeDef(Variable3, Variable2.m_strType);
+				if (puVariable2.m_numArray != DEF_VAR_CONST && puVariable2.m_numArray != DEF_VAR_TEMP) { // constants are not checked - because they are typified by default
+					CheckTypeDef(puVariable3, puVariable2.m_strType);
 				}
 
-				Variable1.m_strType = Variable2.m_strType;
+				puVariable1.m_strType = puVariable2.m_strType;
 
-				if (code.m_nOper >= OPER_GT && code.m_nOper <= OPER_NE) {
-					Variable1.m_strType = CValue::GetNameObjectFromVT(eValueTypes::TYPE_BOOLEAN, true);
+				if (code.m_numOper >= OPER_GT && code.m_numOper <= OPER_NE) {
+					puVariable1.m_strType = CValue::GetNameObjectFromVT(eValueTypes::TYPE_BOOLEAN, true);
 				}
 
-				code.m_param1 = Variable1;
-				code.m_param2 = Variable2;
-				code.m_param3 = Variable3;
+				code.m_param1 = puVariable1;
+				code.m_param2 = puVariable2;
+				code.m_param3 = puVariable3;
 
-				m_cByteCode.m_aCodeList.push_back(code);
+				m_cByteCode.m_listCode.push_back(code);
 
-				variable = Variable1;
+				variable = puVariable1;
 				goto delimOperation;
 			}
 		}
@@ -2424,39 +2470,14 @@ void CCompileCode::SetParent(CCompileCode* setParent)
 	m_cByteCode.m_parent = nullptr;
 
 	m_parent = setParent;
-	m_cContext.m_parentContext = nullptr;
+	m_rootContext->m_parentContext = nullptr;
 
 	if (m_parent != nullptr) {
 		m_cByteCode.m_parent = &m_parent->m_cByteCode;
-		m_cContext.m_parentContext = &m_parent->m_cContext;
+		m_rootContext->m_parentContext = m_parent->m_rootContext;
 	}
 
 	OnSetParent(setParent);
-}
-
-CParamUnit CCompileCode::AddVariable(const wxString& strName, const wxString& typeVar, bool exportVar, bool contextVar, bool tempVar)
-{
-	return m_pContext->AddVariable(strName, typeVar, exportVar, contextVar, tempVar);
-}
-
-/**
- * Функция возвращает номер переменной по строковому имени
- */
-CParamUnit CCompileCode::GetVariable(const wxString& strName, bool bCheckError, bool bLoadFromContext)
-{
-	return m_pContext->GetVariable(strName, true, bCheckError, bLoadFromContext);
-}
-
-/**
- * Cоздаем новый идентификатор переменной
- */
-CParamUnit CCompileCode::GetVariable()
-{
-	wxString strName = wxString::Format(wxT("@%d"), m_pContext->m_nTempVar);//@ - для гарантии уникальности имени
-	CParamUnit variable = m_pContext->GetVariable(strName, false, false, false, true);//временную переменную ищем только в локальном контексте
-	variable.m_nArray = DEF_VAR_TEMP;//признак временной локальной переменной
-	m_pContext->m_nTempVar++;
-	return variable;
 }
 
 #pragma warning(pop)

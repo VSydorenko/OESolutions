@@ -11,8 +11,8 @@ CRunContext::~CRunContext() {
 		wxDELETEA(m_pLocVars);
 		wxDELETEA(m_pRefLocVars);
 	}
-	//удаление m_stringEvals
-	for (auto& it : m_stringEvals) {
+	// delete m_listEval
+	for (auto& it : m_listEval) {
 		CProcUnit*& procUnit(it.second);
 		if (procUnit != nullptr) {
 			wxDELETE(procUnit->m_pByteCode->m_compileModule);

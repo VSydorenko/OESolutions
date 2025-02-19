@@ -5,20 +5,20 @@
 
 class BACKEND_API CProcUnit {
 	//attributes:
-	int m_nAutoDeleteParent;	//признак удалени€ родительского модул€
-	CByteCode* m_pByteCode;
-	CValue*** m_pppArrayList;//указатели на массивы указателей переменных (0 - локальные переменные,1-переменные текущего модул€,2 и выше - переменные родительских модулей)
-	CProcUnit** m_ppArrayCode;//указатели на массивы выполн€емых модулей (0-текущий модуль,1 и выше - родительские модули)
-	std::vector <CProcUnit*> m_aParent;
+	int m_nAutoDeleteParent; //flag for deleting the parent module
+	CByteCode* m_pByteCode = nullptr;
+	CValue*** m_pppArrayList = {}; //pointers to arrays of variable pointers (0 - local variables, 1 - variables of the current module, 2 and higher - variables of parent modules)
+	CProcUnit** m_ppArrayCode = {}; //pointers to arrays of executable modules (0 - current module, 1 and higher - parent modules)
+	std::vector <CProcUnit*> m_procParent;
 	//static attributes
 	static CProcUnit* m_currentRunModule;
 private:
 	CRunContext m_cCurContext;
 	//static attributes
-	static std::vector <CRunContext*> s_aRunContext; //список исполн€емых кодов модулей
+	static std::vector <CRunContext*> ms_runContext; //list of executable module codes
 public:
 
-	// онструкторы/деструкторы
+	//Constructors/destructors
 	CProcUnit() : m_pppArrayList(nullptr),
 		m_ppArrayCode(nullptr),
 		m_pByteCode(nullptr),
@@ -29,7 +29,7 @@ public:
 		Clear();
 	}
 
-	//ћетоды
+	//Methods
 	void Reset() {
 
 		if (m_pppArrayList != nullptr) {
@@ -52,35 +52,35 @@ public:
 	}
 
 	void Clear() {
-		m_aParent.clear();
+		m_procParent.clear();
 		Reset();
 	}
 
 	void SetParent(CProcUnit* procParent) {
-		m_aParent.clear();
+		m_procParent.clear();
 		if (procParent != nullptr) {
-			unsigned int count = procParent->m_aParent.size();
-			m_aParent.push_back(procParent);
+			unsigned int count = procParent->m_procParent.size();
+			m_procParent.push_back(procParent);
 			for (unsigned int i = 1; i <= count; i++) {
-				m_aParent.push_back(procParent->m_aParent[i - 1]);
+				m_procParent.push_back(procParent->m_procParent[i - 1]);
 			}
 		}
 
 	}
 
 	CProcUnit* GetParent(unsigned int iLevel = 0) const {
-		if (iLevel >= m_aParent.size()) {
+		if (iLevel >= m_procParent.size()) {
 			wxASSERT(iLevel == 0);
 			return nullptr;
 		}
 		else {
-			wxASSERT(iLevel == m_aParent.size() - 1 || m_aParent[iLevel]);
-			return m_aParent[iLevel];
+			wxASSERT(iLevel == m_procParent.size() - 1 || m_procParent[iLevel]);
+			return m_procParent[iLevel];
 		}
 	}
 
 	unsigned int GetParentCount() const {
-		return m_aParent.size();
+		return m_procParent.size();
 	}
 
 	CByteCode* GetByteCode() const {
@@ -96,17 +96,17 @@ public:
 		Execute(ByteCode, pvarRetValue, bRunModule);
 	}
 	void Execute(CByteCode& ByteCode, CValue& pvarRetValue, bool bRunModule = true);
-	void Execute(CRunContext* pContext, CValue& pvarRetValue, bool bDelta); // bDelta=true - признак выполнени€ операторов модул€, которые идут в конце функций и процедур
+	void Execute(CRunContext* pContext, CValue& pvarRetValue, bool bDelta); // bDelta=true - flag for executing module operators that come at the end of functions and procedures
 
 	static bool Evaluate(const wxString& strExpression, CRunContext* pRunContext, CValue& pvarRetValue, bool bCompileBlock);
 	bool CompileExpression(CRunContext* pRunContext, CValue& pvarRetValue, CCompileCode& cModule, bool bCompileBlock);
 
-	//вызов произвольной функции исполн€емого модул€
+	//call an arbitrary function of the executable module
 	long FindExportMethod(const wxString& strMethodName) const {
 		return FindMethod(strMethodName, false, 2);
 	}
 
-	//ѕоиск экспортной функций
+	//Search for export functions
 	long FindMethod(const wxString& strMethodName, bool bError = false, int bExportOnly = 0) const;
 
 	long FindFunction(const wxString& strMethodName, bool bError = false, int bExportOnly = 0) const;
@@ -132,10 +132,10 @@ public:
 	long FindProp(const wxString& strPropName) const;
 
 	bool SetPropVal(const wxString& strPropName, const CValue& varPropVal);
-	bool SetPropVal(const long lPropNum, const CValue& varPropVal); //установка атрибута
+	bool SetPropVal(const long lPropNum, const CValue& varPropVal); //setting attribute
 
 	bool GetPropVal(const wxString& strPropName, CValue& pvarPropVal);
-	bool GetPropVal(const long lPropNum, CValue& pvarPropVal);//значение атрибута
+	bool GetPropVal(const long lPropNum, CValue& pvarPropVal);//attribute value
 
 	//run module 
 	static CProcUnit* GetCurrentRunModule() {
@@ -148,33 +148,33 @@ public:
 
 	//run context
 	static void CProcUnit::AddRunContext(CRunContext* runContext) {
-		s_aRunContext.push_back(runContext);
+		ms_runContext.push_back(runContext);
 	}
 
 	static unsigned int CProcUnit::GetCountRunContext() {
-		return s_aRunContext.size();
+		return ms_runContext.size();
 	}
 
 	static CRunContext* CProcUnit::GetPrevRunContext() {
-		if (s_aRunContext.size() < 2)
+		if (ms_runContext.size() < 2)
 			return nullptr;
-		return s_aRunContext[s_aRunContext.size() - 2];
+		return ms_runContext[ms_runContext.size() - 2];
 	}
 
 	static CRunContext* CProcUnit::GetCurrentRunContext() {
-		if (!s_aRunContext.size())
+		if (!ms_runContext.size())
 			return nullptr;
-		return s_aRunContext.back();
+		return ms_runContext.back();
 	}
 
 	static CRunContext* CProcUnit::GetRunContext(unsigned int idx) {
-		if (s_aRunContext.size() < idx)
+		if (ms_runContext.size() < idx)
 			return nullptr;
-		return s_aRunContext[idx];
+		return ms_runContext[idx];
 	}
 
 	static void CProcUnit::BackRunContext() {
-		s_aRunContext.pop_back();
+		ms_runContext.pop_back();
 	}
 
 	static CByteCode* GetCurrentByteCode() {

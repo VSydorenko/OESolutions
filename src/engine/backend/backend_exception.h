@@ -1,7 +1,7 @@
 #ifndef _backend_exception_h__
 #define _backend_exception_h__
 
-enum { //Номера сообщений об ошибках
+enum { //Error message numbers
 	ERROR_USAGE = 0,
 	ERROR_FILE_READ,
 	ERROR_FILE_OPEN,
@@ -69,7 +69,7 @@ enum { //Номера сообщений об ошибках
 
 class BACKEND_API CBackendException : public std::exception {
 	static bool sm_evalMode;
-	static wxString sm_strError;
+	static wxString ms_strError;
 private:
 #if !wxUSE_UTF8_LOCALE_ONLY
 	static wxString DoFormatWchar(const wxChar* format, ...);
@@ -79,7 +79,7 @@ private:
 	static wxString DoFormatWchar(const wxChar* format, ...);
 	static void DoErrorUtf8(const wxChar* format, ...);
 #endif
-	//служебные процедуры обработки ошибок
+	//error handling routines
 	static void ErrorV(const wxString& fmt, va_list& list);
 	static wxString FormatV(const wxString& fmt, va_list& list);
 	static const wxString& GetErrorDesc(int codeError);
@@ -126,10 +126,10 @@ public:
 	WX_DEFINE_VARARG_FUNC(static void, Error, 1, (const wxFormatErrorString&),
 		DoErrorWchar, DoErrorUtf8);
 
-	static wxString FindErrorCodeLine(const wxString& sBuffer, int nCurPos);
+	static wxString FindErrorCodeLine(const wxString& sBuffer, unsigned int currPos);
 	static wxString GetLastError() {
-		const wxString strLastError = sm_strError;
-		sm_strError = wxEmptyString;
+		const wxString strLastError = ms_strError;
+		ms_strError = wxEmptyString;
 		return strLastError;
 	}
 

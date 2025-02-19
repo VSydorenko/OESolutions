@@ -66,10 +66,10 @@ public:
 	virtual IMetaData* GetMetaData() const;
 
 	//methods & attributes
-	virtual void PrepareNames() const;                         //этот метод автоматически вызывается для инициализации имен атрибутов и методов
+	virtual void PrepareNames() const;                         // this method is automatically called to initialize attribute and method names.
 
-	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //установка атрибута
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //значение атрибута
+	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //setting attribute
+	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //attribute value
 
 	//control factory 
 	virtual wxObject* Create(wxWindow* wxparent, IVisualHost* visualHost) override;

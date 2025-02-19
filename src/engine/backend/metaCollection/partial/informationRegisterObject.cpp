@@ -342,7 +342,7 @@ void CRecordManagerObjectInformationRegister::PrepareNames() const
 	}
 }
 
-bool CRecordManagerObjectInformationRegister::SetPropVal(const long lPropNum, const CValue& varPropVal)       //установка атрибута
+bool CRecordManagerObjectInformationRegister::SetPropVal(const long lPropNum, const CValue& varPropVal)       //setting attribute
 {
 	return SetValueByMetaID(
 		m_methodHelper->GetPropData(lPropNum), varPropVal

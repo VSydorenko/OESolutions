@@ -18,32 +18,33 @@ CCompileModule::CCompileModule(CMetaObjectModule* moduleObject, bool onlyFunctio
 
 	Load(m_moduleObject->GetModuleText());
 
-	//у родительских контекстов локальные переменные не ищем!
-	m_cContext.m_nFindLocalInParent = 0;
+	//We don’t look for local variables in parent contexts!
+	m_rootContext->m_numFindLocalInParent = 0;
 }
 
 /**
  * Compile
- * Назначение:
- * Трасляция и компиляция исходного кода в байт-код (объектный код)
- * Возвращаемое значение:
+ * Purpose:
+ * Translation and compilation of source code into bytecode (object code)
+ * Return value:
  * true,false
  */
+
 bool CCompileModule::Compile()
 {
 	//clear functions & variables 
 	Reset();
 
 	if (m_parent != nullptr) {
-
-		if (m_moduleObject &&
+		
+		if (m_moduleObject != nullptr &&
 			m_moduleObject->IsGlobalModule()) {
 
 			m_strModuleName = m_moduleObject->GetFullName();
 			m_strDocPath = m_moduleObject->GetDocPath();
 			m_strFileName = m_moduleObject->GetFileName();
 
-			m_changeCode = false;
+			m_changedCode = false;
 
 			Load(m_moduleObject->GetModuleText());
 
@@ -52,10 +53,7 @@ bool CCompileModule::Compile()
 		}
 	}
 
-	//контекст самого модуля
-	m_pContext = GetContext();
-
-	//рекурсивно компилируем модули на случай каких-либо изменений 
+	//recursively compile modules in case of any changes
 	if (m_parent != nullptr) {
 
 		std::stack<CCompileModule*> compileModule; bool callRecompile = false;
@@ -63,7 +61,7 @@ bool CCompileModule::Compile()
 		CCompileModule* parentModule = GetParent();
 
 		while (parentModule != nullptr) {
-			if (parentModule->m_changeCode) callRecompile = true;
+			if (parentModule->m_changedCode) callRecompile = true;
 			if (callRecompile) compileModule.push(parentModule);
 			parentModule = parentModule->GetParent();
 		}
@@ -81,7 +79,7 @@ bool CCompileModule::Compile()
 
 		if (m_parent != nullptr) {
 			m_cByteCode.m_parent = &m_parent->m_cByteCode;
-			m_cContext.m_parentContext = &m_parent->m_cContext;
+			m_rootContext->m_parentContext = m_parent->m_rootContext;
 		}
 
 		m_strModuleName = m_moduleObject->GetFullName();
@@ -96,12 +94,12 @@ bool CCompileModule::Compile()
 		return false;
 	}
 
-	//подготовить контекстные переменные 
+	//prepare context variables
 	PrepareModuleData();
 
-	//Компиляция 
+	// compilation 
 	if (CompileModule()) {
-		m_changeCode = false;
+		m_changedCode = false;
 		return true;
 	}
 
@@ -110,42 +108,42 @@ bool CCompileModule::Compile()
 
 /**
  * Recompile
- * Назначение:
- * Трасляция и перекомпиляция текущего исходного кода в байт-код (объектный код)
- * Возвращаемое значение:
+ * Purpose:
+ * Translation and recompilation of the current source code into bytecode (object code)
+ * Return value:
  * true,false
  */
+
 bool CCompileModule::Recompile()
 {
 	//clear functions & variables 
 	Reset();
 
 	if (m_parent != nullptr) {
-		if (m_moduleObject &&
+		
+		if (m_moduleObject != nullptr &&
 			m_moduleObject->IsGlobalModule()) {
 
 			m_strModuleName = m_moduleObject->GetFullName();
 			m_strDocPath = m_moduleObject->GetDocPath();
 			m_strFileName = m_moduleObject->GetFileName();
 
-			m_changeCode = false;
+			m_changedCode = false;
 
 			Load(m_moduleObject->GetModuleText());
 
 			return m_parent != nullptr ?
-				((CCompileModule*)m_parent)->Compile() : true;
+				m_parent->Compile() : true;
 		}
 	}
 
-	//контекст самого модуля
-	m_pContext = GetContext();
+	if (m_moduleObject != nullptr) {
 
-	if (m_moduleObject) {
 		m_cByteCode.m_strModuleName = m_moduleObject->GetFullName();
 
 		if (m_parent) {
 			m_cByteCode.m_parent = &m_parent->m_cByteCode;
-			m_cContext.m_parentContext = &m_parent->m_cContext;
+			m_rootContext->m_parentContext = m_parent->m_rootContext;
 		}
 
 		m_strModuleName = m_moduleObject->GetFullName();
@@ -160,16 +158,16 @@ bool CCompileModule::Recompile()
 		return false;
 	}
 
-	//подготовить контекстные переменные 
+	//prepare context variables
 	PrepareModuleData();
 
-	//Компиляция 
+	// compilation 
 	if (CompileModule()) {
-		m_changeCode = false;
+		m_changedCode = false;
 		return true;
 	}
 
-	m_changeCode = true;
+	m_changedCode = true;
 	return false;
 }
 

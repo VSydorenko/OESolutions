@@ -8,7 +8,7 @@
 
 const class_identifier_t g_valueTableCLSID = string_to_clsid("VL_TABL");
 
-//Поддержка таблиц
+//Table support
 class BACKEND_API CValueTable : public IValueTable {
 	wxDECLARE_DYNAMIC_CLASS(CValueTable);
 private:
@@ -166,7 +166,7 @@ public:
 		virtual void PrepareNames() const;
 
 
-		//РАБОТА КАК АГРЕГАТНОГО ОБЪЕКТА
+		//WORK AS AN AGGREGATE OBJECT
 		virtual bool CallAsProc(const long lMethodNum, CValue** paParams, const long lSizeArray);
 		virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);
 
@@ -202,10 +202,10 @@ public:
 			return m_methodHelper;
 		}
 
-		virtual void PrepareNames() const; //этот метод автоматически вызывается для инициализации имен атрибутов и методов
+		virtual void PrepareNames() const; // this method is automatically called to initialize attribute and method names.
 
-		virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal); //установка атрибута
-		virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal); //значение атрибута
+		virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal); //setting attribute
+		virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal); //attribute value
 
 	private:
 		CMethodHelper* m_methodHelper;
@@ -280,14 +280,14 @@ public:
 		return GetRowCount() == 0;
 	}
 
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal); //значение атрибута
+	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal); // attribute value
 
-	virtual CMethodHelper* GetPMethods() const {  //получить ссылку на класс помощник разбора имен атрибутов и методов
+	virtual CMethodHelper* GetPMethods() const {  // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames();
 		return &m_methodHelper;
 	}
-	virtual void PrepareNames() const;                         //этот метод автоматически вызывается для инициализации имен атрибутов и методов
-	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       //вызов метода
+	virtual void PrepareNames() const;                         // this method is automatically called to initialize attribute and method names.
+	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);       // method call
 
 	// implementation of base class virtuals to define model
 	virtual void GetValueByRow(wxVariant& variant,
@@ -315,7 +315,7 @@ public:
 	virtual wxIcon GetIcon() const;
 	static wxIcon GetIconGroup();
 
-	//Работа с итераторами 
+	//Working with iterators
 	virtual bool HasIterator() const override {
 		return true;
 	}

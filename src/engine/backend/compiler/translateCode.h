@@ -13,14 +13,14 @@
 
 #include "value/value.h"
 
-//Список ключевых слов
+//List of keywords
 struct aKeyWordsDef {
 	//char *Rus;
 	char* Eng;
 	char* strShortDescription;
 };
 
-extern BACKEND_API struct aKeyWordsDef s_aKeyWords[];
+extern BACKEND_API struct aKeyWordsDef s_listKeyWord[];
 
 enum {
 	LEXEM_ADD = 0,
@@ -28,72 +28,101 @@ enum {
 	LEXEM_IGNORE,
 };
 
-//Свойства функций:
+//Function properties:
 enum {
-	RETURN_NONE = 0,//нет возврата (код модуля)
-	RETURN_PROCEDURE,//возврат из процедуры
-	RETURN_FUNCTION,//возврат из функции
+	RETURN_NONE = 0,//no return (module code)
+	RETURN_PROCEDURE,//return from procedure
+	RETURN_FUNCTION,//return from function
 };
 
-//признаки переменных (задаются с отриц. значением в атрибут nArray байт-кода)
+//variable flags (specified with a negative value in the nArray attribute of the bytecode)
 enum {
-	DEF_VAR_SKIP = -1,//пропущенный параметр
-	DEF_VAR_DEFAULT = -2,//параметр по умолчанию
-	DEF_VAR_TEMP = -3,//признак временной локальной переменной
-	DEF_VAR_NORET = -7,//функция (процедура) не возвращает значения
-	DEF_VAR_CONST = 1000,//загрузка констант
+	DEF_VAR_SKIP = -1,// missing parameter
+	DEF_VAR_DEFAULT = -2,//default parameter
+	DEF_VAR_TEMP = -3,//flag of a temporary local variable
+	DEF_VAR_NORET = -7,//function (procedure) does not return values
+	DEF_VAR_CONST = 1000,//loading constants
 
 };
 
-//определения
+//definitions
 
-//хранение одного примитива из исходного кода
+//storing one primitive from the source code
 struct lexem_t {
 
-	//тип лексемы:
-	short       m_nType;
+	//lexem type:
+	short m_lexType;
 
-	//содержание лексемы:
-	short		m_nData;		//номер служебного слова(KEYWORD) или символ разделитель(DELIMITER)
-	CValue	    m_vData;		//значение, если это константа или реальное имя идентификатора
-	wxString	m_strData;		//или имя идентификатора (переменной, функции и пр.)
+	//lexem content:
+	short m_numData; // keyword number (KEYWORD) or delimiter symbol (DELIMITER)
+	CValue m_valData; // value, if it is a constant or real identifier name
+	wxString m_strData; // or identifier name (variable, function, etc.)
 
-	//дополнительная информация: 
-	wxString m_strModuleName;//имя модуля (т.к. возможны include подключения из разных модулей)
-	wxString m_strDocPath; // уникальный путь к документу 
-	wxString m_strFileName; // путь к файлу (если внешняя обработка) 
+	//additional information:
+	wxString m_strModuleName; // module name (since it is possible to include connections from different modules)
+	wxString m_strDocPath; // unique path to the document
+	wxString m_strFileName; // file path (if external processing)
 
-	unsigned int m_nNumberLine;	  //номер строки исходного текста (для точек останова)
-	unsigned int m_nNumberString;	  //номер исходного текста (для вывода ошибок)
+	unsigned int m_numLine; //source line number (for breakpoints)
+	unsigned int m_numString; //source text number (for error output)
 
 public:
 
-	//Конструктор: 
+	size_t line() const {
+		return m_numLine + 1;
+	}
+
+	size_t length() const {
+
+		if (m_lexType == DELIMITER)
+			return 1;
+		else if (m_lexType == IDENTIFIER)
+			return m_strData.length();
+		else if (m_lexType == CONSTANT && m_valData.GetType() == eValueTypes::TYPE_DATE)
+			return m_strData.length() + 2;
+		else if (m_lexType == CONSTANT && m_valData.GetType() == eValueTypes::TYPE_STRING)
+			return m_strData.length() + 2;
+		else if (m_lexType == CONSTANT)
+			return m_strData.length();
+		else if (m_lexType == KEYWORD)
+			return m_strData.length();
+		return 0;
+	}
+
+	size_t front() const {
+		return m_numString;
+	}
+
+	size_t back() const {
+		return m_numString + length();
+	}
+
+	//Constructor:
 	lexem_t() :
-		m_nType(0),
-		m_nData(0),
-		m_nNumberString(0),
-		m_nNumberLine(0) {
+		m_lexType(0),
+		m_numData(0),
+		m_numString(0),
+		m_numLine(0)
+	{
 	}
 };
 
 typedef std::vector<lexem_t> CLexemList;
 
-/************************************************
-CTranslateCode-этап парсинга исходного кода
-Точка входа - процедуры Load() и TranslateModule().
-Первая процедура выполняет инициализацию переменных и загрузку
-текста выполняемого кода, вторая процедура выполняет трансляцию
-(парсинг кода). В качестве результата в структуре класса заполняется
-массив "сырого" байт-кода в переменной cByteCode.
-*************************************************/
+/***************************************************
+CTranslateCode-stage of source code parsing
+The entry point is the Load() and TranslateModule() procedures.
+The first procedure initializes variables and loads
+the text of the executable code, the second procedure performs translation
+(parsing the code). As a result, an array of "raw" bytecode in the cByteCode variable is filled in the class structure.
+****************************************************/
 
 class BACKEND_API CTranslateCode {
 
-	//класс для хранения определений пользователя
+	//class for storing user definitions
 	class CDefineList {
 		CDefineList* m_parentDefine;
-		std::map<wxString, CLexemList*> m_defineList;//содержит массивы лексем
+		std::map<wxString, CLexemList*> m_defineList;//contains arrays of lexemes
 	public:
 
 		CDefineList() : m_parentDefine(nullptr) {};
@@ -112,7 +141,7 @@ class BACKEND_API CTranslateCode {
 		void SetDefine(const wxString& strName, const wxString& strValue);
 	};
 
-	static CDefineList s_glDefineList;
+	static CDefineList ms_listDefine;
 
 public:
 
@@ -128,7 +157,7 @@ public:
 		return false;
 	};
 
-	//методы:
+	//methods:
 	void Load(const wxString& strCode);
 
 	void AppendModule(CTranslateCode* module);
@@ -137,10 +166,16 @@ public:
 	virtual void OnSetParent(CTranslateCode* setParent);
 
 	virtual void Clear();
+
+	void ClearLexem() {
+		m_listLexem.clear();
+		m_listTranslateCode.clear();
+	}
+
 	bool PrepareLexem();
 
 protected:
-	void SetError(int codeError, int currPos, const wxString& errorDesc = wxEmptyString) const;
+	void SetError(int codeError, unsigned int currPos, const wxString& errorDesc = wxEmptyString) const;
 	void SetError(int codeError,
 		const wxString& strFileName, const wxString& strModuleName, const wxString& strDocPath,
 		int currPos, int currLine,
@@ -149,13 +184,13 @@ public:
 	virtual void ProcessError(const wxString& strFileName,
 		const wxString& strModuleName, const wxString& strDocPath,
 		unsigned int currPos, unsigned int currLine,
-		const wxString& strCodeLineError, int codeError, const wxString& strErrorDesc 
+		const wxString& strCodeLineError, int codeError, const wxString& strErrorDesc
 	) const;
 public:
 
 	inline void SkipSpaces() const;
 
-	bool IsByte(const wxUniChar&c) const;
+	bool IsByte(const wxUniChar& c) const;
 	wxUniChar GetByte() const;
 
 	bool IsWord() const;
@@ -190,45 +225,44 @@ public:
 	}
 
 	unsigned int GetCurrentPos() const {
-		return m_nCurPos;
+		return m_currentPos;
 	}
 
 	unsigned int GetCurrentLine() const {
-		return m_nCurLine;
+		return m_currentLine;
 	}
 
 public:
 
-	static std::map<wxString, void*> m_aHashKeyWords;
+	static std::map<wxString, void*> ms_listHashKeyWord;
 	static void LoadKeyWords();
 
 protected:
 
-	//методы и переменные для парсинга текста
+	//methods and variables for text parsing
 	std::vector<CTranslateCode*> m_listTranslateCode;
 
 
-	//Поддержка "дефайнов":
+	//Support for "defines":
 	CDefineList* m_defineList;
 
 	bool m_bAutoDeleteDefList;
 	int m_nModePreparing;
 
-	//атрибуты:
-	wxString m_strModuleName;//имя компилируемого модуля (для вывода информации при ошибках)
-	wxString m_strDocPath; // уникальный путь к документу 
-	wxString m_strFileName; // путь к файлу (если внешняя обработка) 
+	//attributes:
+	wxString m_strModuleName;//name of the compiled module (to display information in case of errors)
+	wxString m_strDocPath; // unique path to the document
+	wxString m_strFileName; // path to the file (if external processing)
 
-	unsigned int m_bufferSize;//размер исходного текста
+	unsigned int m_bufferSize;//size of the original text
 
-	//исходный текст:
+	//original text:
 	wxString m_strBuffer;
-		
-	mutable unsigned int m_nCurPos;//текущая позиция обрабатываемого текста
-	mutable unsigned int m_nCurLine;
 
-	//промежуточный массив с лексемами:
+	mutable unsigned int m_currentPos; //current position of the processed text
+	mutable unsigned int m_currentLine; //current line of the processed text
+
+	//intermediate array with lexemes:
 	std::vector<lexem_t> m_listLexem;
 };
-
 #endif

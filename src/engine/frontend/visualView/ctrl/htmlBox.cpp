@@ -74,14 +74,14 @@ enum Func {
 	enSetPage = 0,
 };
 
-void CValueHTMLBox::PrepareNames() const //этот метод автоматически вызывается для инициализации имен атрибутов и методов
+void CValueHTMLBox::PrepareNames() const // this method is automatically called to initialize attribute and method names.
 {
 	IValueFrame::PrepareNames();
 
 	m_methodHelper->AppendFunc("setPage", 1, "setPage(string)", enSetPage, wxNOT_FOUND);
 }
 
-bool CValueHTMLBox::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)       //вызов метода
+bool CValueHTMLBox::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)       //method call
 {
 	wxHtmlWindow* htmlBox = dynamic_cast<wxHtmlWindow*>(GetWxObject());
 	switch (m_methodHelper->GetMethodData(lMethodNum))

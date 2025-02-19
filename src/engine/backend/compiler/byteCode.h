@@ -5,36 +5,36 @@
 
 struct CParamUnit {
 
-	wxLongLong_t m_nArray;
-	wxLongLong_t m_nIndex;
-	wxString	 m_strName;//им€ переменной 
-	wxString	 m_strType;//тип переменной в англ. нотации (в случае €вной типизации)
+	wxLongLong_t m_numArray;
+	wxLongLong_t m_numIndex;
+	wxString	 m_strName;			//variable name 
+	wxString	 m_strType;			//variable type in English notation (in case of explicit typing)
 
 public:
-	CParamUnit() : m_nArray(0), m_nIndex(0) {}
+	CParamUnit() : m_numArray(0), m_numIndex(0) {}
 };
 
-//хранение одного шага программы
+//storing one program step
 struct CByteUnit {
 
-	short		 m_nOper;                //код инструкции
-	unsigned int m_nNumberString;	//номер исходного текста (дл€ вывода ошибок)
-	unsigned int m_nNumberLine;	//номер строки исходного текста (дл€ точек останова)
+	short		 m_numOper;			//instruction code
+	unsigned int m_numString;		//source text number (for error output)
+	unsigned int m_numLine;			//source line number (for breakpoints)
 
-	//параметры дл€ инструкции:
+	//parameters for instructions:
 	CParamUnit	 m_param1;
 	CParamUnit	 m_param2;
 	CParamUnit	 m_param3;
-	CParamUnit	 m_param4; // - используетс€ дл€ оптимизации
+	CParamUnit	 m_param4;			// - used for optimization
 
-	wxString	 m_strModuleName; //им€ модул€ (т.к. возможны include подключени€ из разных модулей)
-	wxString	 m_strDocPath; // уникальный путь к документу 
-	wxString	 m_strFileName; // путь к файлу (если внешн€€ обработка) 
+	wxString	 m_strModuleName;	// module name (since it is possible to include connections from different modules)
+	wxString	 m_strDocPath;		// уникальный путь к документу 
+	wxString	 m_strFileName;		// путь к файлу (если внешн€€ обработка) 
 
 public:
 
 	CByteUnit() : m_param1(), m_param2(), m_param3(), m_param4(),
-		m_nOper(0), m_nNumberString(0), m_nNumberLine(0) {
+		m_numOper(0), m_numString(0), m_numLine(0) {
 	}
 };
 
@@ -62,14 +62,14 @@ struct CByteCode {
 	wxString m_strModuleName;//им€ исполн€емого модул€, которому принадлежит байт-код
 
 	//список внешних и контекстных переменных
-	std::vector<CValue*> m_aExternValues;
-	std::vector <CByteUnit> m_aCodeList;//исполн€емый код модул€
-	std::vector <CValue> m_aConstList;//список констант модул€
+	std::vector<CValue*> m_listExternValue;
+	std::vector <CByteUnit> m_listCode;//исполн€емый код модул€
+	std::vector <CValue> m_listConst;//список констант модул€
 
-	std::map<wxString, long> m_aVarList; //список переменных модул€	
-	std::map<wxString, CByteMethod> m_aFuncList; //список функций и процедур модул€
-	std::map<wxString, long> m_aExportVarList; //список экспортных переменных модул€
-	std::map<wxString, CByteMethod> m_aExportFuncList; //список экспортных функций и процедур модул€
+	std::map<wxString, long> m_listVar; //список переменных модул€	
+	std::map<wxString, CByteMethod> m_listFunc; //список функций и процедур модул€
+	std::map<wxString, long> m_listExportVar; //список экспортных переменных модул€
+	std::map<wxString, CByteMethod> m_listExportFunc; //список экспортных функций и процедур модул€
 
 public:
 
@@ -95,24 +95,24 @@ public:
 
 	long GetNParams(const long lCodeLine) const {
 		// if is not initializer then set no return value
-		auto foundedFunction = std::find_if(m_aFuncList.begin(), m_aFuncList.end(),
+		auto foundedFunction = std::find_if(m_listFunc.begin(), m_listFunc.end(),
 			[lCodeLine](const std::pair<const wxString, CByteMethod>& pair) {
 				return lCodeLine == ((long)pair.second);
 			}
 		);
-		if (foundedFunction != m_aFuncList.end())
+		if (foundedFunction != m_listFunc.end())
 			return foundedFunction->second.m_lCodeParamCount;
 		return 0;
 	}
 
 	bool HasRetVal(const long lCodeLine) const {
 		// if is not initializer then set no return value
-		auto foundedFunction = std::find_if(m_aFuncList.begin(), m_aFuncList.end(),
+		auto foundedFunction = std::find_if(m_listFunc.begin(), m_listFunc.end(),
 			[lCodeLine](const std::pair<const wxString, CByteMethod>& pair) {
 				return pair.second.m_bCodeRet && lCodeLine == ((long)pair.second);
 			}
 		);
-		return foundedFunction != m_aFuncList.end();
+		return foundedFunction != m_listFunc.end();
 	}
 
 	void Reset() {
@@ -122,13 +122,13 @@ public:
 		m_bCompile = false;
 		m_parent = nullptr;
 		m_compileModule = nullptr;
-		m_aCodeList.clear();
-		m_aConstList.clear();
-		m_aVarList.clear();
-		m_aFuncList.clear();
-		m_aExportVarList.clear();
-		m_aExportFuncList.clear();
-		m_aExternValues.clear();
+		m_listCode.clear();
+		m_listConst.clear();
+		m_listVar.clear();
+		m_listFunc.clear();
+		m_listExportVar.clear();
+		m_listExportFunc.clear();
+		m_listExternValue.clear();
 	}
 };
 

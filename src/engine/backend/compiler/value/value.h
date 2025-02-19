@@ -28,7 +28,7 @@ public:
 public:
 
 	class BACKEND_API CMethodHelper {
-		//Список ключевых слов, которые не могут быть именами переменных и функций
+		//List of keywords that cannot be variable and function names
 		struct field_t {
 			enum eFieldType {
 				eConstructor,
@@ -95,9 +95,9 @@ public:
 			}
 		};
 		// constructors & props & methods
-		std::vector<field_t> m_constructorHelper;	// дерево наименований конструкторов
-		std::vector<field_t> m_methodHelper;			// дерево наименований методов
-		std::vector<field_t> m_propHelper;			// дерево наименований атрибутов
+		std::vector<field_t> m_constructorHelper; // tree of constructor names
+		std::vector<field_t> m_methodHelper; // tree of method names
+		std::vector<field_t> m_propHelper; // tree of attribute names
 	public:
 
 		CMethodHelper() {}
@@ -452,29 +452,29 @@ public:
 public:
 
 	//METHODS:
-	//constructors:
+	 //constructors:
 	CValue();
 	CValue(const CValue& cParam);
 	CValue(CValue* pParam);
 	CValue(IBackendValue* pParam);
 	CValue(eValueTypes nType, bool readOnly = false);
 
-	//конструкторы копирования:
-	CValue(bool cParam); //boolean 
-	CValue(signed int cParam); //number 
+	//copy constructors:
+	CValue(bool cParam); //boolean
+	CValue(signed int cParam); //number
 	CValue(unsigned int cParam); //number
-	CValue(double cParam); //number 
-	CValue(const number_t& cParam); //number 
-	CValue(wxLongLong_t cParam); //date 
-	CValue(const wxDateTime& cParam); //date 
-	CValue(int nYear, int nMonth, int nDay, unsigned short nHour = 0, unsigned short nMinute = 0, unsigned short nSecond = 0); //date 
-	CValue(const wxString& sParam); //string 
-	CValue(char* sParam); //string 
+	CValue(double cParam); //number
+	CValue(const number_t& cParam); //number
+	CValue(wxLongLong_t cParam); //date
+	CValue(const wxDateTime& cParam); //date
+	CValue(int nYear, int nMonth, int nDay, unsigned short nHour = 0, unsigned short nMinute = 0, unsigned short nSecond = 0); //date
+	CValue(const wxString& sParam); //string
+	CValue(char* sParam); //string
 
-	//деструктор:
+	//destructor:
 	virtual ~CValue();
 
-	//Очистка значений
+	//Clear values
 	inline void Reset();
 
 	//Ref counter
@@ -485,7 +485,7 @@ public:
 	virtual void IncrRef() { m_refCount++; }
 	virtual void DecrRef();
 
-	//операторы:
+	//operators:
 	void operator = (const CValue& cParam);
 
 	void operator = (bool cParam);
@@ -504,7 +504,7 @@ public:
 	void operator = (IBackendValue* pParam);
 	void operator = (CValue* pParam);
 
-	//Реализация операторов сравнения:
+	//Implementation of comparison operators:
 	bool operator > (const CValue& cParam) const {
 		return CompareValueGT(cParam);
 	}
@@ -532,7 +532,7 @@ public:
 	const CValue& operator+(const CValue& cParam);
 	const CValue& operator-(const CValue& cParam);
 
-	//Реализация операторов сравнения:
+	//Implementation of comparison operators:
 	virtual inline bool CompareValueGT(const CValue& cParam) const;
 	virtual inline bool CompareValueGE(const CValue& cParam) const;
 	virtual inline bool CompareValueLS(const CValue& cParam) const;
@@ -681,7 +681,7 @@ public:
 	void FromDate(int& nYear, int& nMonth, int& nDay, unsigned short& nHour, unsigned short& nMinute, unsigned short& nSecond) const;
 	void FromDate(int& nYear, int& nMonth, int& nDay, int& DayOfWeek, int& DayOfYear, int& WeekOfYear) const;
 
-	//Виртуальные методы:
+	//Virtual methods:
 	virtual void SetType(eValueTypes type);
 	virtual eValueTypes GetType() const;
 
@@ -711,7 +711,7 @@ public:
 
 	virtual bool FindValue(const wxString& findData, std::vector<CValue>& foundedObjects) const;
 
-	void SetData(const CValue& varValue); //установка значения без изменения типа
+	void SetData(const CValue& varValue); //setting the value without changing the type
 
 	virtual CValue GetValue(bool getThis = false);
 

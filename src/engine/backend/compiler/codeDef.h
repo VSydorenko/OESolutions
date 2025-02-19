@@ -1,8 +1,8 @@
-
+п»ї
 #ifndef _COMPILE_ERROR_H__
 #define _COMPILE_ERROR_H__
 
-enum { //типы инструкций
+enum { //instruction types
 	OPER_NOP = 0,
 	OPER_ADD,
 	OPER_DIV,
@@ -19,7 +19,7 @@ enum { //типы инструкций
 	OPER_IF,
 	OPER_LET,
 	OPER_CONST,
-	OPER_CONSTN,//целочисленная константа
+	OPER_CONSTN,//integer constant
 	OPER_NEXT,
 	OPER_NEXT_ITER,
 	OPER_MOD,
@@ -36,10 +36,10 @@ enum { //типы инструкций
 	OPER_RAISE_T,
 	OPER_FUNC,//29
 	OPER_ENDFUNC,
-	OPER_CALL,//вызов функции
-	OPER_SET,//задание параметра как переменной
-	OPER_SETREF,//задание параметра как переменной по ссылке
-	OPER_SETCONST,//задание параметра как константы
+	OPER_CALL,//function call
+	OPER_SET, // setting the parameter as a variable
+	OPER_SETREF,//setting the parameter as a variable by reference
+	OPER_SETCONST, // setting the parameter as a constant
 	OPER_ADDCONS,
 	OPER_DIVCONS,
 	OPER_MULTCONS,
@@ -65,21 +65,21 @@ enum { //типы инструкций
 	OPER_END,
 };
 
-#define TYPE_DELTA1	1 * (OPER_END + 1) //для числовых операций
-#define TYPE_DELTA2	2 * TYPE_DELTA1//для строковых операций
-#define TYPE_DELTA3	3 * TYPE_DELTA1//для операций с датами
-#define TYPE_DELTA4	4 * TYPE_DELTA1//для операций с булевыми
+#define TYPE_DELTA1 1 * (OPER_END + 1)  // for numeric operations
+#define TYPE_DELTA2 2 * TYPE_DELTA1		// for string operations
+#define TYPE_DELTA3 3 * TYPE_DELTA1		// for date operations
+#define TYPE_DELTA4 4 * TYPE_DELTA1		// for operations with booleans
 
-enum { //типы лексем
+enum { //token types
 	ERRORTYPE = 0,
-	DELIMITER,//односимвольные разделители и операторы
-	IDENTIFIER,//нераспознанный идентификатор (этап трансляции)
-	CONSTANT,//константа
-	KEYWORD,//содержит номер ключевого слова
-	ENDPROGRAM,//конец программного модуля
+	DELIMITER,	// single-character delimiters and operators
+	IDENTIFIER, // unrecognized identifier (translation stage)
+	CONSTANT,	// constant
+	KEYWORD,	// contains the keyword number
+	ENDPROGRAM, // end of the program module
 };
 
-enum { //Номера ключевых слов (в строгой последовательности как заданы сами значения)
+enum { // numbers of keywords (in strict sequence as the values вЂ‹вЂ‹themselves are specified)
 	KEY_IF = 0,
 	KEY_THEN,
 	KEY_ELSE,

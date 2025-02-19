@@ -3,30 +3,30 @@
 //	Description : Processor unit 
 ////////////////////////////////////////////////////////////////////////////
 
-#include "procUnit.h"
 #include "compileCode.h"
+#include "procUnit.h"
 
 #include "debugger/debugServer.h"
 #include "systemManager/systemManager.h"
 
-#define curCode	m_pByteCode->m_aCodeList[lCodeLine]
+#define curCode	m_pByteCode->m_listCode[lCodeLine]
 
-#define index1	curCode.m_param1.m_nIndex
-#define index2	curCode.m_param2.m_nIndex
-#define index3	curCode.m_param3.m_nIndex
-#define index4	curCode.m_param4.m_nIndex
+#define index1	curCode.m_param1.m_numIndex
+#define index2	curCode.m_param2.m_numIndex
+#define index3	curCode.m_param3.m_numIndex
+#define index4	curCode.m_param4.m_numIndex
 
-#define array1	curCode.m_param1.m_nArray
-#define array2	curCode.m_param2.m_nArray
-#define array3	curCode.m_param3.m_nArray
-#define array4	curCode.m_param4.m_nArray
+#define array1	curCode.m_param1.m_numArray
+#define array2	curCode.m_param2.m_numArray
+#define array3	curCode.m_param3.m_numArray
+#define array4	curCode.m_param4.m_numArray
 
 #define locVariable1 *m_pRefLocVars[index1]
 #define locVariable2 *m_pRefLocVars[index2]
 #define locVariable3 *m_pRefLocVars[index3]
 #define locVariable4 *m_pRefLocVars[index4]
 
-#define variable(x) (array##x<=0?*pRefLocVars[index##x]:(array##x==DEF_VAR_CONST?m_pByteCode->m_aConstList[index##x]:*m_pppArrayList[array##x+(bDelta?1:0)][index##x]))
+#define variable(x) (array##x<=0?*pRefLocVars[index##x]:(array##x==DEF_VAR_CONST?m_pByteCode->m_listConst[index##x]:*m_pppArrayList[array##x+(bDelta?1:0)][index##x]))
 
 #define variable1 variable(1)
 #define variable2 variable(2)
@@ -63,7 +63,7 @@ void CProcUnit::Raise() {
 	s_errorPlace.m_skipByteCode = CProcUnit::GetCurrentByteCode(); //возвращаемся назад в вызываемый модуль (если он есть)
 }
 
-std::vector <CRunContext*> CProcUnit::s_aRunContext;
+std::vector <CRunContext*> CProcUnit::ms_runContext;
 
 //**************************************************************************************************************
 //*                                              stack support                                                 *
@@ -106,7 +106,7 @@ public:
 				wxASSERT(m_pByteCode);
 				strError += wxString::Format("\n%s (#line %d)",
 					m_pByteCode->m_strModuleName,
-					m_pByteCode->m_aCodeList[pLastContext->m_lCurLine].m_nNumberLine + 1
+					m_pByteCode->m_listCode[pLastContext->m_lCurLine].m_numLine + 1
 				);
 			}
 			CBackendException::Error(
@@ -461,10 +461,10 @@ void CProcUnit::Execute(CRunContext* pContext, CValue& pvarRetValue, bool bDelta
 	CValue* pLocVars = pContext->m_pLocVars;
 	CValue** pRefLocVars = pContext->m_pRefLocVars;
 
-	CByteUnit* pCodeList = m_pByteCode->m_aCodeList.data();
+	CByteUnit* pCodeList = m_pByteCode->m_listCode.data();
 
 	long lCodeLine = pContext->m_lStart;
-	long lFinish = m_pByteCode->m_aCodeList.size();
+	long lFinish = m_pByteCode->m_listCode.size();
 	long lPrevLine = wxNOT_FOUND;
 
 	std::vector<tryData_t> tryList;
@@ -483,9 +483,9 @@ start_label:
 				debugServer->EnterDebugger(pContext, curCode, lPrevLine);
 			}
 
-			switch (curCode.m_nOper)
+			switch (curCode.m_numOper)
 			{
-			case OPER_CONST: CopyValue(variable1, m_pByteCode->m_aConstList[index2]); break;
+			case OPER_CONST: CopyValue(variable1, m_pByteCode->m_listConst[index2]); break;
 			case OPER_CONSTN: SetTypeNumber(variable1, index2); break;
 			case OPER_ADD: AddValue(variable1, variable2, variable3); break;
 			case OPER_SUB: SubValue(variable1, variable2, variable3); break;
@@ -548,7 +548,7 @@ start_label:
 				CValue* pRetValue = &variable1;
 				CRunContextSmall cRunContext(array2);
 				cRunContext.m_lParamCount = array2;
-				const wxString className = m_pByteCode->m_aConstList[index2].m_sData;
+				const wxString className = m_pByteCode->m_listConst[index2].m_sData;
 				//загружаем параметры
 				for (long i = 0; i < cRunContext.m_lParamCount; i++) {
 					lCodeLine++;
@@ -563,8 +563,8 @@ start_label:
 				}
 				CopyValue(*pRetValue, CValue::CreateObject(className, cRunContext.m_lParamCount > 0 ? cRunContext.m_pRefLocVars : nullptr, cRunContext.m_lParamCount));
 			} break;
-			case OPER_SET_A: {//установка атрибута
-				const wxString& strPropName = m_pByteCode->m_aConstList[index2].m_sData;
+			case OPER_SET_A: {//setting attribute
+				const wxString& strPropName = m_pByteCode->m_listConst[index2].m_sData;
 				const long lPropNum = variable1.FindProp(strPropName);
 				if (lPropNum < 0) CheckAndError(variable1, strPropName);
 				if (!variable1.IsPropWritable(lPropNum)) CBackendException::Error("Object field not writable (%s)", strPropName);
@@ -574,7 +574,7 @@ start_label:
 			{
 				CValue* pRetValue = &variable1;
 				CValue* pVariable2 = &variable2;
-				const wxString& strPropName = m_pByteCode->m_aConstList[index3].m_sData;
+				const wxString& strPropName = m_pByteCode->m_listConst[index3].m_sData;
 				const long lPropNum = variable2.FindProp(strPropName);
 				if (lPropNum < 0) CheckAndError(variable2, strPropName);
 				if (!variable2.IsPropReadable(lPropNum)) CBackendException::Error("Object field not readable (%s)", strPropName);
@@ -585,12 +585,12 @@ start_label:
 					CopyValue(*pRetValue, vRet);
 				break;
 			}
-			case OPER_CALL_M://вызов метода
+			case OPER_CALL_M://method call
 			{
 				CValue* pRetValue = &variable1;
 				CValue* pVariable2 = &variable2;
 
-				const wxString& funcName = m_pByteCode->m_aConstList[index3].m_sData;
+				const wxString& funcName = m_pByteCode->m_listConst[index3].m_sData;
 				long lMethodNum = wxNOT_FOUND;
 				//оптимизация вызовов
 				CValue* storageValue = reinterpret_cast<CValue*>(array4);
@@ -613,7 +613,7 @@ start_label:
 				CRunContextSmall cRunContext(std::max(array3, MAX_STATIC_VAR));
 				cRunContext.m_lParamCount = array3;
 
-				//Слишком много фактических параметров
+				// too many parameters
 				const long paramCount = pVariable2->GetNParams(lMethodNum);
 
 				if (paramCount < cRunContext.m_lParamCount)
@@ -639,7 +639,7 @@ start_label:
 				}
 				else {
 					// operator = 
-					if (m_pByteCode->m_aCodeList[lCodeLine + 1].m_nOper == OPER_LET)
+					if (m_pByteCode->m_listCode[lCodeLine + 1].m_numOper == OPER_LET)
 						CBackendException::Error(ERROR_USE_PROCEDURE_AS_FUNCTION, funcName, funcName);
 					pVariable2->CallAsProc(lMethodNum, cRunContext.m_pRefLocVars, cRunContext.m_lParamCount);
 				} break;
@@ -650,14 +650,13 @@ start_label:
 				cRunContext.m_lStart = index2;
 				cRunContext.m_lParamCount = array3;
 				CByteCode* pLocalByteCode = m_ppArrayCode[lModuleNumber]->m_pByteCode;
-				CByteUnit* pCodeList2 = pLocalByteCode->m_aCodeList.data();
-				cRunContext.m_compileContext = reinterpret_cast<CCompileContext*>(pCodeList2[cRunContext.m_lStart].m_param1.m_nArray);
+				cRunContext.m_compileContext = reinterpret_cast<CCompileContext*>(pLocalByteCode->m_listCode[cRunContext.m_lStart].m_param1.m_numArray);
 				CValue* pRetValue = &variable1;
 				//загружаем параметры
 				for (long i = 0; i < cRunContext.m_lParamCount; i++) {
 					lCodeLine++;
-					if (curCode.m_nOper == OPER_SETCONST) {
-						CopyValue(cRunContext.m_pLocVars[i], pLocalByteCode->m_aConstList[index1]);
+					if (curCode.m_numOper == OPER_SETCONST) {
+						CopyValue(cRunContext.m_pLocVars[i], pLocalByteCode->m_listConst[index1]);
 					}
 					else {
 						if (variable1.m_bReadOnly || index2 == 1) {//передача параметра по значению
@@ -668,7 +667,7 @@ start_label:
 						}
 					}
 				}
-				m_ppArrayCode[lModuleNumber]->Execute(&cRunContext, *pRetValue, 0);
+				m_ppArrayCode[lModuleNumber]->Execute(&cRunContext, *pRetValue, false);
 				break;
 			}
 			case OPER_SET_ARRAY: SetArrayValue(variable1, variable2, GetValue(variable3)); break; //установка значения массива
@@ -686,7 +685,7 @@ start_label:
 			} break;
 			case OPER_TRY: tryList.emplace_back(lCodeLine, index1); break; //переход при ошибке
 			case OPER_RAISE: CBackendException::Error(CBackendException::GetLastError()); break;
-			case OPER_RAISE_T: CBackendException::Error(m_pByteCode->m_aConstList[index1].GetString()); break;
+			case OPER_RAISE_T: CBackendException::Error(m_pByteCode->m_listConst[index1].GetString()); break;
 			case OPER_RET: if (index1 != DEF_VAR_NORET) CopyValue(pvarRetValue, variable1);
 			case OPER_ENDFUNC:
 			case OPER_END:
@@ -694,7 +693,7 @@ start_label:
 				break; //выход
 			case OPER_FUNC: if (bDelta) {
 				while (lCodeLine < lFinish) {
-					if (curCode.m_nOper != OPER_ENDFUNC) {
+					if (curCode.m_numOper != OPER_ENDFUNC) {
 						lCodeLine++;
 					}
 					else break;
@@ -767,9 +766,9 @@ start_label:
 			eStatusMessage::eStatusMessage_Error
 		);
 		while (lCodeLine < lFinish) {
-			if (curCode.m_nOper != OPER_GOTO
-				&& curCode.m_nOper != OPER_NEXT
-				&& curCode.m_nOper != OPER_NEXT_ITER) {
+			if (curCode.m_numOper != OPER_GOTO
+				&& curCode.m_numOper != OPER_NEXT
+				&& curCode.m_numOper != OPER_NEXT_ITER) {
 				lCodeLine++;
 			}
 			else {
@@ -798,7 +797,7 @@ start_label:
 				s_errorPlace.m_errorLine = lCodeLine;
 			}
 		}
-		CBackendException::ProcessError(m_pByteCode->m_aCodeList[lCodeLine], err->what());
+		CBackendException::ProcessError(m_pByteCode->m_listCode[lCodeLine], err->what());
 	}
 	//return cRetValue;
 }
@@ -851,33 +850,33 @@ void CProcUnit::Execute(CByteCode& cByteCode, CValue& pvarRetValue, bool bRunMod
 		m_pppArrayList[i + 2] = pCurUnit->m_cCurContext.m_pRefLocVars;
 	}
 
-	//поддержка внешних переменных
-	for (unsigned int i = 0; i < cByteCode.m_aExternValues.size(); i++) {
-		if (cByteCode.m_aExternValues[i]) {
-			m_cCurContext.m_pRefLocVars[i] = cByteCode.m_aExternValues[i];
+	//support for external variables
+	for (unsigned int i = 0; i < cByteCode.m_listExternValue.size(); i++) {
+		if (cByteCode.m_listExternValue[i]) {
+			m_cCurContext.m_pRefLocVars[i] = cByteCode.m_listExternValue[i];
 		}
 	}
 
 	bool bDelta = true;
 
 	//Начальная инициализация переменных модуля
-	unsigned int lFinish = m_pByteCode->m_aCodeList.size();
+	unsigned int lFinish = m_pByteCode->m_listCode.size();
 	CValue** pRefLocVars = m_cCurContext.m_pRefLocVars;
 
 	for (unsigned int lCodeLine = 0; lCodeLine < lFinish; lCodeLine++) {
-		CByteUnit& byte = m_pByteCode->m_aCodeList[lCodeLine];
-		if (byte.m_nOper == OPER_SET_TYPE) {
+		CByteUnit& byte = m_pByteCode->m_listCode[lCodeLine];
+		if (byte.m_numOper == OPER_SET_TYPE) {
 			variable1.SetType(CValue::GetVTByID(array2));
 		}
 	}
 
 	//Запрещаем на запись константы
-	for (unsigned int i = 0; i < m_pByteCode->m_aConstList.size(); i++) {
-		m_pByteCode->m_aConstList[i].m_bReadOnly = true;
+	for (unsigned int i = 0; i < m_pByteCode->m_listConst.size(); i++) {
+		m_pByteCode->m_listConst[i].m_bReadOnly = true;
 	}
 
 	if (bRunModule) {
-		m_cCurContext.m_compileContext = &cByteCode.m_compileModule->m_cContext;
+		m_cCurContext.m_compileContext = cByteCode.m_compileModule->m_rootContext;
 		Execute(&m_cCurContext, pvarRetValue, bDelta);
 	}
 }
@@ -905,7 +904,7 @@ long CProcUnit::FindMethod(const wxString& strMethodName, bool bError, int bExpo
 	}
 	if (GetParent() &&
 		bExportOnly <= 1) {
-		unsigned int nCodeSize = m_pByteCode->m_aCodeList.size();
+		unsigned int nCodeSize = m_pByteCode->m_listCode.size();
 		lCodeLine = GetParent()->FindMethod(strMethodName, false, 1);
 		if (lCodeLine >= 0) {
 			return nCodeSize + lCodeLine;
@@ -933,7 +932,7 @@ long CProcUnit::FindFunction(const wxString& strMethodName, bool bError, int bEx
 
 	if (GetParent() &&
 		bExportOnly <= 1) {
-		unsigned int nCodeSize = m_pByteCode->m_aCodeList.size();
+		unsigned int nCodeSize = m_pByteCode->m_listCode.size();
 		lCodeLine = GetParent()->FindFunction(strMethodName, false, 1);
 		if (lCodeLine >= 0) {
 			return nCodeSize + lCodeLine;
@@ -961,7 +960,7 @@ long CProcUnit::FindProcedure(const wxString& strMethodName, bool bError, int bE
 	}
 	if (GetParent() &&
 		bExportOnly <= 1) {
-		unsigned int nCodeSize = m_pByteCode->m_aCodeList.size();
+		unsigned int nCodeSize = m_pByteCode->m_listCode.size();
 		lCodeLine = GetParent()->FindProcedure(strMethodName, false, 1);
 		if (lCodeLine >= 0) {
 			return nCodeSize + lCodeLine;
@@ -970,8 +969,8 @@ long CProcUnit::FindProcedure(const wxString& strMethodName, bool bError, int bE
 	return wxNOT_FOUND;
 }
 
-//Вызов функции по имении
-//Вызов осуществляется только в текущем модуле
+//Calling a function by name
+//The call is made only in the current module
 bool CProcUnit::CallAsFunc(const wxString& funcName, CValue& pvarRetValue, CValue** ppParams, const long lSizeArray)
 {
 	if (m_pByteCode != nullptr) {
@@ -983,52 +982,53 @@ bool CProcUnit::CallAsFunc(const wxString& funcName, CValue& pvarRetValue, CValu
 	}
 	return false;
 }
-//Вызов функции по ее адресу в массиве байт кодов
-//Вызов осущетсвляется в т.ч. и в родительском модуле
+
+//Calling a function by its address in the byte code array
+//The call is made incl. and in the parent module
 void CProcUnit::CallAsFunc(const long lCodeLine, CValue& pvarRetValue, CValue** ppParams, const long lSizeArray)
 {
 	if (m_pByteCode == nullptr || !m_pByteCode->m_bCompile)
 		CBackendException::Error(_("Module not compiled!"));
 
-	const long lCodeSize = m_pByteCode->m_aCodeList.size();
+	const long lCodeSize = m_pByteCode->m_listCode.size();
 	if (lCodeLine >= lCodeSize) {
 		if (!GetParent())
 			CBackendException::Error(_("Error calling module function!"));
 		GetParent()->CallAsFunc(lCodeLine - lCodeSize, pvarRetValue, ppParams, lSizeArray);
 	}
 
-	CRunContext cRunContext(index3);//число локальных переменных
+	CRunContext cRunContext(index3);// number of local variables
 
-	cRunContext.m_lParamCount = array3;//число формальных параметров
+	cRunContext.m_lParamCount = array3;//number of formal parameters
 	cRunContext.m_lStart = lCodeLine;
-	cRunContext.m_compileContext = reinterpret_cast<CCompileContext*>(m_pByteCode->m_aCodeList[cRunContext.m_lStart].m_param1.m_nArray);
+	cRunContext.m_compileContext = reinterpret_cast<CCompileContext*>(m_pByteCode->m_listCode[cRunContext.m_lStart].m_param1.m_numArray);
 
-	//загружаем параметры
+	//load parameters
 	memcpy(&cRunContext.m_pRefLocVars[0], &ppParams[0], std::min(lSizeArray, cRunContext.m_lParamCount) * sizeof(CValue*));
 
-	//выполним произвольный код 
+	//execute arbitrary code
 	Execute(&cRunContext, pvarRetValue, false);
 }
 
 long CProcUnit::FindProp(const wxString& strPropName) const
 {
-	auto& it = std::find_if(m_pByteCode->m_aExportVarList.begin(), m_pByteCode->m_aExportVarList.end(),
+	auto& it = std::find_if(m_pByteCode->m_listExportVar.begin(), m_pByteCode->m_listExportVar.end(),
 		[strPropName](const std::pair<const wxString, long>& pair) {
 			return stringUtils::CompareString(strPropName, pair.first);
 		}
 	);
-	if (it != m_pByteCode->m_aExportVarList.end())
+	if (it != m_pByteCode->m_listExportVar.end())
 		return (long)it->second;
 	return wxNOT_FOUND;
 }
 
-bool CProcUnit::SetPropVal(const long lPropNum, const CValue& varPropVal)//установка атрибута
+bool CProcUnit::SetPropVal(const long lPropNum, const CValue& varPropVal)//setting attribute
 {
 	*m_cCurContext.m_pRefLocVars[lPropNum] = varPropVal;
 	return true;
 }
 
-bool CProcUnit::SetPropVal(const wxString& strPropName, const CValue& varPropVal)//установка атрибута
+bool CProcUnit::SetPropVal(const wxString& strPropName, const CValue& varPropVal)//setting attribute
 {
 	long lPropNum = FindProp(strPropName);
 	if (lPropNum != wxNOT_FOUND) {
@@ -1043,13 +1043,13 @@ bool CProcUnit::SetPropVal(const wxString& strPropName, const CValue& varPropVal
 	return true;
 }
 
-bool CProcUnit::GetPropVal(const long lPropNum, CValue& pvarPropVal) //значение атрибута
+bool CProcUnit::GetPropVal(const long lPropNum, CValue& pvarPropVal) //attribute value
 {
 	pvarPropVal = m_cCurContext.m_pRefLocVars[lPropNum];
 	return true;
 }
 
-bool CProcUnit::GetPropVal(const wxString& strPropName, CValue& pvarPropVal) //установка атрибута
+bool CProcUnit::GetPropVal(const wxString& strPropName, CValue& pvarPropVal) //setting attribute
 {
 	const long lPropNum = FindProp(strPropName);
 	if (lPropNum != wxNOT_FOUND) {
@@ -1067,13 +1067,13 @@ bool CProcUnit::Evaluate(const wxString& strExpression, CRunContext* pRunContext
 		return false;
 	bool isEvalMode = CBackendException::IsEvalMode();
 	if (!isEvalMode) CBackendException::SetEvalMode(true);
-	auto& it = std::find_if(pRunContext->m_stringEvals.begin(), pRunContext->m_stringEvals.end(),
+	auto& it = std::find_if(pRunContext->m_listEval.begin(), pRunContext->m_listEval.end(),
 		[strExpression](std::pair<const wxString, CProcUnit*>& pair) {
 			return stringUtils::CompareString(strExpression, pair.first);
 		}
 	);
 	CProcUnit* pRunEval = nullptr;
-	if (it == pRunContext->m_stringEvals.end()) { //еще не было компиляции такого текста
+	if (it == pRunContext->m_listEval.end()) { //еще не было компиляции такого текста
 		CCompileCode* compileCode = new CCompileCode;
 		compileCode->Load(strExpression);
 		CProcUnit* simpleRun = new CProcUnit;
@@ -1087,7 +1087,7 @@ bool CProcUnit::Evaluate(const wxString& strExpression, CRunContext* pRunContext
 		}
 
 		//все ОК
-		pRunContext->m_stringEvals.insert_or_assign(
+		pRunContext->m_listEval.insert_or_assign(
 			stringUtils::MakeUpper(strExpression), simpleRun
 		);
 
@@ -1111,12 +1111,12 @@ bool CProcUnit::Evaluate(const wxString& strExpression, CRunContext* pRunContext
 			curContext = curContext->m_parentContext;
 			curModule = compileCode->GetParent();
 		}
-		if (curContext && curContext->m_nReturn == RETURN_NONE) {
+		if (curContext && curContext->m_numReturn == RETURN_NONE) {
 			bDelta = true;
 		}
 	}
 	else {
-		if (compileContext->m_nReturn == RETURN_NONE) {
+		if (compileContext->m_numReturn == RETURN_NONE) {
 			bDelta = true;
 		}
 	}
@@ -1139,12 +1139,12 @@ bool CProcUnit::CompileExpression(CRunContext* pRunContext, CValue& pvarRetValue
 	if (byteCode != nullptr) {
 		cModule.m_cByteCode.m_parent = byteCode;
 		cModule.m_parent = byteCode->m_compileModule;
-		cModule.m_cContext.m_parentContext = pRunContext->m_compileContext;
+		cModule.m_rootContext->m_parentContext = pRunContext->m_compileContext;
 	}
 
 	cModule.m_bExpressionOnly = true;
-	cModule.m_cContext.m_nFindLocalInParent = 2;
-	cModule.m_nCurrentCompile = wxNOT_FOUND;
+	cModule.m_rootContext->m_numFindLocalInParent = 2;
+	cModule.m_numCurrentCompile = wxNOT_FOUND;
 
 	try {
 		if (!cModule.PrepareLexem()) {
@@ -1159,11 +1159,13 @@ bool CProcUnit::CompileExpression(CRunContext* pRunContext, CValue& pvarRetValue
 
 	//дорабатываем массив байт-кодов для возвращения результата выражения
 	CByteUnit code;
-	code.m_nOper = OPER_RET;
+	code.m_numOper = OPER_RET;
 
 	try {
-		if (bCompileBlock) cModule.CompileBlock();
-		else code.m_param1 = cModule.GetExpression();
+		if (bCompileBlock) 
+			cModule.CompileBlock(cModule.GetContext());
+		else 
+			code.m_param1 = cModule.GetExpression(cModule.GetContext());
 	}
 	catch (...)
 	{
@@ -1171,14 +1173,14 @@ bool CProcUnit::CompileExpression(CRunContext* pRunContext, CValue& pvarRetValue
 	}
 
 	if (!bCompileBlock) {
-		cModule.m_cByteCode.m_aCodeList.push_back(code);
+		cModule.m_cByteCode.m_listCode.push_back(code);
 	}
 
 	CByteUnit code2;
-	code2.m_nOper = OPER_END;
+	code2.m_numOper = OPER_END;
 
-	cModule.m_cByteCode.m_aCodeList.push_back(code2);
-	cModule.m_cByteCode.m_lVarCount = cModule.m_cContext.m_cVariables.size();
+	cModule.m_cByteCode.m_listCode.push_back(code2);
+	cModule.m_cByteCode.m_lVarCount = cModule.m_rootContext->m_listVariable.size();
 
 	//признак завершенности компилирования
 	cModule.m_cByteCode.m_bCompile = true;
@@ -1206,7 +1208,7 @@ bool CProcUnit::CompileExpression(CRunContext* pRunContext, CValue& pvarRetValue
 		else {
 			m_pppArrayList[1] = pRunContext->m_pRefLocVars;
 		}
-		m_cCurContext.m_compileContext = &cModule.m_cContext;
+		m_cCurContext.m_compileContext = cModule.m_rootContext;
 	}
 	catch (...) {
 		return false;

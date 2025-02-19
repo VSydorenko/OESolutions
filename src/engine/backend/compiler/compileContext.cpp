@@ -1,37 +1,45 @@
-#include "compileContext.h"
+п»ї#include "compileContext.h"
 #include "compileCode.h"
 
-
-
-CFunction::CFunction(const wxString& funcName, CCompileContext* compileContext) : m_strName(funcName), m_pContext(compileContext),
-m_bExport(false), m_bContext(false), m_lVarCount(0), m_nStart(0), m_nFinish(0), m_nNumberLine(0) {
-	m_realRetValue.m_nArray = 0;
-	m_realRetValue.m_nIndex = 0;
+CFunction::CFunction(const wxString& funcName, CCompileContext * compileContext) : m_strName(funcName), m_compileContext(compileContext),
+m_bExport(false), m_bContext(false), m_lVarCount(0), m_nStart(0), m_nFinish(0), m_numLine(0) {
+	m_realRetValue.m_numArray = 0;
+	m_realRetValue.m_numIndex = 0;
 };
 
-CFunction::~CFunction() {
-	if (m_pContext != nullptr) {
-		wxDELETE(m_pContext);
-	};
-};
+CFunction::~CFunction() {}
 
 ////////////////////////////////////////////////////////////////////////
 // CCompileContext CCompileContext CCompileContext CCompileContext//
 ////////////////////////////////////////////////////////////////////////
 
 /**
- * Добавляет новую переменную в список
- * Возвращает добавленную переменную в виде CParamUnit
- */
+* Create a new variable identifier
+*/
+
+CParamUnit CCompileContext::CreateVariable(const wxString strPrefix)
+{
+	const wxString& strTempName = wxString::Format(strPrefix + wxT("%d"), ++m_numTempVar); //@temp_ - to ensure the uniqueness of the name
+	CParamUnit variable = GetVariable(strTempName, false, false, false, true); //we look for a temporary variable only in the local context
+	variable.m_numArray = DEF_VAR_TEMP; //flag of a temporary local variable
+	return variable;
+}
+
+/**
+* Adds a new variable to the list
+* Returns the added variable as a CParamUnit
+*/
+
 CParamUnit CCompileContext::AddVariable(const wxString& strVarName,
 	const wxString& typeVar, bool exportVar, bool contextVar, bool tempVar)
 {
 	CVariable* foundedVariable = nullptr;
-	if (FindVariable(strVarName, foundedVariable)) { //было объявление + повторное объявление = ошибка
+	if (FindVariable(strVarName, foundedVariable)) { //there was a declaration + repeated declaration = error
 		m_compileModule->SetError(ERROR_IDENTIFIER_DUPLICATE, strVarName);
+		return CParamUnit();
 	}
 
-	unsigned int nCountVar = m_cVariables.size();
+	unsigned int numCountVar = m_listVariable.size();
 
 	CVariable cCurrentVariable;
 	cCurrentVariable.m_strName = stringUtils::MakeUpper(strVarName);
@@ -40,89 +48,94 @@ CParamUnit CCompileContext::AddVariable(const wxString& strVarName,
 	cCurrentVariable.m_bContext = contextVar;
 	cCurrentVariable.m_bTempVar = tempVar;
 	cCurrentVariable.m_strType = typeVar;
-	cCurrentVariable.m_nNumber = nCountVar;
+	cCurrentVariable.m_numVariable = numCountVar;
 
-	m_cVariables.insert_or_assign(
+	m_listVariable.insert_or_assign(
 		stringUtils::MakeUpper(strVarName), cCurrentVariable
 	);
 
 	CParamUnit cRet;
-	cRet.m_nArray = 0;
+	cRet.m_numArray = 0;
 	cRet.m_strType = typeVar;
-	cRet.m_nIndex = nCountVar;
+	cRet.m_numIndex = numCountVar;
 	return cRet;
 }
 
 /**
- * Функция возвращает номер переменной по строковому имени
- * Поиск определения переменной, начиная с текущего контекста до всех родительских
- * Если требуемой переменной нет, то создается новое определение переменной
- */
+* The function returns the variable number by the string name
+* Search for the variable definition, starting from the current context to all parent
+* If the required variable does not exist, then a new variable definition is created
+*/
+
 CParamUnit CCompileContext::GetVariable(const wxString& strVarName, bool bFindInParent, bool bCheckError, bool contextVar, bool tempVar)
 {
-	int nCanUseLocalInParent = m_nFindLocalInParent;
+	int numCanUseLocalInParent = m_numFindLocalInParent;
 	CVariable* currentVariable = nullptr;
 	if (!FindVariable(strVarName, currentVariable)) {
-		//ищем в родительских контекстах(модулях)
+		//search in parent contexts (modules)
 		if (bFindInParent) {
-			int nParentNumber = 0;
+			int numParent = 0;
 			CCompileContext* pCurContext = m_parentContext;
 			while (pCurContext) {
-				nParentNumber++;
-				if (nParentNumber > MAX_OBJECTS_LEVEL) {
+				numParent++;
+				if (numParent > MAX_OBJECTS_LEVEL) {
 					//CSystemFunction::Message(pCurContext->m_compileModule->GetModuleName());
-					if (nParentNumber > 2 * MAX_OBJECTS_LEVEL) {
+					if (numParent > 2 * MAX_OBJECTS_LEVEL) {
 						CBackendException::Error("Recursive call of modules!");
 					}
 				}
-				if (pCurContext->FindVariable(strVarName, currentVariable)) { //нашли
-					//смотрим это экспортная переменная или нет (если m_nFindLocalInParent=true, то можно взять локальные переменные родителя)	
-					if (nCanUseLocalInParent > 0 ||
+				if (pCurContext->FindVariable(strVarName, currentVariable)) { // found
+					//check if this is an export variable or not (if m_numFindLocalInParent=true, then you can take local variables of the parent)
+					if (numCanUseLocalInParent > 0 ||
 						currentVariable->m_bExport) {
 						CParamUnit variable;
-						//определяем номер переменной
-						variable.m_nArray = nParentNumber;
-						variable.m_nIndex = currentVariable->m_nNumber;
+						//determine the variable number
+						variable.m_numArray = numParent;
+						variable.m_numIndex = currentVariable->m_numVariable;
 						variable.m_strType = currentVariable->m_strType;
 						return variable;
 					}
 				}
-				nCanUseLocalInParent--;
+				numCanUseLocalInParent--;
 				pCurContext = pCurContext->m_parentContext;
 			}
 		}
 
 		if (bCheckError) {
-			m_compileModule->SetError(ERROR_VAR_NOT_FOUND, strVarName); //выводим сообщение об ошибке
+			m_compileModule->SetError(ERROR_VAR_NOT_FOUND, strVarName); //display an error message
+			return CParamUnit();
 		}
 
-		//не было еще объявления переменной - добавляем
+		// there was no variable declaration yet - add
 		return AddVariable(strVarName, wxEmptyString, contextVar, contextVar, tempVar);
 	}
 
 	wxASSERT(currentVariable);
 
 	CParamUnit variable;
-	//определяем номер и тип переменной
-	variable.m_nArray = 0;
-	variable.m_nIndex = currentVariable->m_nNumber;
+
+	//determine the number and type of the variable
+	variable.m_numArray = 0;
+	variable.m_numIndex = currentVariable->m_numVariable;
 	variable.m_strType = currentVariable->m_strType;
+
 	return variable;
 }
 
 /**
- * Поиск переменной в хэш массиве
- * Возвращает 1 - если переменная найдена
+ * Search for a variable in a hash array
+ * Returns true - if the variable is found
  */
+
 bool CCompileContext::FindVariable(const wxString& strVarName, CVariable*& foundedVar, bool contextVar)
 {
-	auto it = std::find_if(m_cVariables.begin(), m_cVariables.end(),
+	auto it = std::find_if(m_listVariable.begin(), m_listVariable.end(),
 		[strVarName](std::pair < const wxString, CVariable>& pair) {
 			return stringUtils::CompareString(strVarName, pair.first); }
 	);
 
 	if (contextVar) {
-		if (it != m_cVariables.end()) {
+		if (it != m_listVariable.end()) {
 			foundedVar = &it->second;
 			return it->second.m_bContext;
 		}
@@ -131,7 +144,7 @@ bool CCompileContext::FindVariable(const wxString& strVarName, CVariable*& found
 		foundedVar = nullptr;
 		return false;
 	}
-	else if (it != m_cVariables.end()) {
+	else if (it != m_listVariable.end()) {
 		foundedVar = &it->second;
 		return true;
 	}
@@ -140,16 +153,17 @@ bool CCompileContext::FindVariable(const wxString& strVarName, CVariable*& found
 }
 
 /**
- * Поиск переменной в хэш массиве
- * Возвращает 1 - если переменная найдена
+ * Search for a variable in a hash array
+ * Returns true - if the variable is found
  */
+
 bool CCompileContext::FindFunction(const wxString& funcName, CFunction*& foundedFunc, bool contextVar) {
-	auto it = std::find_if(m_cFunctions.begin(), m_cFunctions.end(),
+	auto it = std::find_if(m_listFunction.begin(), m_listFunction.end(),
 		[funcName](std::pair < const wxString, CFunction*>& pair) {
 			return stringUtils::CompareString(funcName, pair.first); }
 	);
 	if (contextVar) {
-		if (it != m_cFunctions.end() && it->second) {
+		if (it != m_listFunction.end() && it->second) {
 			foundedFunc = it->second;
 			return it->second->m_bContext;
 		}
@@ -158,7 +172,7 @@ bool CCompileContext::FindFunction(const wxString& funcName, CFunction*& founded
 		foundedFunc = nullptr;
 		return false;
 	}
-	else if (it != m_cFunctions.end() && it->second) {
+	else if (it != m_listFunction.end() && it->second) {
 		foundedFunc = it->second;
 		return true;
 	}
@@ -167,28 +181,28 @@ bool CCompileContext::FindFunction(const wxString& funcName, CFunction*& founded
 }
 
 /**
- * Связываение операторов GOTO с метками
+ * Linking GOTO statements to labels
  */
 void CCompileContext::DoLabels()
 {
 	wxASSERT(m_compileModule != nullptr);
-	for (unsigned int i = 0; i < m_cLabels.size(); i++) {
-		const wxString& strName = m_cLabels[i].m_strName;
-		int oldLine = m_cLabels[i].m_nLine;
-		//ищем такую метку в списке объявленных меток
-		unsigned int currLine = m_cLabelsDef[strName];
+	for (unsigned int i = 0; i < m_listLabel.size(); i++) {
+		const wxString& strName = m_listLabel[i].m_strName;
+		const int oldLine = m_listLabel[i].m_numLine;
+		//look for such a label in the list of declared labels
+		unsigned int currLine = m_listLabelDef[strName];
 		if (!currLine) {
-			m_compileModule->m_nCurrentCompile = m_cLabels[i].m_nError;
-			m_compileModule->SetError(ERROR_LABEL_DEFINE, strName); //произошло дублированное определения меток
+			m_compileModule->m_numCurrentCompile = m_listLabel[i].m_numError;
+			m_compileModule->SetError(ERROR_LABEL_DEFINE, strName); // duplicate label definitions occurred
 		}
-		//записываем адрес перехода:
-		m_compileModule->m_cByteCode.m_aCodeList[oldLine].m_param1.m_nIndex = currLine + 1;
+		// write the address of the label:
+		m_compileModule->m_cByteCode.m_listCode[oldLine].m_param1.m_numIndex = currLine + 1;
 	}
 };
 
 CCompileContext::~CCompileContext() {
-	for (auto it = m_cFunctions.begin(); it != m_cFunctions.end(); it++) {
+	for (auto it = m_listFunction.begin(); it != m_listFunction.end(); it++) {
 		wxDELETE(it->second);
 	}
-	m_cFunctions.clear();
+	m_listFunction.clear();
 }

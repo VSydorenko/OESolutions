@@ -346,16 +346,16 @@ public:
 	IMetaObject* FindByName(const class_identifier_t& clsid, const wxString& strDocPath) const;
 
 	//methods 
-	virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+	virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames();
 		return m_methodHelper;
 	}
 
-	virtual void PrepareNames() const; //этот метод автоматически вызывается для инициализации имен атрибутов и методов
+	virtual void PrepareNames() const; // this method is automatically called to initialize attribute and method names.
 
 	//attributes 
-	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //установка атрибута
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //значение атрибута
+	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //setting attribute
+	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //attribute value
 
 	//support icons
 	virtual wxIcon GetIcon() const { return wxNullIcon; }

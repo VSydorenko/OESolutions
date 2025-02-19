@@ -61,7 +61,7 @@ bool IModuleManager::CMetadataUnit::SetPropVal(const long lPropNum, const CValue
 	return false;
 }
 
-bool IModuleManager::CMetadataUnit::GetPropVal(const long lPropNum, CValue& pvarPropVal)//значение атрибута
+bool IModuleManager::CMetadataUnit::GetPropVal(const long lPropNum, CValue& pvarPropVal)//attribute value
 {
 	CValueStructure* valStruct = CValue::CreateAndConvertObjectValueRef<CValueStructure>();
 	switch (lPropNum)

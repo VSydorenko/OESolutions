@@ -42,11 +42,11 @@ enum eValueTypes {
 	TYPE_STRING = 4,
 	TYPE_NULL = 5,
 
-	TYPE_REFFER = 100,  // cсылка на объект 
+	TYPE_REFFER = 100, // object reference
 
-	TYPE_VALUE = 200,   // значение
-	TYPE_ENUM = 201,   // перечисление
-	TYPE_OLE = 202,   // оле-объект
+	TYPE_VALUE = 200, // value
+	TYPE_ENUM = 201, // enumeration
+	TYPE_OLE = 202, // ole object
 
 	TYPE_LAST,
 };

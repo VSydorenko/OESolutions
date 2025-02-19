@@ -11,7 +11,7 @@ public:
 		return GetCompileModule() ? GetCompileModule()->GetModuleObject() : nullptr;
 	}
 
-	//גûחמג לועמהא
+	//method call
 	bool ExecuteProc(const wxString& strMethodName,
 		CValue** paParams,
 		const long lSizeArray);

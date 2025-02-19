@@ -10,32 +10,32 @@
 #pragma warning(push)
 #pragma warning(disable : 4018)
 
-//Массив приоритетов математических операций
-static std::array<int, 256> s_aPriority = { 0 };
+//array of mathematical operation priorities
+static std::array<int, 256> gs_operPriority = { 0 };
 
 CPrecompileModule::CPrecompileModule(CMetaObjectModule* moduleObject) :
 	CTranslateCode(moduleObject->GetFullName(), moduleObject->GetDocPath()),
 	m_moduleObject(moduleObject), m_pContext(nullptr), m_pCurrentContext(nullptr),
-	m_nCurrentCompile(wxNOT_FOUND), m_nCurrentPos(0), nLastPosition(0),
+	m_numCurrentCompile(wxNOT_FOUND), m_nCurrentPos(0), nLastPosition(0),
 	m_bCalcValue(false)
 {
-	if (!s_aPriority[s_aPriority.size() - 1]) {
+	if (!gs_operPriority[gs_operPriority.size() - 1]) {
 
-		s_aPriority['+'] = 10;
-		s_aPriority['-'] = 10;
-		s_aPriority['*'] = 30;
-		s_aPriority['/'] = 30;
-		s_aPriority['%'] = 30;
-		s_aPriority['!'] = 50;
+		gs_operPriority['+'] = 10;
+		gs_operPriority['-'] = 10;
+		gs_operPriority['*'] = 30;
+		gs_operPriority['/'] = 30;
+		gs_operPriority['%'] = 30;
+		gs_operPriority['!'] = 50;
 
-		s_aPriority[KEY_OR] = 1;
-		s_aPriority[KEY_AND] = 2;
+		gs_operPriority[KEY_OR] = 1;
+		gs_operPriority[KEY_AND] = 2;
 
-		s_aPriority['>'] = 3;
-		s_aPriority['<'] = 3;
-		s_aPriority['='] = 3;
+		gs_operPriority['>'] = 3;
+		gs_operPriority['<'] = 3;
+		gs_operPriority['='] = 3;
 
-		s_aPriority[s_aPriority.size() - 1] = true;
+		gs_operPriority[gs_operPriority.size() - 1] = true;
 	}
 
 	m_strModuleName = m_moduleObject->GetFullName();
@@ -51,9 +51,9 @@ void CPrecompileModule::Clear() //Сброс данных для повторного использования объе
 {
 	m_pCurrentContext = nullptr;
 	if (m_defineList != nullptr) m_defineList->Clear();
-	m_bufferSize = m_nCurPos = m_nCurLine = 0;
+	m_bufferSize = m_currentPos = m_currentLine = 0;
 	for (auto& function : cContext.cFunctions) wxDELETE(function.second);
-	m_nCurrentCompile = wxNOT_FOUND;
+	m_numCurrentCompile = wxNOT_FOUND;
 	cContext.cVariables.clear();
 	cContext.cFunctions.clear();
 
@@ -81,7 +81,7 @@ void CPrecompileModule::PrepareModuleData()
 			managerVariable->PrepareNames();
 			for (unsigned int i = 0; i < managerVariable->GetNProps(); i++) {
 				wxString sAttributeName = managerVariable->GetPropName(i);
-				//определяем номер и тип переменной
+				//determine the number and type of the variable
 				CPrecompileVariable cVariables;
 				cVariables.strName = sAttributeName;
 				cVariables.strRealName = sAttributeName;
@@ -106,7 +106,7 @@ void CPrecompileModule::PrepareModuleData()
 
 				pFunction->m_valContext = managerVariable;
 
-				//проверка на типизированность
+				// check for typing
 				GetContext()->cFunctions[stringUtils::MakeUpper(sMethodName)] = pFunction;
 			}
 		}
@@ -121,7 +121,7 @@ void CPrecompileModule::PrepareModuleData()
 							wxString sAttributeName = code.strName;
 							if (cContext.FindVariable(sAttributeName))
 								continue;
-							//определяем номер и тип переменной
+							//determine the number and type of the variable
 							CPrecompileVariable cVariables;
 							cVariables.strName = sAttributeName;
 							cVariables.strRealName = sAttributeName;
@@ -152,7 +152,7 @@ void CPrecompileModule::PrepareModuleData()
 
 							pFunction->m_valContext = module;
 
-							//проверка на типизированность
+							// check for typing
 							GetContext()->cFunctions[stringUtils::MakeUpper(sMethodName)] = pFunction; nNumberFunc++;
 						}
 						else if (code.eType == eExportFunction) {
@@ -173,7 +173,7 @@ void CPrecompileModule::PrepareModuleData()
 
 							pFunction->m_valContext = module;
 
-							//проверка на типизированность
+							// check for typing
 							GetContext()->cFunctions[stringUtils::MakeUpper(sMethodName)] = pFunction; nNumberFunc++;
 						}
 					}
@@ -192,13 +192,13 @@ void CPrecompileModule::PrepareModuleData()
 				wxASSERT(metaData);
 				IModuleManager* moduleManager = metaData->GetModuleManager();
 				if (moduleManager->FindCompileModule(moduleObject, pRefData)) {
-					//добавляем переменные из контекста
+					//adding variables from context
 					for (long i = 0; i < pRefData->GetNProps(); i++) {
 						wxString sAttributeName = pRefData->GetPropName(i);
 						if (cContext.FindVariable(sAttributeName))
 							continue;
 
-						//определяем номер и тип переменной
+						//determine the number and type of the variable
 						CPrecompileVariable cVariables;
 						cVariables.strName = sAttributeName;
 						cVariables.strRealName = sAttributeName;
@@ -212,7 +212,7 @@ void CPrecompileModule::PrepareModuleData()
 						GetContext()->cVariables[stringUtils::MakeUpper(sAttributeName)] = cVariables;
 					}
 
-					//добавляем методы из контекста
+					// add methods from context
 					for (long i = 0; i < pRefData->GetNMethods(); i++) {
 						wxString sMethodName = pRefData->GetMethodName(i);
 						if (cContext.FindFunction(sMethodName))
@@ -235,7 +235,7 @@ void CPrecompileModule::PrepareModuleData()
 
 						pFunction->m_valContext = pRefData;
 
-						//проверка на типизированность
+						// check for typing
 						GetContext()->cFunctions[stringUtils::MakeUpper(sMethodName)] = pFunction;
 					}
 
@@ -249,7 +249,7 @@ void CPrecompileModule::PrepareModuleData()
 									wxString sAttributeName = code.strName;
 									if (cContext.FindVariable(sAttributeName))
 										continue;
-									//определяем номер и тип переменной
+									//determine the number and type of the variable
 									CPrecompileVariable cVariables;
 									cVariables.strName = sAttributeName;
 									cVariables.strRealName = sAttributeName;
@@ -281,7 +281,7 @@ void CPrecompileModule::PrepareModuleData()
 
 									pFunction->m_valContext = pRefData;
 
-									//проверка на типизированность
+									// check for typing
 									GetContext()->cFunctions[stringUtils::MakeUpper(sMethodName)] = pFunction; nNumberFunc++;
 								}
 								else if (code.eType == eExportFunction) {
@@ -303,7 +303,7 @@ void CPrecompileModule::PrepareModuleData()
 
 									pFunction->m_valContext = pRefData;
 
-									//проверка на типизированность
+									// check for typing
 									GetContext()->cFunctions[stringUtils::MakeUpper(sMethodName)] = pFunction; nNumberFunc++;
 								}
 							}
@@ -323,8 +323,8 @@ bool CPrecompileModule::PrepareLexem()
 
 	while (!IsEnd()) {
 		lexem_t bytecode;
-		bytecode.m_nNumberLine = m_nCurLine;
-		bytecode.m_nNumberString = m_nCurPos;//если в дальнейшем произойдет ошибка, то именно эту строку нужно выдать пользователю
+		bytecode.m_numLine = m_currentLine;
+		bytecode.m_numString = m_currentPos;//если в дальнейшем произойдет ошибка, то именно эту строку нужно выдать пользователю
 		bytecode.m_strModuleName = m_strModuleName;
 
 		if (IsWord()) {
@@ -333,46 +333,46 @@ bool CPrecompileModule::PrepareLexem()
 
 			//undefined
 			if (s.Lower() == wxT("undefined")) {
-				bytecode.m_nType = CONSTANT;
-				bytecode.m_vData.SetType(eValueTypes::TYPE_EMPTY);
+				bytecode.m_lexType = CONSTANT;
+				bytecode.m_valData.SetType(eValueTypes::TYPE_EMPTY);
 			}
 			//boolean
 			else if (s.Lower() == wxT("true") || s.Lower() == wxT("false")) {
-				bytecode.m_nType = CONSTANT;
-				bytecode.m_vData.SetBoolean(s);
+				bytecode.m_lexType = CONSTANT;
+				bytecode.m_valData.SetBoolean(s);
 			}
 			//null
 			else if (s.Lower() == wxT("null")) {
-				bytecode.m_nType = CONSTANT;
-				bytecode.m_vData.SetType(eValueTypes::TYPE_NULL);
+				bytecode.m_lexType = CONSTANT;
+				bytecode.m_valData.SetType(eValueTypes::TYPE_NULL);
 			}
 
-			if (bytecode.m_nType != CONSTANT) {
+			if (bytecode.m_lexType != CONSTANT) {
 				int n = IsKeyWord(s);
-				bytecode.m_vData = sOrig;
+				bytecode.m_valData = sOrig;
 				if (n >= 0) {
-					bytecode.m_nType = KEYWORD;
-					bytecode.m_nData = n;
+					bytecode.m_lexType = KEYWORD;
+					bytecode.m_numData = n;
 				}
 				else {
-					bytecode.m_nType = IDENTIFIER;
+					bytecode.m_lexType = IDENTIFIER;
 				}
 			}
 		}
 		else if (IsNumber() || IsString() || IsDate()) {
-			bytecode.m_nType = CONSTANT;
+			bytecode.m_lexType = CONSTANT;
 			if (IsNumber()) {
-				bytecode.m_vData.SetNumber(GetNumber());
+				bytecode.m_valData.SetNumber(GetNumber());
 				int n = m_listLexem.size() - 1;
 				if (n >= 0) {
-					if (m_listLexem[n].m_nType == DELIMITER && (m_listLexem[n].m_nData == '-' || m_listLexem[n].m_nData == '+')) {
+					if (m_listLexem[n].m_lexType == DELIMITER && (m_listLexem[n].m_numData == '-' || m_listLexem[n].m_numData == '+')) {
 						n--;
 						if (n >= 0) {
-							if (m_listLexem[n].m_nType == DELIMITER && (m_listLexem[n].m_nData == '[' || m_listLexem[n].m_nData == '(' || m_listLexem[n].m_nData == ',' || m_listLexem[n].m_nData == '<' || m_listLexem[n].m_nData == '>' || m_listLexem[n].m_nData == '='))
+							if (m_listLexem[n].m_lexType == DELIMITER && (m_listLexem[n].m_numData == '[' || m_listLexem[n].m_numData == '(' || m_listLexem[n].m_numData == ',' || m_listLexem[n].m_numData == '<' || m_listLexem[n].m_numData == '>' || m_listLexem[n].m_numData == '='))
 							{
 								n++;
-								if (m_listLexem[n].m_nData == '-')
-									bytecode.m_vData.m_fData = -bytecode.m_vData.m_fData;
+								if (m_listLexem[n].m_numData == '-')
+									bytecode.m_valData.m_fData = -bytecode.m_valData.m_fData;
 								m_listLexem[n] = bytecode;
 								continue;
 							}
@@ -382,10 +382,10 @@ bool CPrecompileModule::PrepareLexem()
 			}
 			else {
 				if (IsString()) {
-					bytecode.m_vData.SetString(GetString());
+					bytecode.m_valData.SetString(GetString());
 				}
 				else if (IsDate()) {
-					bytecode.m_vData.SetDate(GetDate());
+					bytecode.m_valData.SetDate(GetDate());
 				}
 			}
 
@@ -400,30 +400,30 @@ bool CPrecompileModule::PrepareLexem()
 		}
 		else {
 			s.clear();
-			bytecode.m_nType = DELIMITER;
-			bytecode.m_nData = GetByte();
-			if (bytecode.m_nData <= 13) {
+			bytecode.m_lexType = DELIMITER;
+			bytecode.m_numData = GetByte();
+			if (bytecode.m_numData <= 13) {
 				continue;
 			}
 		}
 		bytecode.m_strData = s;
-		if (bytecode.m_nType == KEYWORD)
+		if (bytecode.m_lexType == KEYWORD)
 		{
-			if (bytecode.m_nData == KEY_DEFINE)continue; //задание произвольного идентификатора
-			else if (bytecode.m_nData == KEY_UNDEF) continue; //удаление идентификатора
-			else if (bytecode.m_nData == KEY_IFDEF || bytecode.m_nData == KEY_IFNDEF) continue; //условное компилирование
-			else if (bytecode.m_nData == KEY_ENDIFDEF) continue; //конец условного компилирования
-			else if (bytecode.m_nData == KEY_ELSEDEF) continue; //"Иначе" условного компилирования
-			else if (bytecode.m_nData == KEY_REGION) continue;
-			else if (bytecode.m_nData == KEY_ENDREGION) continue;
+			if (bytecode.m_numData == KEY_DEFINE)continue; //задание произвольного идентификатора
+			else if (bytecode.m_numData == KEY_UNDEF) continue; //удаление идентификатора
+			else if (bytecode.m_numData == KEY_IFDEF || bytecode.m_numData == KEY_IFNDEF) continue; //условное компилирование
+			else if (bytecode.m_numData == KEY_ENDIFDEF) continue; //конец условного компилирования
+			else if (bytecode.m_numData == KEY_ELSEDEF) continue; //"Иначе" условного компилирования
+			else if (bytecode.m_numData == KEY_REGION) continue;
+			else if (bytecode.m_numData == KEY_ENDREGION) continue;
 		}
 		m_listLexem.push_back(bytecode);
 	}
 
 	lexem_t bytecode;
-	bytecode.m_nType = ENDPROGRAM;
-	bytecode.m_nData = 0;
-	bytecode.m_nNumberString = m_nCurPos;
+	bytecode.m_lexType = ENDPROGRAM;
+	bytecode.m_numData = 0;
+	bytecode.m_numString = m_currentPos;
 	m_listLexem.push_back(bytecode);
 
 	return true;
@@ -433,33 +433,33 @@ void CPrecompileModule::PatchLexem(unsigned int line, int offsetLine, unsigned i
 {
 	unsigned int nLexPos = m_listLexem.size() > 1 ? m_listLexem.size() - 2 : 0;
 	for (unsigned int i = 0; i <= m_listLexem.size() - 1; i++) {
-		if (m_listLexem[i].m_nNumberLine >= line) {
+		if (m_listLexem[i].m_numLine >= line) {
 			nLexPos = i;
 			break;
 		}
 	}
 
 	for (unsigned int i = nLexPos; i < m_listLexem.size() - 1; i++) {
-		if ((modFlags & wxSTC_MOD_BEFOREINSERT) != 0 && m_listLexem[i].m_nNumberLine <= line) {
-			if (m_listLexem[i].m_nNumberLine != line && m_listLexem[i + 1].m_nType == ENDPROGRAM) {
-				m_nCurLine = m_listLexem[i].m_nNumberLine;
-				m_nCurPos = m_listLexem[i].m_nNumberString;
+		if ((modFlags & wxSTC_MOD_BEFOREINSERT) != 0 && m_listLexem[i].m_numLine <= line) {
+			if (m_listLexem[i].m_numLine != line && m_listLexem[i + 1].m_lexType == ENDPROGRAM) {
+				m_currentLine = m_listLexem[i].m_numLine;
+				m_currentPos = m_listLexem[i].m_numString;
 			}
 			m_listLexem.erase(m_listLexem.begin() + i); i--;
 		}
-		else if ((modFlags & wxSTC_MOD_BEFOREDELETE) != 0 && m_listLexem[i].m_nNumberLine <= (line - offsetLine)) {
+		else if ((modFlags & wxSTC_MOD_BEFOREDELETE) != 0 && m_listLexem[i].m_numLine <= (line - offsetLine)) {
 			m_listLexem.erase(m_listLexem.begin() + i); i--;
 		}
 		else break;
 	}
 
 	while (!IsEnd()) {
-		if ((modFlags & wxSTC_MOD_BEFOREINSERT) != 0 && m_nCurLine > (line + offsetLine)) break;
-		else if ((modFlags & wxSTC_MOD_BEFOREDELETE) != 0 && (m_nCurLine > line)) break;
+		if ((modFlags & wxSTC_MOD_BEFOREINSERT) != 0 && m_currentLine > (line + offsetLine)) break;
+		else if ((modFlags & wxSTC_MOD_BEFOREDELETE) != 0 && (m_currentLine > line)) break;
 
 		lexem_t bytecode;
-		bytecode.m_nNumberLine = m_nCurLine;
-		bytecode.m_nNumberString = m_nCurPos; //если в дальнейшем произойдет ошибка, то именно эту строку нужно выдать пользователю
+		bytecode.m_numLine = m_currentLine;
+		bytecode.m_numString = m_currentPos; //если в дальнейшем произойдет ошибка, то именно эту строку нужно выдать пользователю
 		bytecode.m_strModuleName = m_strModuleName;
 
 		wxString s;
@@ -471,56 +471,56 @@ void CPrecompileModule::PatchLexem(unsigned int line, int offsetLine, unsigned i
 
 			//undefined
 			if (s.Lower() == wxT("undefined")) {
-				bytecode.m_nType = CONSTANT;
-				bytecode.m_vData.SetType(eValueTypes::TYPE_EMPTY);
+				bytecode.m_lexType = CONSTANT;
+				bytecode.m_valData.SetType(eValueTypes::TYPE_EMPTY);
 			}
 			//boolean
 			else if (s.Lower() == wxT("true") || s.Lower() == wxT("false")) {
-				bytecode.m_nType = CONSTANT;
-				bytecode.m_vData.SetBoolean(s);
+				bytecode.m_lexType = CONSTANT;
+				bytecode.m_valData.SetBoolean(s);
 			}
 			//null
 			else if (s.Lower() == wxT("null")) {
-				bytecode.m_nType = CONSTANT;
-				bytecode.m_vData.SetType(eValueTypes::TYPE_NULL);
+				bytecode.m_lexType = CONSTANT;
+				bytecode.m_valData.SetType(eValueTypes::TYPE_NULL);
 			}
 
-			if (bytecode.m_nType != CONSTANT) {
+			if (bytecode.m_lexType != CONSTANT) {
 				int n = IsKeyWord(s);
 
-				bytecode.m_vData = sOrig;
+				bytecode.m_valData = sOrig;
 
 				if (n >= 0) {
-					bytecode.m_nType = KEYWORD;
-					bytecode.m_nData = n;
+					bytecode.m_lexType = KEYWORD;
+					bytecode.m_numData = n;
 				}
 				else
 				{
-					bytecode.m_nType = IDENTIFIER;
+					bytecode.m_lexType = IDENTIFIER;
 				}
 			}
 		}
 		else if (IsNumber() || IsString() || IsDate())
 		{
-			bytecode.m_nType = CONSTANT;
+			bytecode.m_lexType = CONSTANT;
 
 			if (IsNumber()) {
-				bytecode.m_vData.SetNumber(GetNumber());
+				bytecode.m_valData.SetNumber(GetNumber());
 
 				int n = nLexPos;
 
 				if (n >= 0)
 				{
-					if (m_listLexem[n].m_nType == DELIMITER && (m_listLexem[n].m_nData == '-' || m_listLexem[n].m_nData == '+'))
+					if (m_listLexem[n].m_lexType == DELIMITER && (m_listLexem[n].m_numData == '-' || m_listLexem[n].m_numData == '+'))
 					{
 						n--;
 						if (n >= 0)
 						{
-							if (m_listLexem[n].m_nType == DELIMITER && (m_listLexem[n].m_nData == '[' || m_listLexem[n].m_nData == '(' || m_listLexem[n].m_nData == ',' || m_listLexem[n].m_nData == '<' || m_listLexem[n].m_nData == '>' || m_listLexem[n].m_nData == '='))
+							if (m_listLexem[n].m_lexType == DELIMITER && (m_listLexem[n].m_numData == '[' || m_listLexem[n].m_numData == '(' || m_listLexem[n].m_numData == ',' || m_listLexem[n].m_numData == '<' || m_listLexem[n].m_numData == '>' || m_listLexem[n].m_numData == '='))
 							{
 								n++;
-								if (m_listLexem[n].m_nData == '-')
-									bytecode.m_vData.m_fData = -bytecode.m_vData.m_fData;
+								if (m_listLexem[n].m_numData == '-')
+									bytecode.m_valData.m_fData = -bytecode.m_valData.m_fData;
 								m_listLexem[n] = bytecode;
 								continue;
 							}
@@ -530,10 +530,10 @@ void CPrecompileModule::PatchLexem(unsigned int line, int offsetLine, unsigned i
 			}
 			else {
 				if (IsString()) {
-					bytecode.m_vData.SetString(GetString());
+					bytecode.m_valData.SetString(GetString());
 				}
 				else if (IsDate()) {
-					bytecode.m_vData.SetDate(GetDate());
+					bytecode.m_valData.SetDate(GetDate());
 				}
 			}
 			m_listLexem.insert(m_listLexem.begin() + nLexPos, bytecode);
@@ -550,23 +550,23 @@ void CPrecompileModule::PatchLexem(unsigned int line, int offsetLine, unsigned i
 		}
 		else {
 			s.clear();
-			bytecode.m_nType = DELIMITER;
-			bytecode.m_nData = GetByte();
-			if (bytecode.m_nData <= 13) {
+			bytecode.m_lexType = DELIMITER;
+			bytecode.m_numData = GetByte();
+			if (bytecode.m_numData <= 13) {
 				nLexPos++;
 				continue;
 			}
 		}
 		bytecode.m_strData = s;
-		if (bytecode.m_nType == KEYWORD) {
+		if (bytecode.m_lexType == KEYWORD) {
 			if (
-				bytecode.m_nData == KEY_DEFINE //задание произвольного идентификатора
-				|| bytecode.m_nData == KEY_UNDEF //удаление идентификатора
-				|| (bytecode.m_nData == KEY_IFDEF || bytecode.m_nData == KEY_IFNDEF)  //условное компилирование
-				|| bytecode.m_nData == KEY_ENDIFDEF  //конец условного компилирования
-				|| bytecode.m_nData == KEY_ELSEDEF  //"Иначе" условного компилирования
-				|| bytecode.m_nData == KEY_REGION
-				|| bytecode.m_nData == KEY_ENDREGION
+				bytecode.m_numData == KEY_DEFINE //задание произвольного идентификатора
+				|| bytecode.m_numData == KEY_UNDEF //удаление идентификатора
+				|| (bytecode.m_numData == KEY_IFDEF || bytecode.m_numData == KEY_IFNDEF)  //условное компилирование
+				|| bytecode.m_numData == KEY_ENDIFDEF  //конец условного компилирования
+				|| bytecode.m_numData == KEY_ELSEDEF  //"Иначе" условного компилирования
+				|| bytecode.m_numData == KEY_REGION
+				|| bytecode.m_numData == KEY_ENDREGION
 				)
 			{
 				continue;
@@ -577,20 +577,20 @@ void CPrecompileModule::PatchLexem(unsigned int line, int offsetLine, unsigned i
 	}
 
 	for (unsigned int i = nLexPos; i < m_listLexem.size() - 1; i++) {
-		m_listLexem[i].m_nNumberLine += offsetLine;
+		m_listLexem[i].m_numLine += offsetLine;
 		if ((modFlags & wxSTC_MOD_BEFOREINSERT) != 0) {
-			m_listLexem[i].m_nNumberString += offsetString;
+			m_listLexem[i].m_numString += offsetString;
 		}
 		else {
-			m_listLexem[i].m_nNumberString -= offsetString;
+			m_listLexem[i].m_numString -= offsetString;
 		}
 	}
 
 	if ((modFlags & wxSTC_MOD_BEFOREINSERT) != 0) {
-		m_listLexem[m_listLexem.size() - 1].m_nNumberString += offsetString;
+		m_listLexem[m_listLexem.size() - 1].m_numString += offsetString;
 	}
 	else {
-		m_listLexem[m_listLexem.size() - 1].m_nNumberString -= offsetString;
+		m_listLexem[m_listLexem.size() - 1].m_numString -= offsetString;
 	}
 }
 
@@ -615,20 +615,20 @@ bool CPrecompileModule::Compile()
 
 bool CPrecompileModule::CompileModule()
 {
-	m_pContext = GetContext();//контекст самого модуля
+	m_pContext = GetContext();// context of the module itself
 
 	lexem_t lex;
 
-	while ((lex = PreviewGetLexem()).m_nType != ERRORTYPE)
+	while ((lex = PreviewGetLexem()).m_lexType != ERRORTYPE)
 	{
-		if ((KEYWORD == lex.m_nType && KEY_VAR == lex.m_nData) || (IDENTIFIER == lex.m_nType && IsTypeVar(lex.m_strData)))
+		if ((KEYWORD == lex.m_lexType && KEY_VAR == lex.m_numData) || (IDENTIFIER == lex.m_lexType && IsTypeVar(lex.m_strData)))
 		{
-			CompileDeclaration();//загружаем объявление переменных
+			CompileDeclaration();// load variable declaration
 		}
-		else if (KEYWORD == lex.m_nType && (KEY_PROCEDURE == lex.m_nData || KEY_FUNCTION == lex.m_nData))
+		else if (KEYWORD == lex.m_lexType && (KEY_PROCEDURE == lex.m_numData || KEY_FUNCTION == lex.m_numData))
 		{
-			CompileFunction();//загружаем объявление функций
-			//не забываем восстанавливать текущий контекст модуля (если это нужно)...
+			CompileFunction();// load function declaration
+			// don't forget to restore the current module context (if necessary)...
 		}
 		else
 		{
@@ -636,16 +636,16 @@ bool CPrecompileModule::CompileModule()
 		}
 	}
 
-	int nStartContext = m_nCurrentCompile >= 0 ? m_listLexem[m_nCurrentCompile].m_nNumberString : 0;
+	int nStartContext = m_numCurrentCompile >= 0 ? m_listLexem[m_numCurrentCompile].m_numString : 0;
 
-	//загружаем исполняемое тело модуля
-	m_pContext = GetContext();//контекст самого модуля
+	// load the executable body of the module
+	m_pContext = GetContext();// context of the module itself
 
 	CompileBlock();
 
-	if (m_nCurrentCompile + 1 < m_listLexem.size() - 1) return false;
+	if (m_numCurrentCompile + 1 < m_listLexem.size() - 1) return false;
 
-	if (m_nCurrentPos >= nStartContext && m_nCurrentPos <= m_listLexem[m_nCurrentCompile].m_nNumberString)
+	if (m_nCurrentPos >= nStartContext && m_nCurrentPos <= m_listLexem[m_numCurrentCompile].m_numString)
 	{
 		m_pCurrentContext = m_pContext;
 	}
@@ -655,7 +655,7 @@ bool CPrecompileModule::CompileModule()
 
 bool CPrecompileModule::CompileFunction()
 {
-	//сейчас мы на уровне лексемы, где задано ключевое слово FUNCTION или PROCEDURE
+	// we are now at the token level, where the FUNCTION or PROCEDURE keyword is specified
 	lexem_t lex;
 	if (IsNextKeyWord(KEY_FUNCTION))
 	{
@@ -679,18 +679,18 @@ bool CPrecompileModule::CompileFunction()
 		return false;
 	}
 
-	//вытаскиваем текст объявления функции
+	// pull out the text of the function declaration
 	lex = PreviewGetLexem();
 	wxString strShortDescription;
-	int m_nNumberLine = lex.m_nNumberLine;
-	int nRes = m_strBuffer.find('\n', lex.m_nNumberString);
+	int m_numLine = lex.m_numLine;
+	int nRes = m_strBuffer.find('\n', lex.m_numString);
 	if (nRes >= 0)
 	{
-		strShortDescription = m_strBuffer.Mid(lex.m_nNumberString, nRes - lex.m_nNumberString - 1);
+		strShortDescription = m_strBuffer.Mid(lex.m_numString, nRes - lex.m_numString - 1);
 		nRes = strShortDescription.find_first_of('/');
 		if (nRes > 0)
 		{
-			if (strShortDescription[nRes - 1] == '/')//итак - это комментарий
+			if (strShortDescription[nRes - 1] == '/')// so this is a comment
 			{
 				strShortDescription = strShortDescription.Mid(nRes + 1);
 			}
@@ -702,26 +702,26 @@ bool CPrecompileModule::CompileFunction()
 		}
 	}
 
-	//получаем имя функции
+	// get the function name
 	wxString csFuncName0 = GETIdentifier(true);
 	wxString strFuncName = stringUtils::MakeUpper(csFuncName0);
-	int nError = m_nCurrentCompile;
+	int nError = m_numCurrentCompile;
 
 	CPrecompileFunction* pFunction = new CPrecompileFunction(strFuncName, m_pContext);
 
 	pFunction->strRealName = csFuncName0;
 	pFunction->strShortDescription = strShortDescription;
-	pFunction->nNumberLine = m_nNumberLine;
+	pFunction->nNumberLine = m_numLine;
 
-	//компилируем список формальных параметров + регистрируем их как локальные
+	// compile the list of formal parameters + register them as local
 	GETDelimeter('(');
-	while (m_nCurrentCompile + 1 < m_listLexem.size()
+	while (m_numCurrentCompile + 1 < m_listLexem.size()
 		&& !IsNextDelimeter(')'))
 	{
-		while (m_nCurrentCompile + 1 < m_listLexem.size())
+		while (m_numCurrentCompile + 1 < m_listLexem.size())
 		{
 			wxString strType;
-			//проверка на типизированность
+			// check for typing
 			if (IsTypeVar())
 			{
 				strType = GetTypeVar();
@@ -737,10 +737,10 @@ bool CPrecompileModule::CompileFunction()
 			wxString strRealName = GETIdentifier(true);
 			sVariable.m_paramName = stringUtils::MakeUpper(strRealName);
 
-			//регистрируем эту переменную как локальную
+			// register this variable as local
 			if (m_pContext->FindVariable(sVariable.m_paramName)) return false;//было объявление + повторное объявление = ошибка
 
-			if (IsNextDelimeter('[')) { //это массив
+			if (IsNextDelimeter('[')) { // this is an array
 				GETDelimeter('[');
 				GETDelimeter(']');
 			}
@@ -779,10 +779,10 @@ bool CPrecompileModule::CompileFunction()
 		pFunction->bExport = true;
 	}
 
-	//проверка на типизированность
+	// check for typing
 	GetContext()->cFunctions[strFuncName] = pFunction;
 
-	int nStartContext = m_listLexem[m_nCurrentCompile].m_nNumberString;
+	int nStartContext = m_listLexem[m_numCurrentCompile].m_numString;
 
 	GetContext()->sCurFuncName = strFuncName;
 	CompileBlock();
@@ -791,7 +791,7 @@ bool CPrecompileModule::CompileFunction()
 	if (m_pContext->nReturn == RETURN_FUNCTION) GETKeyWord(KEY_ENDFUNCTION);
 	else GETKeyWord(KEY_ENDPROCEDURE);
 
-	if (m_nCurrentPos >= nStartContext && m_nCurrentPos <= m_listLexem[m_nCurrentCompile].m_nNumberString) m_pCurrentContext = m_pContext;
+	if (m_nCurrentPos >= nStartContext && m_nCurrentPos <= m_listLexem[m_numCurrentCompile].m_numString) m_pCurrentContext = m_pContext;
 	return true;
 }
 
@@ -800,15 +800,15 @@ bool CPrecompileModule::CompileDeclaration()
 	wxString strType;
 	const lexem_t& lex = PreviewGetLexem();
 
-	if (IDENTIFIER == lex.m_nType) strType = GetTypeVar(); //типизированное задание переменных
+	if (IDENTIFIER == lex.m_lexType) strType = GetTypeVar(); // typed setting of variables
 	else GETKeyWord(KEY_VAR);
 
-	while (m_nCurrentCompile + 1 < m_listLexem.size())
+	while (m_numCurrentCompile + 1 < m_listLexem.size())
 	{
 		wxString strName = GETIdentifier(true);
 
 		int nArrayCount = wxNOT_FOUND;
-		if (IsNextDelimeter('['))//это объявление массива
+		if (IsNextDelimeter('['))// this is an array declaration
 		{
 			nArrayCount = 0;
 			GETDelimeter('[');
@@ -824,15 +824,15 @@ bool CPrecompileModule::CompileDeclaration()
 		bool bExport = false;
 
 		if (IsNextKeyWord(KEY_EXPORT)) {
-			if (bExport) break;//было объявление Экспорт
+			if (bExport) break;// there was an Export announcement
 			GETKeyWord(KEY_EXPORT);
 			bExport = true;
 		}
 
-		//не было еще объявления переменной - добавляем
+		// there was no variable declaration yet - add
 		m_pContext->AddVariable(strName, strType, bExport);
 
-		if (IsNextDelimeter('='))//начальная инициализация - работает только внутри текста модулей (но не пере объявл. процедур и функций)
+		if (IsNextDelimeter('='))// initial initialization - works only inside the text of modules (but not re-declaring procedures and functions)
 		{
 			if (nArrayCount >= 0) GETDelimeter(',');//Error!
 			GETDelimeter('=');
@@ -851,15 +851,15 @@ bool CPrecompileModule::CompileBlock()
 {
 	lexem_t lex;
 
-	while ((lex = PreviewGetLexem()).m_nType != ERRORTYPE)
+	while ((lex = PreviewGetLexem()).m_lexType != ERRORTYPE)
 	{
-		if (IDENTIFIER == lex.m_nType && IsTypeVar(lex.m_strData)) CompileDeclaration();
+		if (IDENTIFIER == lex.m_lexType && IsTypeVar(lex.m_strData)) CompileDeclaration();
 
-		if (KEYWORD == lex.m_nType)
+		if (KEYWORD == lex.m_lexType)
 		{
-			switch (lex.m_nData)
+			switch (lex.m_numData)
 			{
-			case KEY_VAR://задание переменных и массивов
+			case KEY_VAR:// setting variables and arrays
 				CompileDeclaration();
 				break;
 			case KEY_NEW:
@@ -920,22 +920,22 @@ bool CPrecompileModule::CompileBlock()
 			case KEY_FUNCTION:
 			case KEY_PROCEDURE: GetLexem(); break;
 
-			default: return true;//значит встретилась завершающая данный блок операторная скобка (например КОНЕЦЕСЛИ, КОНЕЦЦИКЛА, КОНЕЦФУНКЦИИ и т.п.)		
+			default: return true;// means the operator bracket ending this block has been encountered (for example, ENDIF, ENDDO, ENDFUNCTION, etc.)
 			}
 		}
 		else
 		{
 			lex = GetLexem();
-			if (IDENTIFIER == lex.m_nType)
+			if (IDENTIFIER == lex.m_lexType)
 			{
-				if (IsNextDelimeter(':'))//это встретилось задание метки
+				if (IsNextDelimeter(':'))// this is a label task encountered
 				{
-					//записываем адрес перехода:
+					// write the address of the label:
 					GETDelimeter(':');
 				}
 				else//здесь обрабатываются вызовы функций, методов, присваиваение выражений
 				{
-					m_nCurrentCompile--;//шаг назад
+					m_numCurrentCompile--;// step back
 
 					int nSet = 1;
 					CParamValue sVariable = GetCurrentIdentifier(nSet);//получаем левую часть выражения (до знака '=')
@@ -957,8 +957,8 @@ bool CPrecompileModule::CompileBlock()
 					}
 				}
 			}
-			else if (DELIMITER == lex.m_nType && ';' == lex.m_nData) break;
-			else if (ENDPROGRAM == lex.m_nType) break;
+			else if (DELIMITER == lex.m_lexType && ';' == lex.m_numData) break;
+			else if (ENDPROGRAM == lex.m_lexType) break;
 			else return false;
 		}
 	}//while
@@ -975,16 +975,16 @@ bool CPrecompileModule::CompileNewObject()
 
 	std::vector <CParamValue> aParamList;
 
-	if (IsNextDelimeter('('))//это вызов метода
+	if (IsNextDelimeter('('))// this is a method call
 	{
 		GETDelimeter('(');
 
-		while (m_nCurrentCompile + 1 < m_listLexem.size()
+		while (m_numCurrentCompile + 1 < m_listLexem.size()
 			&& !IsNextDelimeter(')'))
 		{
 			if (IsNextDelimeter(','))
 			{
-				CParamValue data; //пропущенный параметр
+				CParamValue data; // missing parameter
 				aParamList.push_back(data);
 			}
 			else
@@ -1019,7 +1019,7 @@ bool CPrecompileModule::CompileIf()
 
 	while (IsNextKeyWord(KEY_ELSEIF))
 	{
-		//Записываем выход из всех проверок для предыдущего блока
+		// write the output from all checks for the previous block
 		GETKeyWord(KEY_ELSEIF);
 
 		GetExpression();
@@ -1030,7 +1030,7 @@ bool CPrecompileModule::CompileIf()
 
 	if (IsNextKeyWord(KEY_ELSE))
 	{
-		//Записываем выход из всех проверок для предыдущего блока
+		// write the output from all checks for the previous block
 		GETKeyWord(KEY_ELSE);
 		CompileBlock();
 	}
@@ -1056,7 +1056,7 @@ bool CPrecompileModule::CompileFor()
 {
 	GETKeyWord(KEY_FOR);
 
-	int nStartPos = m_listLexem[m_nCurrentCompile].m_nNumberString;
+	int nStartPos = m_listLexem[m_numCurrentCompile].m_numString;
 
 	wxString strRealName = GETIdentifier(true);
 	//wxString strName = stringUtils::MakeUpper(strRealName);
@@ -1075,7 +1075,7 @@ bool CPrecompileModule::CompileFor()
 	CompileBlock();
 	GETKeyWord(KEY_ENDDO);
 
-	if (!(nStartPos < m_nCurrentPos && m_listLexem[m_nCurrentCompile].m_nNumberString > m_nCurrentPos))
+	if (!(nStartPos < m_nCurrentPos && m_listLexem[m_numCurrentCompile].m_numString > m_nCurrentPos))
 		m_pContext->RemoveVariable(strRealName);
 
 	return true;
@@ -1085,7 +1085,7 @@ bool CPrecompileModule::CompileForeach()
 {
 	GETKeyWord(KEY_FOREACH);
 
-	int nStartPos = m_listLexem[m_nCurrentCompile].m_nNumberString;
+	int nStartPos = m_listLexem[m_numCurrentCompile].m_numString;
 
 	wxString strRealName = GETIdentifier(true);
 	wxString strName = stringUtils::MakeUpper(strRealName);
@@ -1101,7 +1101,7 @@ bool CPrecompileModule::CompileForeach()
 	CompileBlock();
 	GETKeyWord(KEY_ENDDO);
 
-	if (!(nStartPos < m_nCurrentPos && m_listLexem[m_nCurrentCompile].m_nNumberString > m_nCurrentPos))
+	if (!(nStartPos < m_nCurrentPos && m_listLexem[m_numCurrentCompile].m_numString > m_nCurrentPos))
 		m_pContext->RemoveVariable(strRealName);
 
 	return true;
@@ -1121,8 +1121,8 @@ bool CPrecompileModule::CompileForeach()
 lexem_t CPrecompileModule::GetLexem()
 {
 	lexem_t lex;
-	if (m_nCurrentCompile + 1 < m_listLexem.size()) {
-		lex = m_listLexem[++m_nCurrentCompile];
+	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
+		lex = m_listLexem[++m_numCurrentCompile];
 	}
 	return lex;
 }
@@ -1133,10 +1133,10 @@ lexem_t CPrecompileModule::PreviewGetLexem()
 	lexem_t lex;
 	while (true) {
 		lex = GetLexem();
-		if (!(lex.m_nType == DELIMITER && (lex.m_nData == ';' || lex.m_nData == '\n')))
+		if (!(lex.m_lexType == DELIMITER && (lex.m_numData == ';' || lex.m_numData == '\n')))
 			break;
 	}
-	m_nCurrentCompile--;
+	m_numCurrentCompile--;
 	return lex;
 }
 
@@ -1150,7 +1150,7 @@ lexem_t CPrecompileModule::PreviewGetLexem()
 lexem_t CPrecompileModule::GETLexem()
 {
 	const lexem_t& lex = GetLexem();
-	if (lex.m_nType == ERRORTYPE) {}
+	if (lex.m_lexType == ERRORTYPE) {}
 	return lex;
 }
 /**
@@ -1164,11 +1164,11 @@ void CPrecompileModule::GETDelimeter(const wxUniChar& c)
 {
 	lexem_t lex = GETLexem();
 
-	if (lex.m_nType == DELIMITER && c == lex.m_nData)
+	if (lex.m_lexType == DELIMITER && c == lex.m_numData)
 		sLastExpression += c;
 
-	while (!(lex.m_nType == DELIMITER && c == lex.m_nData)) {
-		if (m_nCurrentCompile + 1 >= m_listLexem.size()) break;
+	while (!(lex.m_lexType == DELIMITER && c == lex.m_numData)) {
+		if (m_numCurrentCompile + 1 >= m_listLexem.size()) break;
 		lex = GETLexem();
 	}
 }
@@ -1181,9 +1181,9 @@ void CPrecompileModule::GETDelimeter(const wxUniChar& c)
  */
 bool CPrecompileModule::IsNextDelimeter(const wxUniChar& c)
 {
-	if (m_nCurrentCompile + 1 < m_listLexem.size()) {
-		lexem_t lex = m_listLexem[m_nCurrentCompile + 1];
-		if (lex.m_nType == DELIMITER && c == lex.m_nData)
+	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
+		lexem_t lex = m_listLexem[m_numCurrentCompile + 1];
+		if (lex.m_lexType == DELIMITER && c == lex.m_numData)
 			return true;
 	}
 
@@ -1199,9 +1199,9 @@ bool CPrecompileModule::IsNextDelimeter(const wxUniChar& c)
  */
 bool CPrecompileModule::IsNextKeyWord(int nKey)
 {
-	if (m_nCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_nCurrentCompile + 1];
-		if (lex.m_nType == KEYWORD && lex.m_nData == nKey)
+	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
+		const lexem_t& lex = m_listLexem[m_numCurrentCompile + 1];
+		if (lex.m_lexType == KEYWORD && lex.m_numData == nKey)
 			return true;
 
 	}
@@ -1217,8 +1217,8 @@ bool CPrecompileModule::IsNextKeyWord(int nKey)
 void CPrecompileModule::GETKeyWord(int nKey)
 {
 	lexem_t lex = GETLexem();
-	while (!(lex.m_nType == KEYWORD && lex.m_nData == nKey)) {
-		if (m_nCurrentCompile + 1 >= m_listLexem.size())
+	while (!(lex.m_lexType == KEYWORD && lex.m_numData == nKey)) {
+		if (m_numCurrentCompile + 1 >= m_listLexem.size())
 			break;
 		lex = GETLexem();
 	}
@@ -1233,13 +1233,13 @@ void CPrecompileModule::GETKeyWord(int nKey)
 wxString CPrecompileModule::GETIdentifier(bool strRealName)
 {
 	const lexem_t& lex = GETLexem();
-	if (lex.m_nType != IDENTIFIER) {
-		if (strRealName && lex.m_nType == KEYWORD)
+	if (lex.m_lexType != IDENTIFIER) {
+		if (strRealName && lex.m_lexType == KEYWORD)
 			return lex.m_strData;
 		return wxEmptyString;
 	}
 
-	if (strRealName) return lex.m_vData.m_sData;
+	if (strRealName) return lex.m_valData.m_sData;
 	else return lex.m_strData;
 }
 
@@ -1263,16 +1263,16 @@ CValue CPrecompileModule::GETConstant()
 	lex = GETLexem();
 
 	if (iNumRequire) {
-		//проверка на то чтобы константа имела числовой тип	
-		if (lex.m_vData.GetType() != eValueTypes::TYPE_NUMBER) {}
-		//меняем знак при минусе
+		// check that the constant is of numeric type	
+		if (lex.m_valData.GetType() != eValueTypes::TYPE_NUMBER) {}
+		// change sign for minus
 		if (iNumRequire == wxNOT_FOUND)
-			lex.m_vData.m_fData = -lex.m_vData.m_fData;
+			lex.m_valData.m_fData = -lex.m_valData.m_fData;
 	}
-	return lex.m_vData;
+	return lex.m_valData;
 }
 
-//получение номера константой строки (для определения номера метода)
+// getting the number with a string constant (to determine the method number)
 int CPrecompileModule::GetConstString(const wxString& sMethod)
 {
 	if (!m_aHashConstList[sMethod])
@@ -1322,26 +1322,26 @@ CParamValue CPrecompileModule::GetExpression(int nPriority)
 	CParamValue sVariable;
 	lexem_t lex = GETLexem();
 
-	//Сначала обрабатываем Левые операторы
-	if ((lex.m_nType == KEYWORD && lex.m_nData == KEY_NOT) ||
-		(lex.m_nType == DELIMITER && lex.m_nData == '!')) {
+	// first we process Left operators
+	if ((lex.m_lexType == KEYWORD && lex.m_numData == KEY_NOT) ||
+		(lex.m_lexType == DELIMITER && lex.m_numData == '!')) {
 		sVariable = GetVariable();
-		CParamValue sVariable2 = GetExpression(s_aPriority['!']);
+		CParamValue sVariable2 = GetExpression(gs_operPriority['!']);
 		sVariable.m_paramType = wxT("NUMBER");
 	}
-	else if ((lex.m_nType == KEYWORD && lex.m_nData == KEY_NEW)) {
+	else if ((lex.m_lexType == KEYWORD && lex.m_numData == KEY_NEW)) {
 
 		const wxString& objectName = GETIdentifier();
 		std::vector <CParamValue> aParamList;
 
 
-		if (IsNextDelimeter('(')) { //это вызов метода	
+		if (IsNextDelimeter('(')) { // this is a method call	
 			GETDelimeter('(');
-			while (m_nCurrentCompile + 1 < m_listLexem.size()
+			while (m_numCurrentCompile + 1 < m_listLexem.size()
 				&& !IsNextDelimeter(')')) {
 				if (IsNextDelimeter(',')) {
 					CParamValue data;
-					//data.nArray = DEF_VAR_SKIP;//пропущенный параметр
+					//data.nArray = DEF_VAR_SKIP;// missing parameter
 					//data.nIndex = DEF_VAR_SKIP;
 					aParamList.push_back(data);
 				}
@@ -1372,12 +1372,12 @@ CParamValue CPrecompileModule::GetExpression(int nPriority)
 
 		return sVariable;
 	}
-	else if (lex.m_nType == DELIMITER && lex.m_nData == '(')
+	else if (lex.m_lexType == DELIMITER && lex.m_numData == '(')
 	{
 		sVariable = GetExpression();
 		GETDelimeter(')');
 	}
-	else if (lex.m_nType == DELIMITER && lex.m_nData == '?')
+	else if (lex.m_lexType == DELIMITER && lex.m_numData == '?')
 	{
 		sVariable = GetVariable();
 		//CByteUnit code;
@@ -1393,26 +1393,26 @@ CParamValue CPrecompileModule::GetExpression(int nPriority)
 		GETDelimeter(')');
 		//cByteCode.CodeList.push_back(code);
 	}
-	else if (lex.m_nType == IDENTIFIER)
+	else if (lex.m_lexType == IDENTIFIER)
 	{
-		m_nCurrentCompile--;//шаг назад
+		m_numCurrentCompile--;// step back
 		int nSet = 0;
 		sVariable = GetCurrentIdentifier(nSet);
 	}
-	else if (lex.m_nType == CONSTANT)
+	else if (lex.m_lexType == CONSTANT)
 	{
-		sVariable = FindConst(lex.m_vData);
+		sVariable = FindConst(lex.m_valData);
 	}
-	else if ((lex.m_nType == DELIMITER && lex.m_nData == '+') || (lex.m_nType == DELIMITER && lex.m_nData == '-'))
+	else if ((lex.m_lexType == DELIMITER && lex.m_numData == '+') || (lex.m_lexType == DELIMITER && lex.m_numData == '-'))
 	{
-		//проверяем допустимость такого задания
-		int nCurPriority = s_aPriority[lex.m_nData];
+		//проверяем допустимость такого // check the admissibility of such assignment
+		int nCurPriority = gs_operPriority[lex.m_numData];
 
 		if (nPriority >= nCurPriority)
 			return sVariable; //сравниваем приоритеты левой (предыдущей операции) и текущей выполняемой операции
 
 		//Это задание пользователем знака выражения
-		if (lex.m_nData == '+')//ничего не делаем (игнорируем)
+		if (lex.m_numData == '+')// do nothing (ignore)
 		{
 			sVariable = GetExpression(nPriority);
 			sVariable.m_paramType = wxT("NUMBER");
@@ -1420,7 +1420,7 @@ CParamValue CPrecompileModule::GetExpression(int nPriority)
 		}
 		else
 		{
-			sVariable = GetExpression(100);//сверх высокий приоритет!
+			sVariable = GetExpression(100);//super high priority!
 			sVariable = GetVariable();
 			sVariable.m_paramType = wxT("NUMBER");
 		}
@@ -1433,48 +1433,48 @@ MOperation:
 
 	lex = PreviewGetLexem();
 
-	if (lex.m_nType == DELIMITER && lex.m_nData == ')') return sVariable;
+	if (lex.m_lexType == DELIMITER && lex.m_numData == ')') return sVariable;
 
 	//смотрим есть ли далее операторы выполнения действий над данной переменной
-	if ((lex.m_nType == DELIMITER && lex.m_nData != ';') || (lex.m_nType == KEYWORD && lex.m_nData == KEY_AND) || (lex.m_nType == KEYWORD && lex.m_nData == KEY_OR))
+	if ((lex.m_lexType == DELIMITER && lex.m_numData != ';') || (lex.m_lexType == KEYWORD && lex.m_numData == KEY_AND) || (lex.m_lexType == KEYWORD && lex.m_numData == KEY_OR))
 	{
-		if (lex.m_nData >= 0 && lex.m_nData <= 255)
+		if (lex.m_numData >= 0 && lex.m_numData <= 255)
 		{
-			int nCurPriority = s_aPriority[lex.m_nData]; int nOper = 0;
+			int nCurPriority = gs_operPriority[lex.m_numData]; int nOper = 0;
 
 			if (nPriority < nCurPriority)//сравниваем приоритеты левой (предыдущей операции) и текущей выполняемой операции
 			{
 				lex = GetLexem();
 
-				if (lex.m_nData == '*')
+				if (lex.m_numData == '*')
 				{
 					SetOper(OPER_MULT);
 				}
-				else if (lex.m_nData == '/')
+				else if (lex.m_numData == '/')
 				{
 					SetOper(OPER_DIV);
 				}
-				else if (lex.m_nData == '+')
+				else if (lex.m_numData == '+')
 				{
 					SetOper(OPER_ADD);
 				}
-				else if (lex.m_nData == '-')
+				else if (lex.m_numData == '-')
 				{
 					SetOper(OPER_SUB);
 				}
-				else if (lex.m_nData == '%')
+				else if (lex.m_numData == '%')
 				{
 					SetOper(OPER_MOD);
 				}
-				else if (lex.m_nData == KEY_AND)
+				else if (lex.m_numData == KEY_AND)
 				{
 					SetOper(OPER_AND);
 				}
-				else if (lex.m_nData == KEY_OR)
+				else if (lex.m_numData == KEY_OR)
 				{
 					SetOper(OPER_OR);
 				}
-				else if (lex.m_nData == '>')
+				else if (lex.m_numData == '>')
 				{
 					SetOper(OPER_GT);
 
@@ -1484,7 +1484,7 @@ MOperation:
 						SetOper(OPER_GE);
 					}
 				}
-				else if (lex.m_nData == '<')
+				else if (lex.m_numData == '<')
 				{
 					SetOper(OPER_LS);
 					if (IsNextDelimeter('='))
@@ -1499,7 +1499,7 @@ MOperation:
 					}
 
 				}
-				else if (lex.m_nData == '=')
+				else if (lex.m_numData == '=')
 				{
 					SetOper(OPER_EQ);
 				}
@@ -1551,30 +1551,30 @@ CParamValue CPrecompileModule::GetCurrentIdentifier(int& nIsSet)
 	wxString strRealName = GETIdentifier(true);
 	wxString strName = stringUtils::MakeUpper(strRealName);
 
-	int nStartPos = m_listLexem[m_nCurrentCompile].m_nNumberString;
+	int nStartPos = m_listLexem[m_numCurrentCompile].m_numString;
 
 	if (!m_bCalcValue && (nStartPos + strRealName.length() == m_nCurrentPos ||
 		nStartPos + strRealName.length() == m_nCurrentPos - 1)) {
 		unsigned int endContext = 0;
-		for (unsigned int i = m_nCurrentCompile; i < m_listLexem.size(); i++) {
-			if (m_listLexem[i].m_nType == KEYWORD && (m_listLexem[i].m_nData == KEY_ENDPROCEDURE || m_listLexem[i].m_nData == KEY_ENDFUNCTION))
+		for (unsigned int i = m_numCurrentCompile; i < m_listLexem.size(); i++) {
+			if (m_listLexem[i].m_lexType == KEYWORD && (m_listLexem[i].m_numData == KEY_ENDPROCEDURE || m_listLexem[i].m_numData == KEY_ENDFUNCTION))
 				endContext = i;
-			if (m_listLexem[i].m_nType == ENDPROGRAM)
+			if (m_listLexem[i].m_lexType == ENDPROGRAM)
 				endContext = i;
 		}
-		nIsSet = 0; m_nCurrentCompile = endContext; return sVariable;
+		nIsSet = 0; m_numCurrentCompile = endContext; return sVariable;
 	}
 
 	sLastExpression = strRealName;
 
-	if (IsNextDelimeter('('))//это вызов функции
+	if (IsNextDelimeter('('))// this is a function call
 	{
 		CValue valContext;
 		if (cContext.FindFunction(strRealName, valContext, true))
 		{
 			std::vector <CParamValue> aParamList;
 			GETDelimeter('(');
-			while (m_nCurrentCompile + 1 < m_listLexem.size()
+			while (m_numCurrentCompile + 1 < m_listLexem.size()
 				&& !IsNextDelimeter(')'))
 			{
 				if (IsNextDelimeter(','))
@@ -1616,7 +1616,7 @@ CParamValue CPrecompileModule::GetCurrentIdentifier(int& nIsSet)
 			sVariable = GetCallFunction(strName);
 		}
 
-		if (IsTypeVar(strName)) { //это приведение типов
+		if (IsTypeVar(strName)) { // this is a type cast
 			sVariable.m_paramObject = GetTypeVar(strName);
 		}
 
@@ -1660,7 +1660,7 @@ CParamValue CPrecompileModule::GetCurrentIdentifier(int& nIsSet)
 
 MLabel:
 
-	if (IsNextDelimeter('['))//это массив
+	if (IsNextDelimeter('['))// this is an array
 	{
 		GETDelimeter('[');
 		CParamValue sKey = GetExpression();
@@ -1688,7 +1688,7 @@ MLabel:
 		goto MLabel;
 	}
 
-	if (IsNextDelimeter('.'))//это вызов метода или атрибута агрегатного объекта
+	if (IsNextDelimeter('.'))// this is a method call или атрибута агрегатного объекта
 	{
 		wxString sTempExpression = sLastExpression;
 
@@ -1697,37 +1697,37 @@ MLabel:
 		wxString strRealMethod = GETIdentifier(true);
 		wxString sMethod = stringUtils::MakeUpper(strRealMethod);
 
-		if (m_listLexem[m_nCurrentCompile].m_nNumberString > m_nCurrentPos
-			|| m_listLexem[m_nCurrentCompile].m_nType == KEYWORD) {
+		if (m_listLexem[m_numCurrentCompile].m_numString > m_nCurrentPos
+			|| m_listLexem[m_numCurrentCompile].m_lexType == KEYWORD) {
 			strRealMethod = sMethod = wxEmptyString;
 		}
 
 		sLastExpression += strRealMethod;
 
-		if (m_listLexem[m_nCurrentCompile].m_nNumberString > (m_nCurrentPos - strRealMethod.length() - 1))
+		if (m_listLexem[m_numCurrentCompile].m_numString > (m_nCurrentPos - strRealMethod.length() - 1))
 		{
-			sLastExpression = sTempExpression; nLastPosition = m_nCurrentCompile; sLastKeyword = strRealMethod;
-			m_valObject = sVariable.m_paramObject; m_nCurrentCompile = m_listLexem.size() - 1; nIsSet = 0;
+			sLastExpression = sTempExpression; nLastPosition = m_numCurrentCompile; sLastKeyword = strRealMethod;
+			m_valObject = sVariable.m_paramObject; m_numCurrentCompile = m_listLexem.size() - 1; nIsSet = 0;
 			return sVariable;
 		}
-		else if (m_listLexem[m_nCurrentCompile].m_nType == ENDPROGRAM)
+		else if (m_listLexem[m_numCurrentCompile].m_lexType == ENDPROGRAM)
 		{
-			sLastExpression = sTempExpression; nLastPosition = m_nCurrentCompile; sLastKeyword = strRealMethod;
-			m_valObject = sVariable.m_paramObject; m_nCurrentCompile = m_listLexem.size() - 1; nIsSet = 0;
+			sLastExpression = sTempExpression; nLastPosition = m_numCurrentCompile; sLastKeyword = strRealMethod;
+			m_valObject = sVariable.m_paramObject; m_numCurrentCompile = m_listLexem.size() - 1; nIsSet = 0;
 			return sVariable;
 		}
 
-		if (IsNextDelimeter('('))//это вызов метода
+		if (IsNextDelimeter('('))// this is a method call
 		{
 			std::vector <CParamValue> aParamList;
 			GETDelimeter('(');
-			while (m_nCurrentCompile + 1 < m_listLexem.size()
+			while (m_numCurrentCompile + 1 < m_listLexem.size()
 				&& !IsNextDelimeter(')'))
 			{
 				if (IsNextDelimeter(','))
 				{
 					CParamValue data;
-					//data.nArray = DEF_VAR_SKIP;//пропущенный параметр
+					//data.nArray = DEF_VAR_SKIP;// missing parameter
 					//data.nIndex = DEF_VAR_SKIP;
 					aParamList.push_back(data);
 				}
@@ -1820,13 +1820,13 @@ CParamValue CPrecompileModule::GetCallFunction(const wxString& strName)
 
 	GETDelimeter('(');
 
-	while (m_nCurrentCompile + 1 < m_listLexem.size()
+	while (m_numCurrentCompile + 1 < m_listLexem.size()
 		&& !IsNextDelimeter(')'))
 	{
 		if (IsNextDelimeter(','))
 		{
 			CParamValue data;
-			//data.nArray = DEF_VAR_SKIP;//пропущенный параметр
+			//data.nArray = DEF_VAR_SKIP;// missing parameter
 			//data.nIndex = DEF_VAR_SKIP;
 			aParamList.push_back(data);
 		}
@@ -1864,7 +1864,7 @@ void CPrecompileModule::AddVariable(const wxString& strVarName, const CValue& va
 	if (strVarName.IsEmpty())
 		return;
 
-	//учитываем внешние переменные при компиляции
+	// take into account external variables during compilation
 	cContext.GetVariable(strVarName, false, false, varVal);
 }
 

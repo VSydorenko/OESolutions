@@ -4,12 +4,11 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "objectList.h"
-
-#include "backend/databaseLayer/databaseLayer.h"
 #include "backend/appData.h"
+#include "backend/databaseLayer/databaseLayer.h"
 
 void CListDataObjectEnumRef::RefreshModel(const int countPerPage) {
-	
+
 	if (db_query != nullptr && !db_query->IsOpen())
 		CBackendException::Error(_("database is not open!"));
 	else if (db_query == nullptr)
@@ -731,7 +730,47 @@ void CListRegisterObject::RefreshModel(const int countPerPage)
 		}
 	}
 	const std::vector<IMetaObjectAttribute*>& vec_attr = m_metaObject->GetGenericAttributes(), & vec_dim = m_metaObject->GetGenericDimensions();
-	queryText = queryText + whereText + " LIMIT " + stringUtils::IntToStr(countPerPage + 1);
+	/////////////////////////////////////////////////////////
+	wxString orderText; bool firstOrder = true;
+	/////////////////////////////////////////////////////////
+
+	for (auto& sort : m_sortOrder.m_sorts) {
+		if (sort.m_sortEnable) {
+			const wxString& operation = sort.m_sortAscending ? "ASC" : "DESC";
+			IMetaObjectAttribute* attribute = dynamic_cast<IMetaObjectAttribute*>(m_metaObject->FindMetaObjectByID(sort.m_sortModel));
+			wxASSERT(attribute);
+			if (firstOrder)
+				orderText += " ORDER BY ";
+			for (auto& field : IMetaObjectAttribute::GetSQLFieldData(attribute)) {
+				if (field.m_type == IMetaObjectAttribute::eFieldTypes_Reference) {
+					orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldRefName.m_fieldRefName, operation);
+					if (firstOrder) firstOrder = false;
+				}
+				else {
+					orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldName, operation);
+					if (firstOrder) firstOrder = false;
+				}
+			}
+		}
+	};
+	for (auto& dim : vec_dim) {
+		const wxString& operation_sort = "ASC";
+		const wxString& operation_compare = ">=";
+		if (firstOrder) orderText += " ORDER BY ";
+		for (auto& field : IMetaObjectAttribute::GetSQLFieldData(dim)) {
+			if (field.m_type == IMetaObjectAttribute::eFieldTypes_Reference) {
+				orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldRefName.m_fieldRefName, operation_sort);
+				if (firstOrder) firstOrder = false;
+
+			}
+			else {
+				orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldName, operation_sort);
+				if (firstOrder) firstOrder = false;
+			}
+		}
+	}
+	/////////////////////////////////////////////////////////
+	queryText = queryText + whereText + orderText + " LIMIT " + stringUtils::IntToStr(countPerPage + 1);
 	IValueTable::Clear();
 	IPreparedStatement* statement = db_query->PrepareStatement(queryText); int position = 1;
 	for (auto filter : m_filterRow.m_filters) {
@@ -795,7 +834,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 					firstWhere = false;
 			}
 		}
-		wxString orderText; bool firstOrder = true; wxString sortText;
+		wxString orderText; bool firstOrder = true; wxString sortText; wxString dimText;
 		int compare_func = 0;
 		for (auto& sort : m_sortOrder.m_sorts) {
 			if (sort.m_sortEnable) {
@@ -820,6 +859,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 
 					if (firstWhere) whereText += " WHERE ";
 					whereText += (firstWhere ? " " : " AND ") + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, operation_compare);
+					dimText += firstWhere ? "(" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ")" : " OR (" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ")";
 					sortText += (sortText.IsEmpty() ? " " : " AND ") + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, '=');
 					if (firstWhere) firstWhere = false;
 				}
@@ -829,7 +869,8 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 			}
 		};
 		const std::vector<IMetaObjectAttribute*>& vec_attr = m_metaObject->GetGenericAttributes(), & vec_dim = m_metaObject->GetGenericDimensions();
-		queryText = queryText + whereText + orderText + " LIMIT " + stringUtils::IntToStr(1);
+		/////////////////////////////////////////////////////////
+		queryText = queryText + whereText + "AND (" + dimText + ") " + orderText + " LIMIT " + stringUtils::IntToStr(1);
 		/////////////////////////////////////////////////////////
 		IPreparedStatement* statement = db_query->PrepareStatement(queryText); int position = 1;
 		for (auto filter : m_filterRow.m_filters) {
@@ -878,6 +919,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 			for (auto& attribute : vec_attr) {
 				IMetaObjectAttribute::GetValueAttribute(attribute, rowData->AppendTableValue(attribute->GetMetaID()), resultSet);
 			}
+			IValueTable::Insert(rowData, 0, !CBackendException::IsEvalMode());
 			/////////////////////////////////////////////////////////
 			insertedValue = true;
 			/////////////////////////////////////////////////////////
@@ -906,7 +948,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 					firstWhere = false;
 			}
 		}
-		wxString orderText; bool firstOrder = true; wxString sortText;
+		wxString orderText; bool firstOrder = true; wxString sortText; wxString dimText;
 		int compare_func = 0;
 		for (auto& sort : m_sortOrder.m_sorts) {
 			if (sort.m_sortEnable) {
@@ -927,6 +969,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 					}
 					if (firstWhere) whereText += " WHERE ";
 					whereText += (firstWhere ? " " : " AND ") + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, operation_compare);
+					dimText += firstWhere ? "(" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ")" : " OR (" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ")";
 					sortText += (sortText.IsEmpty() ? " " : " AND ") + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, '=');
 					if (firstWhere) firstWhere = false;
 				}
@@ -937,7 +980,8 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 			}
 		};
 		const std::vector<IMetaObjectAttribute*>& vec_attr = m_metaObject->GetGenericAttributes(), & vec_dim = m_metaObject->GetGenericDimensions();
-		queryText = queryText + whereText + orderText + " LIMIT " + stringUtils::IntToStr(1);
+		/////////////////////////////////////////////////////////
+		queryText = queryText + whereText + "AND (" + dimText + ") " + orderText + " LIMIT " + stringUtils::IntToStr(1);
 		/////////////////////////////////////////////////////////
 		IPreparedStatement* statement = db_query->PrepareStatement(queryText); int position = 1;
 		for (auto filter : m_filterRow.m_filters) {
@@ -1060,7 +1104,6 @@ void CTreeDataObjectFolderRef::RefreshModel(const int countPerPage)
 	//////////////////////////////////////////////////
 	std::vector<wxValueTreeListNode*> arrTree;
 	//////////////////////////////////////////////////
-
 	IDatabaseResultSet* resultSet = statement->RunQueryWithResults();
 	while (resultSet->Next()) {
 
@@ -1087,7 +1130,7 @@ void CTreeDataObjectFolderRef::RefreshModel(const int countPerPage)
 		if (node->GetValue(*m_metaObject->GetDataParent(), cReference)) {
 			if (cReference.ConvertToValue(reference)) {
 				auto it = std::find_if(arrTree.begin(), arrTree.end(), [reference](wxValueTreeListNode* node) {
-					return reference->GetGuid() == node->GetGuid();}
+					return reference->GetGuid() == node->GetGuid(); }
 				);
 				if (it != arrTree.end()) node->SetParent(*it);
 				else node->SetParent(GetRoot());

@@ -3,7 +3,7 @@
 
 #include "backend/compiler/value/value.h"
 
-//Поддержка массивов
+//Array support
 class CValueEvent : public CValue {
 	wxDECLARE_DYNAMIC_CLASS(CValueEvent);
 public:

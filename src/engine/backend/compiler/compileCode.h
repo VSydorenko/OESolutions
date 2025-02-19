@@ -5,7 +5,7 @@
 #include "compileContext.h"
 
 //*******************************************************************
-//*                         Класс: компилятор                       *
+//*							  Class: compiler                       *
 //*******************************************************************
 
 class BACKEND_API CCompileCode : public CTranslateCode {
@@ -14,21 +14,23 @@ class BACKEND_API CCompileCode : public CTranslateCode {
 
 	struct CCallFunction {
 
-		wxString m_strName;//Имя вызываемой функции
-		wxString m_strRealName;//Имя вызываемой функции
+		wxString m_strName;			// name of called function
+		wxString m_strRealName;		// name of called function
 
-		CParamUnit m_sRetValue;//переменная куда должен возвращаться результат выполнения функции
-		CParamUnit m_sContextVal;//указатель на переменную Контекст
+		CParamUnit m_puRetValue;	// variable where the result of the function execution should be returned
+		CParamUnit m_puContextVal;  // pointer to the Context variable
 
-		unsigned int m_nAddLine;//положение в массиве байт-кодов, где встретился вызов (для случая, когда есть вызов, но функция еще не объявлена)
-		unsigned int m_nError;//для выдачи сообщений при ошибках
+		unsigned int m_numAddLine;	// position in the bytecode array where the call was encountered (for the case where there is a call, but the function has not yet been declared)
+		unsigned int m_numError;	// to display error messages
 
-		unsigned int m_nNumberString;	//номер исходного текста (для вывода ошибок)
-		unsigned int m_nNumberLine;	//номер строки исходного текста (для точек останова)
+		unsigned int m_numString;	// source text number (for error output)
+		unsigned int m_numLine;		// source line number (for breakpoints)
 
-		wxString m_strModuleName;//имя модуля (т.к. возможны include подключения из разных модулей)
+		int m_numIsSet = 0;			// a sign that there is no assignment
 
-		std::vector<CParamUnit> m_aParamList;//список передаваемых параметров (список перменных, если значение не задано, то д.б. (-1,-1))
+		wxString m_strModuleName;	// module name (since it is possible to include connections from different modules)
+
+		std::vector<CParamUnit> m_listParam; // list of passed parameters (list of variables, if the value is not specified, then d.b. (-1, -1))
 	};
 
 	friend struct CCompileContext;
@@ -41,66 +43,67 @@ public:
 
 	virtual ~CCompileCode();
 
-	//Основные методы:
-	void Reset();//Сброс данных для повторного использования объекта
+	// basic methods:
+	void Reset(); // resetting data to reuse an object
 
 	void PrepareModuleData();
 
-	void AddVariable(const wxString& strName, const CValue& value);//поддержка внешних переменных
-	void AddVariable(const wxString& strName, CValue* pValue);//поддержка внешних переменных
+	void AddVariable(const wxString& strName, const CValue& value);	// support for external variables
+	void AddVariable(const wxString& strName, CValue* pValue);		// support for external variables
 
 	void AddContextVariable(const wxString& strName, const CValue& value);
 	void AddContextVariable(const wxString& strName, CValue* pValue);
 
 	void RemoveVariable(const wxString& strName);
 
-	void SetParent(CCompileCode* parent); //Установка родительского модуля и запрещенного макс. прародителя
+	void SetParent(CCompileCode* parent); // setting the parent module and prohibited max. ancestor
 	virtual CCompileCode* GetParent() const {
 		return m_parent;
 	}
 
-	virtual bool Recompile(); // Рекомпиляция модуля из мета-объекта
+	virtual bool Recompile(); // recompiling a module from a meta object
 
-	virtual bool Compile(); // Компиляция модуля из мета-объекта
-	virtual bool Compile(const wxString& strCode); //Компиляция модуля
+	virtual bool Compile(); // compiling a module from a meta object
+	virtual bool Compile(const wxString& strCode); // Compiling module
 
-	//атрибуты:
+	//attributes:
 	bool m_onlyFunction; // true - only functions and export functions 
 
-	CCompileCode* m_parent;//родительский модуль (т.е. по отношению к текущему выполняет роль глобального модуля)
+	CCompileCode* m_parent; // parent module (i.e., in relation to the current one, it acts as a global module)
 
-	//текущий контекст переменных, функций и меток
-	CCompileContext m_cContext, * m_pContext;
-	CByteCode		m_cByteCode;        //выходной массив байт-кодов для исполнения виртуальной машиной
+	// current context of variables, functions and labels
+	CByteCode		m_cByteCode;        // output array of bytecodes for execution by the virtual machine
 
-	int				m_nCurrentCompile;		//текущее положение в массиве лексем
-	bool			m_bExpressionOnly;		//только вычисление выражений (нет новых заданий функций)
-	bool			m_changeCode;
+	CCompileContext* m_rootContext; // root context 
 
-	//соответствие внешних переменных
-	std::map<wxString, CValue*> m_aExternValues;
+	int				m_numCurrentCompile;		// current position in the token array
+	bool			m_bExpressionOnly;		// expression evaluation only(no new function assignments)
+	bool			m_changedCode;
 
-	//соответствие контекстных переменных
-	std::map<wxString, CValue*> m_aContextValues;
+	// matching external variables
+	std::map<wxString, CValue*> m_listExternValue;
+
+	// matching context variables
+	std::map<wxString, CValue*> m_listContextValue;
 
 protected:
 
-	std::map<wxString, unsigned int> m_aHashConstList;
-	std::vector <CCallFunction*> m_apCallFunctions;	//список встретившихся вызовов процедур и функций
+	std::map<wxString, unsigned int> m_listHashConst;
+	std::vector <std::shared_ptr<CCallFunction>> m_listCallFunc;	// list of encountered procedure and function calls
 
 public:
 
 	static void InitializeCompileModule();
 
 	CCompileContext* GetContext() {
-		m_cContext.SetModule(this);
-		return &m_cContext;
+		m_rootContext->SetModule(this);
+		return m_rootContext;
 	};
 
 private:
-	//методы вывода ошибок при компиляции:
+	// methods for displaying errors during compilation::
 	void SetError(int nErr, const wxString& strError = wxEmptyString);
-	void SetError(int nErr, const wxUniChar &c);
+	void SetError(int nErr, const wxUniChar& c);
 public:
 
 	virtual void ProcessError(const wxString& strFileName,
@@ -109,19 +112,19 @@ public:
 		const wxString& strCodeLineError, int codeError, const wxString& strErrorDesc
 	) const;
 
-	CParamUnit GetExpression(int priority = 0);
+	CParamUnit GetExpression(CCompileContext* context, int priority = 0);
 
 protected:
 
 	lexem_t PreviewGetLexem();
 	lexem_t GetLexem();
 	lexem_t GETLexem();
-	void GETDelimeter(const wxUniChar &c);
+	void GETDelimeter(const wxUniChar& c);
 
-	bool IsDelimeter(const wxUniChar &c);
+	bool IsDelimeter(const wxUniChar& c);
 	bool IsKeyWord(int nKey);
 
-	bool IsNextDelimeter(const wxUniChar &c);
+	bool IsNextDelimeter(const wxUniChar& c);
 	bool IsNextKeyWord(int nKey);
 
 	void GETKeyWord(int nKey);
@@ -132,39 +135,32 @@ protected:
 	void AddLineInfo(CByteUnit& code);
 
 	bool CompileModule();
+	bool CompileFunction(CCompileContext* context);
 
-	bool CompileFunction();
-	bool CompileDeclaration();
+	bool CompileDeclaration(CCompileContext* context);
 
-	bool CompileBlock();
+	bool CompileBlock(CCompileContext* context);
 
-	bool CompileNewObject();
-	bool CompileGoto();
-	bool CompileIf();
-	bool CompileWhile();
-	bool CompileFor();
-	bool CompileForeach();
+	bool CompileNewObject(CCompileContext* context);
+	bool CompileGoto(CCompileContext* context);
+	bool CompileIf(CCompileContext* context);
+	bool CompileWhile(CCompileContext* context);
+	bool CompileFor(CCompileContext* context);
+	bool CompileForeach(CCompileContext* context);
 
-	CParamUnit GetCallFunction(const wxString& strName);
-	CParamUnit GetCurrentIdentifier(int& nIsSet);
+	CParamUnit GetCallFunction(CCompileContext* context, const wxString& strName, const int& nIsSet);
+	CParamUnit GetCurrentIdentifier(CCompileContext* context, int& nIsSet);
 
-	CParamUnit FindConst(const CValue& vData);
+	CParamUnit FindConst(const CValue& constData);
 
-	bool AddCallFunction(CCallFunction* pRealCall);
-	CFunction* GetFunction(const wxString& strName, int* pNumber = nullptr);
+	bool PushCallFunction(const std::shared_ptr<CCallFunction>& callFunction);
+	CFunction* GetFunction(const wxString& strName, int* pNumFunction = nullptr);
 
 	bool IsTypeVar(const wxString& sVariable = wxEmptyString);
 	wxString GetTypeVar(const wxString& sVariable = wxEmptyString);
 	void AddTypeSet(const CParamUnit& sVariable);
 
-	int GetConstString(const wxString& sMethod);
-
-protected:
-
-	virtual CParamUnit AddVariable(const wxString& strName,
-		const wxString& strType = wxEmptyString, bool bExport = false, bool bContext = false, bool bTempVar = false);
-	virtual CParamUnit GetVariable();
-	virtual CParamUnit GetVariable(const wxString& strName, bool bCheckError = false, bool bLoadFromContext = false);
+	const int GetConstString(const wxString& strConstName);
 };
 
 #endif 

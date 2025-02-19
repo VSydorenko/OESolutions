@@ -113,40 +113,40 @@ bool CCodeEditor::PrepareExpression(unsigned int currPos, wxString& strExpressio
 	bool hasPoint = false, hasKeyword = false;
 	for (unsigned int i = 0; i < m_precompileModule->m_listLexem.size(); i++)
 	{
-		if (m_precompileModule->m_listLexem[i].m_nType == IDENTIFIER)
+		if (m_precompileModule->m_listLexem[i].m_lexType == IDENTIFIER)
 		{
-			if (hasPoint) strExpression += m_precompileModule->m_listLexem[i].m_vData.GetString();
-			else strExpression = m_precompileModule->m_listLexem[i].m_vData.GetString();
+			if (hasPoint) strExpression += m_precompileModule->m_listLexem[i].m_valData.GetString();
+			else strExpression = m_precompileModule->m_listLexem[i].m_valData.GetString();
 
-			sCurrWord = m_precompileModule->m_listLexem[i].m_vData.GetString();
+			sCurrWord = m_precompileModule->m_listLexem[i].m_valData.GetString();
 
 			if (i < m_precompileModule->m_listLexem.size() - 1) {
-				if (m_precompileModule->m_listLexem[i + 1].m_nNumberString >= currPos)
+				if (m_precompileModule->m_listLexem[i + 1].m_numString >= currPos)
 					break;
 				const lexem_t& lex = m_precompileModule->m_listLexem[i + 1];
-				if (lex.m_nType == DELIMITER && lex.m_nData == '(')
+				if (lex.m_lexType == DELIMITER && lex.m_numData == '(')
 					strExpression = wxEmptyString;
-				if (lex.m_nType == DELIMITER && lex.m_nData == '(' && !hasPoint)
+				if (lex.m_lexType == DELIMITER && lex.m_numData == '(' && !hasPoint)
 					strKeyWord = sCurrWord;
 
-				if (lex.m_nType != ENDPROGRAM)
-					hasPoint = lex.m_nType == DELIMITER && lex.m_nData == '.';
+				if (lex.m_lexType != ENDPROGRAM)
+					hasPoint = lex.m_lexType == DELIMITER && lex.m_numData == '.';
 			}
 
 			hasKeyword = hasKeyword ? i == m_precompileModule->m_listLexem.size() - 1 : false;
 		}
-		else if (m_precompileModule->m_listLexem[i].m_nType == KEYWORD && m_precompileModule->m_listLexem[i].m_nData == KEY_NEW)
+		else if (m_precompileModule->m_listLexem[i].m_lexType == KEYWORD && m_precompileModule->m_listLexem[i].m_numData == KEY_NEW)
 		{
 			strExpression = wxEmptyString; sCurrWord = wxEmptyString;
-			strKeyWord = m_precompileModule->m_listLexem[i].m_vData.GetString(); hasKeyword = true;
+			strKeyWord = m_precompileModule->m_listLexem[i].m_valData.GetString(); hasKeyword = true;
 		}
-		else if (m_precompileModule->m_listLexem[i].m_nType == CONSTANT)
+		else if (m_precompileModule->m_listLexem[i].m_lexType == CONSTANT)
 		{
-			sCurrWord = m_precompileModule->m_listLexem[i].m_vData.GetString();
+			sCurrWord = m_precompileModule->m_listLexem[i].m_valData.GetString();
 			hasKeyword = stringUtils::CompareString(strKeyWord, wxT("type")) || stringUtils::CompareString(strKeyWord, wxT("showCommonForm")) || stringUtils::CompareString(strKeyWord, wxT("getCommonForm")) && !hasPoint;
 		}
-		else if (m_precompileModule->m_listLexem[i].m_nType == DELIMITER
-			&& m_precompileModule->m_listLexem[i].m_nData == '.')
+		else if (m_precompileModule->m_listLexem[i].m_lexType == DELIMITER
+			&& m_precompileModule->m_listLexem[i].m_numData == '.')
 		{
 			if (!strExpression.IsEmpty())
 				strExpression += '.';
@@ -155,7 +155,7 @@ bool CCodeEditor::PrepareExpression(unsigned int currPos, wxString& strExpressio
 		}
 		else
 		{
-			if (m_precompileModule->m_listLexem[i].m_nType != ENDPROGRAM) {
+			if (m_precompileModule->m_listLexem[i].m_lexType != ENDPROGRAM) {
 				strExpression = wxEmptyString; sCurrWord = wxEmptyString;
 			}
 
@@ -163,7 +163,7 @@ bool CCodeEditor::PrepareExpression(unsigned int currPos, wxString& strExpressio
 		}
 
 		if (i < m_precompileModule->m_listLexem.size() - 1 &&
-			m_precompileModule->m_listLexem[i + 1].m_nNumberString >= currPos) break;
+			m_precompileModule->m_listLexem[i + 1].m_numString >= currPos) break;
 	}
 
 	hPoint = hasPoint; return hasKeyword;
@@ -175,26 +175,26 @@ void CCodeEditor::PrepareTooTipExpression(unsigned int currPos, wxString& strExp
 
 	for (unsigned int i = 0; i < m_precompileModule->m_listLexem.size(); i++)
 	{
-		if (m_precompileModule->m_listLexem[i].m_nNumberString > currPos
+		if (m_precompileModule->m_listLexem[i].m_numString > currPos
 			&& !hasPoint) break;
 
-		if (m_precompileModule->m_listLexem[i].m_nType == IDENTIFIER)
+		if (m_precompileModule->m_listLexem[i].m_lexType == IDENTIFIER)
 		{
-			if (hasPoint) strExpression += m_precompileModule->m_listLexem[i].m_vData.GetString();
-			else strExpression = m_precompileModule->m_listLexem[i].m_vData.GetString();
+			if (hasPoint) strExpression += m_precompileModule->m_listLexem[i].m_valData.GetString();
+			else strExpression = m_precompileModule->m_listLexem[i].m_valData.GetString();
 
-			sCurrWord = m_precompileModule->m_listLexem[i].m_vData.GetString();
+			sCurrWord = m_precompileModule->m_listLexem[i].m_valData.GetString();
 
 			if (i < m_precompileModule->m_listLexem.size() - 1) {
 				const lexem_t& lex = m_precompileModule->m_listLexem[i + 1];
-				if (lex.m_nType == DELIMITER && lex.m_nData == '(')
+				if (lex.m_lexType == DELIMITER && lex.m_numData == '(')
 					strExpression = wxEmptyString;
-				hasPoint = lex.m_nType == DELIMITER && lex.m_nData == '.';
+				hasPoint = lex.m_lexType == DELIMITER && lex.m_numData == '.';
 			}
 			else hasPoint = false;
 		}
-		else if (m_precompileModule->m_listLexem[i].m_nType == DELIMITER
-			&& m_precompileModule->m_listLexem[i].m_nData == '.')
+		else if (m_precompileModule->m_listLexem[i].m_lexType == DELIMITER
+			&& m_precompileModule->m_listLexem[i].m_numData == '.')
 		{
 			if (!strExpression.IsEmpty())
 				strExpression += '.';
@@ -462,8 +462,8 @@ void CCodeEditor::LoadSysKeyword()
 
 	for (int i = 0; i < LastKeyWord; i++) {
 		ac.Append(eContentType::eVariable,
-			s_aKeyWords[i].Eng,
-			s_aKeyWords[i].strShortDescription
+			s_listKeyWord[i].Eng,
+			s_listKeyWord[i].strShortDescription
 		);
 	}
 

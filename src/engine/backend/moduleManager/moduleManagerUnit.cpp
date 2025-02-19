@@ -73,7 +73,7 @@ void IModuleManager::CModuleUnit::PrepareNames() const
 	if (m_procUnit != nullptr) {
 		CByteCode* byteCode = m_procUnit->GetByteCode();
 		if (byteCode != nullptr) {
-			for (auto exportFunction : byteCode->m_aExportFuncList) {
+			for (auto exportFunction : byteCode->m_listExportFunc) {
 				m_methodHelper->AppendMethod(
 					exportFunction.first,
 					byteCode->GetNParams(exportFunction.second),

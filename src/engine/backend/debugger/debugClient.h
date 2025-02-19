@@ -213,7 +213,7 @@ public:
 
 	//for breakpoints and offsets 
 	void InitializeBreakpoints(const wxString& strModuleName, unsigned int from, unsigned int to);
-	void PatchBreakpoints(const wxString& strModuleName, unsigned int line, int offsetLine);
+	void PatchBreakpointCollection(const wxString& strModuleName, unsigned int line, int offsetLine);
 
 	bool SaveBreakpoints(const wxString& strModuleName);
 	bool SaveAllBreakpoints();

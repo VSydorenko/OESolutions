@@ -3,7 +3,6 @@
 
 #include "backend/compiler/value/value.h"
 
-//ѕоддержка массивов
 class BACKEND_API CValueSize : public CValue
 {
 	wxDECLARE_DYNAMIC_CLASS(CValueSize);
@@ -29,14 +28,14 @@ public:
 
 	static CMethodHelper m_methodHelper;
 
-	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //установка атрибута
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //значение атрибута
+	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //setting attribute
+	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //attribute value
 
-	virtual CMethodHelper* GetPMethods() const { //получить ссылку на класс помощник разбора имен атрибутов и методов
+	virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames(); 
 		return &m_methodHelper;
 	}
-	virtual void PrepareNames() const; //этот метод автоматически вызываетс€ дл€ инициализации имен атрибутов и методов
+	virtual void PrepareNames() const; // this method is automatically called to initialize attribute and method names.
 
 	operator wxSize() const {
 		return m_size;

@@ -11,12 +11,12 @@
 
 #include "backend_mainFrame.h"
 
-wxString CBackendException::sm_strError;
+wxString CBackendException::ms_strError;
 
 //////////////////////////////////////////////////////////////////////
-//Constant:—писок сообщений об ошибках
+//					List of error messages							//
 //////////////////////////////////////////////////////////////////////
-static wxString s_errorsStr[] =
+static wxString gs_listErrorString[] =
 {
 	"Usage: %s <filename>",
 	"Error reading file %s",
@@ -88,7 +88,7 @@ static wxString s_errorsStr[] =
 bool CBackendException::sm_evalMode = false;
 
 //////////////////////////////////////////////////////////////////////
-// ќбработка ошибок
+// Error handling
 //////////////////////////////////////////////////////////////////////
 
 CBackendException::CBackendException(const wxString& strErrorString) : std::exception(strErrorString) {}
@@ -103,15 +103,18 @@ void CBackendException::ProcessError(const CByteUnit& error, const wxString& str
 	const wxString& strModuleName = error.m_strModuleName;
 	const wxString& strDocPath = error.m_strDocPath;
 
-	if (!appData->DesignerMode()) {
+	if (commonMetaData != nullptr) {
+		
 		wxString strModuleData;
+
 		if (!isEvalMode) {
+			
 			if (strModuleData.IsEmpty() && strFileName.IsEmpty()) {
 				CMetaObjectModule* foundedDoc = dynamic_cast<CMetaObjectModule*>(commonMetaData->FindByName(error.m_strDocPath));
 				wxASSERT(foundedDoc);
 				strModuleData = foundedDoc->GetModuleText();
 			}
-		
+
 			if (strModuleData.IsEmpty() && !strFileName.IsEmpty()) {
 				if (backend_mainFrame != nullptr) {
 					IMetaData* metadata = backend_mainFrame->FindMetadataByPath(strFileName);
@@ -124,12 +127,20 @@ void CBackendException::ProcessError(const CByteUnit& error, const wxString& str
 		}
 
 		const wxString& strCodeLineError = isEvalMode ? wxEmptyString :
-			CBackendException::FindErrorCodeLine(strModuleData, error.m_nNumberString);
-
+			CBackendException::FindErrorCodeLine(strModuleData, error.m_numString);
+		
 		CBackendException::ProcessError(strFileName,
 			strModuleName, strDocPath,
-			error.m_nNumberString, isEvalMode ? error.m_nNumberLine : error.m_nNumberLine + 1,
+			error.m_numString, isEvalMode ? error.m_numLine : error.m_numLine + 1,
 			strCodeLineError, wxNOT_FOUND, strErrorDesc
+		);
+	}
+	else {
+		
+		CBackendException::ProcessError(strFileName,
+			strModuleName, strDocPath,
+			error.m_numString, error.m_numLine + 1,
+			wxEmptyString, wxNOT_FOUND, strErrorDesc
 		);
 	}
 }
@@ -158,7 +169,7 @@ void CBackendException::ProcessError(const wxString& strFileName,
 		);
 	}
 
-	sm_strError = strErrorMessage;
+	ms_strError = strErrorMessage;
 
 #ifdef DEBUG
 	wxLogDebug(strErrorMessage);
@@ -170,8 +181,8 @@ void CBackendException::ProcessError(const wxString& strFileName,
 const wxString& CBackendException::GetErrorDesc(int codeError)
 {
 	if (0 <= codeError && codeError < LastError)
-		return s_errorsStr[codeError];
-	return s_errorsStr[ERROR_SYS1];
+		return gs_listErrorString[codeError];
+	return gs_listErrorString[ERROR_SYS1];
 }
 
 #if !wxUSE_UTF8_LOCALE_ONLY
@@ -218,45 +229,39 @@ wxString CBackendException::FormatV(const wxString& fmt, va_list& list)
 	return strErrorBuffer;
 }
 
-//служебные процедуры обработки ошибок
+//service error handling procedures
 void CBackendException::ErrorV(const wxString& fmt, va_list& list)
 {
 	const wxString& errorBuffer = FormatV(fmt, list);
 #ifdef DEBUG
 	wxLogDebug(errorBuffer);
 #endif // !DEBUG
-	sm_strError = errorBuffer;
+	ms_strError = errorBuffer;
 	throw(new CBackendException(errorBuffer));
 }
 
-wxString CBackendException::FindErrorCodeLine(const wxString& strBuffer, int currPos)
+wxString CBackendException::FindErrorCodeLine(const wxString& strBuffer, unsigned int currPos)
 {
-	const int sizeText = strBuffer.length();
+	const unsigned int sizeText = strBuffer.length();
 
-	if (currPos >= sizeText)
-		currPos = sizeText - 1;
+	unsigned int startPos = 0;
+	unsigned int endPos = sizeText;
 
-	if (currPos < 0)
-		currPos = 0;
-
-	int startPos = 0;
-	int endPos = sizeText;
-
-	for (int i = currPos; i > 0; i--) {
+	for (unsigned int i = (currPos == sizeText ? currPos - 1 : currPos); i > 0; i--) {
 		if (strBuffer[i] == '\n') {
 			startPos = i + 1;
 			break;
 		};
 	}
 
-	//ищем конец строки в которой выдаетс€ сообщение об ошибке трансл€ции
-	for (int i = currPos; i < sizeText; i++) {
+	//look for the end of the line where the translation error message is returned
+	for (unsigned int i = currPos; i < sizeText; i++) {
 		if (strBuffer[i] == '\n') {
 			endPos = i; break;
 		};
 	}
 
-	//определ€ем номер строки
+	//determine the line number
 	unsigned int currLine = 1 + strBuffer.Left(startPos).Replace('\n', '\n');
 
 	wxString strError = wxString::Format("%s <<?>> %s", strBuffer.Mid(startPos, currPos - startPos), strBuffer.Mid(currPos, endPos - currPos));

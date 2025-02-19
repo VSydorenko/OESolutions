@@ -317,7 +317,7 @@ wxDataViewItem CListDataObjectEnumRef::FindRowValue(IValueModelReturnLine* retLi
 {
 	wxValueTableEnumRow* node = GetViewData<wxValueTableEnumRow>(retLine->GetLineItem());
 	auto it = std::find_if(m_nodeValues.begin(), m_nodeValues.end(), [node](wxValueTableRow* row) {
-		return node->GetGuid() == ((wxValueTableEnumRow*)row)->GetGuid();}
+		return node->GetGuid() == ((wxValueTableEnumRow*)row)->GetGuid(); }
 	);
 	if (it != m_nodeValues.end()) return wxDataViewItem(*it);
 	return wxDataViewItem(nullptr);
@@ -410,7 +410,7 @@ wxDataViewItem CListDataObjectRef::FindRowValue(IValueModelReturnLine* retLine) 
 {
 	wxValueTableListRow* node = GetViewData<wxValueTableListRow>(retLine->GetLineItem());
 	auto it = std::find_if(m_nodeValues.begin(), m_nodeValues.end(), [node](wxValueTableRow* row) {
-		return node->GetGuid() == ((wxValueTableListRow*)row)->GetGuid();}
+		return node->GetGuid() == ((wxValueTableListRow*)row)->GetGuid(); }
 	);
 	if (it != m_nodeValues.end()) return wxDataViewItem(*it);
 	return wxDataViewItem(nullptr);
@@ -781,7 +781,7 @@ wxDataViewItem CListRegisterObject::FindRowValue(IValueModelReturnLine* retLine)
 	wxASSERT(metaObject);
 	wxValueTableKeyRow* node = GetViewData<wxValueTableKeyRow>(retLine->GetLineItem());
 	auto it = std::find_if(m_nodeValues.begin(), m_nodeValues.end(), [node, metaObject](wxValueTableRow* row) {
-		return node->GetUniquePairKey(metaObject) == ((wxValueTableKeyRow*)row)->GetUniquePairKey(metaObject);}
+		return node->GetUniquePairKey(metaObject) == ((wxValueTableKeyRow*)row)->GetUniquePairKey(metaObject); }
 	);
 	if (it != m_nodeValues.end()) return wxDataViewItem(*it);
 	return wxDataViewItem(nullptr);
@@ -790,14 +790,16 @@ wxDataViewItem CListRegisterObject::FindRowValue(IValueModelReturnLine* retLine)
 CListRegisterObject::CListRegisterObject(IMetaObjectRegisterData* metaObject, const form_identifier_t& formType) :
 	IListDataObject(metaObject, formType), m_metaObject(metaObject)
 {
-	if (m_metaObject->HasRecorder()) {
-		if (m_metaObject->HasPeriod())
-			IListDataObject::AppendSort(metaObject->GetRegisterPeriod());
-		else
-			IListDataObject::AppendSort(metaObject->GetRegisterRecorder());
+	if (m_metaObject->HasRecorder()) {	
+		if (m_metaObject->HasPeriod()) IListDataObject::AppendSort(metaObject->GetRegisterPeriod());
+		IListDataObject::AppendSort(metaObject->GetRegisterRecorder());
+		IListDataObject::AppendSort(metaObject->GetRegisterLineNumber());	
 	}
 	else if (m_metaObject->HasPeriod()) {
 		IListDataObject::AppendSort(metaObject->GetRegisterPeriod());
+	}	
+	for (auto& dimention : m_metaObject->GetGenericDimensions()) {
+		IListDataObject::AppendSort(dimention, true, true, true);
 	}
 }
 
@@ -1004,26 +1006,12 @@ enum {
 	enChoiceMode
 };
 
-bool CListDataObjectEnumRef::SetPropVal(const long lPropNum, const CValue& value) //установка атрибута
+bool CListDataObjectEnumRef::SetPropVal(const long lPropNum, const CValue& value) //setting attribute
 {
 	return false;
 }
 
-bool CListDataObjectEnumRef::GetPropVal(const long lPropNum, CValue& pvarPropVal) //значение атрибута
-{
-	if (lPropNum == enChoiceMode) {
-		pvarPropVal = m_choiceMode;
-		return true;
-	}
-	return false;
-}
-
-bool CListDataObjectRef::SetPropVal(const long lPropNum, const CValue& value) //установка атрибута
-{
-	return false;
-}
-
-bool CListDataObjectRef::GetPropVal(const long lPropNum, CValue& pvarPropVal) //значение атрибута
+bool CListDataObjectEnumRef::GetPropVal(const long lPropNum, CValue& pvarPropVal) //attribute value
 {
 	if (lPropNum == enChoiceMode) {
 		pvarPropVal = m_choiceMode;
@@ -1032,12 +1020,12 @@ bool CListDataObjectRef::GetPropVal(const long lPropNum, CValue& pvarPropVal) //
 	return false;
 }
 
-bool CTreeDataObjectFolderRef::SetPropVal(const long lPropNum, const CValue& value) //установка атрибута
+bool CListDataObjectRef::SetPropVal(const long lPropNum, const CValue& value) //setting attribute
 {
 	return false;
 }
 
-bool CTreeDataObjectFolderRef::GetPropVal(const long lPropNum, CValue& pvarPropVal) //значение атрибута
+bool CListDataObjectRef::GetPropVal(const long lPropNum, CValue& pvarPropVal) //attribute value
 {
 	if (lPropNum == enChoiceMode) {
 		pvarPropVal = m_choiceMode;
@@ -1046,12 +1034,26 @@ bool CTreeDataObjectFolderRef::GetPropVal(const long lPropNum, CValue& pvarPropV
 	return false;
 }
 
-bool CListRegisterObject::SetPropVal(const long lPropNum, const CValue& value) //установка атрибута
+bool CTreeDataObjectFolderRef::SetPropVal(const long lPropNum, const CValue& value) //setting attribute
 {
 	return false;
 }
 
-bool CListRegisterObject::GetPropVal(const long lPropNum, CValue& pvarPropVal) //значение атрибута
+bool CTreeDataObjectFolderRef::GetPropVal(const long lPropNum, CValue& pvarPropVal) //attribute value
+{
+	if (lPropNum == enChoiceMode) {
+		pvarPropVal = m_choiceMode;
+		return true;
+	}
+	return false;
+}
+
+bool CListRegisterObject::SetPropVal(const long lPropNum, const CValue& value) //setting attribute
+{
+	return false;
+}
+
+bool CListRegisterObject::GetPropVal(const long lPropNum, CValue& pvarPropVal) //attribute value
 {
 	return false;
 }

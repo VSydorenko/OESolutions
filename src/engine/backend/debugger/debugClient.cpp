@@ -132,7 +132,7 @@ void CDebuggerClient::InitializeBreakpoints(const wxString& strModuleName, unsig
 	moduleOffsets.clear(); for (unsigned int i = from; i < to; i++) moduleOffsets[i] = 0;
 }
 
-void CDebuggerClient::PatchBreakpoints(const wxString& strModuleName, unsigned int line, int offsetLine)
+void CDebuggerClient::PatchBreakpointCollection(const wxString& strModuleName, unsigned int line, int offsetLine)
 {
 #pragma message("nouverbe to nouverbe: необходимо исправить проблему при очистке большого количества строк!")
 

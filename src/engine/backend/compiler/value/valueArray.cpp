@@ -32,14 +32,14 @@ bool CValueArray::Init(CValue** paParams, const long lSizeArray)
 
 #include "appdata.h"
 
-void CValueArray::CheckIndex(unsigned int index) const //индекс массива должен начинаться с 1
+void CValueArray::CheckIndex(unsigned int index) const //array index must start from 1
 {
 	if ((index < 0 || index >= m_arrValues.size() && !appData->DesignerMode()))
 		CBackendException::Error("Index goes beyond array");
 }
 
-//работа с массивом как с агрегатным объектом
-//перечисление строковых ключей
+//working with an array as an aggregate object
+//listing string keys
 void CValueArray::PrepareNames() const
 {
 	m_methodHelper.ClearHelper();
@@ -87,14 +87,14 @@ bool CValueArray::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue
 	return false;
 }
 
-bool CValueArray::GetAt(const CValue& varKeyValue, CValue& pvarValue) //индекс массива должен начинаться с 0
+bool CValueArray::GetAt(const CValue& varKeyValue, CValue& pvarValue) //array index must start from 0
 {
 	CheckIndex(varKeyValue.GetUInteger());
 	pvarValue = m_arrValues[varKeyValue.GetUInteger()];
-	return true; 
+	return true;
 }
 
-bool CValueArray::SetAt(const CValue& varKeyValue, const CValue& varValue)//индекс массива должен начинаться с 0
+bool CValueArray::SetAt(const CValue& varKeyValue, const CValue& varValue)//array index must start from 0
 {
 	CheckIndex(varKeyValue.GetUInteger());
 	m_arrValues[varKeyValue.GetUInteger()] = varValue;

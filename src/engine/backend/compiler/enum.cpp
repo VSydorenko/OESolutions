@@ -22,7 +22,7 @@ void IEnumerationWrapper::PrepareNames() const
 {
 	if (m_methodHelper != nullptr) {
 		m_methodHelper->ClearHelper();
-		for (auto &obj : m_aEnumsString) {
+		for (auto &obj : m_listEnumString) {
 			m_methodHelper->AppendProp(obj);
 		}
 	}

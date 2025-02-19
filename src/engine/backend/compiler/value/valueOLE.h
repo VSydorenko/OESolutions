@@ -62,10 +62,10 @@ public:
 		return true;
 	}
 
-	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);//установка атрибута
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);//значение атрибута
+	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);//setting attribute
+	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);//attribute value
 
-	//РАБОТА КАК АГРЕГАТНОГО ОБЪЕКТА
+	//WORK AS AN AGGREGATE OBJECT
 	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);
 
 #ifdef __WXMSW__

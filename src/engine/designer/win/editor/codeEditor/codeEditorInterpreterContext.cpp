@@ -98,7 +98,7 @@ void CPrecompileContext::SetVariable(const wxString& strVarName, const CValue& v
  */
 CParamValue CPrecompileContext::GetVariable(const wxString& strName, bool bFindInParent, bool bCheckError, const CValue& valVar)
 {
-	int nCanUseLocalInParent = nFindLocalInParent;
+	int numCanUseLocalInParent = nFindLocalInParent;
 	CParamValue Variable;
 	Variable.m_paramName = stringUtils::MakeUpper(strName);
 	if (!FindVariable(strName)) {
@@ -121,10 +121,10 @@ CParamValue CPrecompileContext::GetVariable(const wxString& strName, bool bFindI
 						pNotParent = nullptr;
 				}
 				else {
-					if (pCurContext->FindVariable(strName)) {//нашли
+					if (pCurContext->FindVariable(strName)) {// found
 						CPrecompileVariable currentVar = pCurContext->cVariables[stringUtils::MakeUpper(strName)];
 						//смотрим это экспортная переменная или нет (если nFindLocalInParent=true, то можно взять локальные переменные родителя)
-						if (nCanUseLocalInParent > 0 || currentVar.bExport) {
+						if (numCanUseLocalInParent > 0 || currentVar.bExport) {
 							//определяем номер переменной
 							Variable.m_paramType = currentVar.strType;
 							Variable.m_paramObject = currentVar.m_valObject;
@@ -132,7 +132,7 @@ CParamValue CPrecompileContext::GetVariable(const wxString& strName, bool bFindI
 						}
 					}
 				}
-				nCanUseLocalInParent--;
+				numCanUseLocalInParent--;
 				pCurContext = pCurContext->pParent;
 			}
 		}
@@ -141,11 +141,11 @@ CParamValue CPrecompileContext::GetVariable(const wxString& strName, bool bFindI
 			return Variable;
 
 		bool bTempVar = strName.Left(1) == "@";
-		//не было еще объявления переменной - добавляем
+		// there was no variable declaration yet - add
 		AddVariable(strName, wxEmptyString, false, bTempVar, valVar);
 	}
 
-	//определяем номер и тип переменной
+	//determine the number and type of the variable
 	CPrecompileVariable currentVar = cVariables[stringUtils::MakeUpper(strName)];
 	Variable.m_paramType = currentVar.strType;
 	Variable.m_paramObject = currentVar.m_valObject;
