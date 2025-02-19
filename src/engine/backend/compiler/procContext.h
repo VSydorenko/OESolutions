@@ -6,13 +6,12 @@
 
 class CProcUnit;
 
-class CRunContextSmall {
-public:
+struct CRunContextSmall {
 
-	CRunContextSmall(int nLocal = wxNOT_FOUND) :
+	CRunContextSmall(int varCount = wxNOT_FOUND) :
 		m_lVarCount(0), m_lParamCount(0) {
-		if (nLocal >= 0) {
-			SetLocalCount(nLocal);
+		if (varCount >= 0) {
+			SetLocalCount(varCount);
 		}
 	};
 
@@ -55,13 +54,12 @@ public:
 	}
 };
 
-class CRunContext {
-public:
+struct CRunContext {
 	
 	CProcUnit* m_procUnit = nullptr;
 	CCompileContext* m_compileContext = nullptr;
-	
-	long m_lStart, m_lCurLine; //текущая исполняемая строка байт-кода
+
+	long m_lStart, m_lCurLine; //current executing bytecode line
 	long m_lVarCount, m_lParamCount;
 	
 	CValue m_cLocVars[MAX_STATIC_VAR] = {};
@@ -71,6 +69,7 @@ public:
 	CValue** m_pRefLocVars = nullptr;
 
 	std::map<wxString, CProcUnit*> m_listEval;
+
 public:
 
 	CRunContext(int iLocal = wxNOT_FOUND) :

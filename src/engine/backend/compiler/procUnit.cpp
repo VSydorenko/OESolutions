@@ -59,8 +59,8 @@ public:
 static CErrorPlace s_errorPlace;
 
 void CProcUnit::Raise() {
-	s_errorPlace.Reset(); //инициализация места ошибки
-	s_errorPlace.m_skipByteCode = CProcUnit::GetCurrentByteCode(); //возвращаемся назад в вызываемый модуль (если он есть)
+	s_errorPlace.Reset(); //initialize the error place
+	s_errorPlace.m_skipByteCode = CProcUnit::GetCurrentByteCode(); //return back to the called module (if any)
 }
 
 std::vector <CRunContext*> CProcUnit::ms_runContext;
@@ -91,13 +91,13 @@ inline void ResetByteCode()
 	while (EndByteCode());
 }
 
-static int s_nRecCount = 0; //контроль зацикливания
+static int s_nRecCount = 0;//control looping
 
 struct CStackGuard {
 	CRunContext* m_currentContext;
 public:
 	CStackGuard(CRunContext* runContext) {
-		if (s_nRecCount > MAX_REC_COUNT) {//критическая ошибка	
+		if (s_nRecCount > MAX_REC_COUNT) { //critical error
 			wxString strError = "";
 			for (unsigned int i = 0; i < CProcUnit::GetCountRunContext(); i++) {
 				CRunContext* pLastContext = CProcUnit::GetRunContext(i);
@@ -127,19 +127,19 @@ public:
 //*                                              inline functions                                              *
 //**************************************************************************************************************
 
-//проверка доступности переменной
+//checking variable availability
 #define CHECK_READONLY(Operation)\
 if(cValue1.m_bReadOnly)\
 {\
-	CValue cVal;\
-	Operation(cVal,cValue2,cValue3);\
-	cValue1.SetValue(cVal);\
-	return;\
+ CValue cVal;\
+ Operation(cVal,cValue2,cValue3);\
+ cValue1.SetValue(cVal);\
+ return;\
 }\
 if(cValue1.m_typeClass==eValueTypes::TYPE_REFFER)\
-	cValue1.m_pRef->DecrRef();\
+ cValue1.m_pRef->DecrRef();\
 
-//Функции для быстрой работы с типом CValue
+//Functions for quickly working with the CValue type
 inline void AddValue(CValue& cValue1, const CValue& cValue2, const CValue& cValue3)
 {
 	CHECK_READONLY(AddValue);
@@ -148,7 +148,7 @@ inline void AddValue(CValue& cValue1, const CValue& cValue2, const CValue& cValu
 		cValue1.m_fData = cValue2.GetNumber() + cValue3.GetNumber();
 	}
 	else if (cValue1.m_typeClass == eValueTypes::TYPE_DATE) {
-		if (cValue3.m_typeClass == eValueTypes::TYPE_DATE) { //дата + дата -> число
+		if (cValue3.m_typeClass == eValueTypes::TYPE_DATE) { //date + date -> number
 			cValue1.m_typeClass = eValueTypes::TYPE_NUMBER;
 			cValue1.m_fData = cValue2.GetDate() + cValue3.GetDate();
 		}
@@ -170,7 +170,7 @@ inline void SubValue(CValue& cValue1, const CValue& cValue2, const CValue& cValu
 		cValue1.m_fData = cValue2.GetNumber() - cValue3.GetNumber();
 	}
 	else if (cValue1.m_typeClass == eValueTypes::TYPE_DATE) {
-		if (cValue3.m_typeClass == eValueTypes::TYPE_DATE) { //дата - дата -> число
+		if (cValue3.m_typeClass == eValueTypes::TYPE_DATE) { //date - date -> number
 			cValue1.m_typeClass = eValueTypes::TYPE_NUMBER;
 			cValue1.m_fData = cValue2.GetDate() - cValue3.GetDate();
 		}
@@ -191,12 +191,13 @@ inline void MultValue(CValue& cValue1, const CValue& cValue2, const CValue& cVal
 		cValue1.m_fData = cValue2.GetNumber() * cValue3.GetNumber();
 	}
 	else if (cValue1.m_typeClass == eValueTypes::TYPE_DATE) {
-		if (cValue3.m_typeClass == eValueTypes::TYPE_DATE) { //дата * дата -> число
+		if (cValue3.m_typeClass == eValueTypes::TYPE_DATE) { //date * date -> number
 			cValue1.m_typeClass = eValueTypes::TYPE_NUMBER;
 			cValue1.m_fData = cValue2.GetDate() * cValue3.GetDate();
 		}
-		else
+		else {
 			cValue1.m_dData = cValue2.m_dData * cValue3.GetDate();
+		}
 	}
 	else {
 		CBackendException::Error("Multiplication operation cannot be applied for this type (%s)", cValue2.GetClassName());
@@ -235,7 +236,7 @@ inline void ModValue(CValue& cValue1, const CValue& cValue2, const CValue& cValu
 	}
 }
 
-//Реализация операторов сравнения
+//Implementation of comparison operators
 inline void CompareValueGT(CValue& cValue1, const CValue& cValue2, const CValue& cValue3)
 {
 	CHECK_READONLY(CompareValueGT);
@@ -283,7 +284,7 @@ inline void CopyValue(CValue& cValue1, CValue& cValue2)
 	if (&cValue1 == &cValue2)
 		return;
 
-	//проверка доступности переменной и контроль ссылок
+	//checking variable availability and checking references
 	if (cValue1.m_bReadOnly) {
 		cValue1.SetValue(cValue2);
 		return;
@@ -308,25 +309,25 @@ inline void CopyValue(CValue& cValue1, CValue& cValue2)
 	switch (cValue2.m_typeClass)
 	{
 	case eValueTypes::TYPE_NULL:
-		break;
+	break;
 	case eValueTypes::TYPE_BOOLEAN:
-		cValue1.m_bData = cValue2.m_bData;
-		break;
+	cValue1.m_bData = cValue2.m_bData;
+	break;
 	case eValueTypes::TYPE_NUMBER:
-		cValue1.m_fData = cValue2.m_fData;
-		break;
+	cValue1.m_fData = cValue2.m_fData;
+	break;
 	case eValueTypes::TYPE_STRING:
-		cValue1.m_sData = cValue2.m_sData;
-		break;
+	cValue1.m_sData = cValue2.m_sData;
+	break;
 	case eValueTypes::TYPE_DATE: cValue1.m_dData = cValue2.m_dData;
 		break;
 	case eValueTypes::TYPE_REFFER: cValue1.m_pRef = cValue2.m_pRef; cValue1.m_pRef->IncrRef();
 		break;
 	case eValueTypes::TYPE_ENUM:
 	case eValueTypes::TYPE_VALUE:
-		cValue1.m_typeClass = eValueTypes::TYPE_REFFER;
-		cValue1.m_pRef = &cValue2; cValue1.m_pRef->IncrRef();
-		break;
+	cValue1.m_typeClass = eValueTypes::TYPE_REFFER;
+	cValue1.m_pRef = &cValue2; cValue1.m_pRef->IncrRef();
+	break;
 	default: cValue1.m_typeClass = eValueTypes::TYPE_EMPTY;
 	}
 }
@@ -340,7 +341,7 @@ inline bool IsEmptyValue(const CValue& cValue1)
 
 inline void SetTypeBoolean(CValue& cValue1, bool bValue)
 {
-	//проверка доступности переменной и контроль ссылок
+	//check variable availability and reference check
 	if (cValue1.m_bReadOnly) {
 		cValue1.SetValue(bValue);
 		return;
@@ -352,7 +353,7 @@ inline void SetTypeBoolean(CValue& cValue1, bool bValue)
 
 inline void SetTypeNumber(CValue& cValue1, const number_t& fValue)
 {
-	//проверка доступности переменной и контроль ссылок
+	//check variable availability and reference check
 	if (cValue1.m_bReadOnly) {
 		cValue1.SetValue(fValue);
 		return;
@@ -364,13 +365,13 @@ inline void SetTypeNumber(CValue& cValue1, const number_t& fValue)
 
 #define CheckAndError(variable, name)\
 {\
-	if(variable.m_typeClass!=eValueTypes::TYPE_REFFER)\
-		CBackendException::Error("No attribute or method found '%s' - a variable is not an aggregate object", name);\
-	else\
-		CBackendException::Error("Aggregate object field not found '%s'", name);\
+ if(variable.m_typeClass!=eValueTypes::TYPE_REFFER)\
+ CBackendException::Error("No attribute or method found '%s' - a variable is not an aggregate object", name);\
+ else\
+ CBackendException::Error("Aggregate object field not found '%s'", name);\
 }
 
-//Индексные массивы
+//Index arrays
 inline void SetArrayValue(CValue& cValue1, const CValue& cValue2, CValue& cValue3)
 {
 	cValue1.SetAt(cValue2, cValue3);
@@ -471,7 +472,7 @@ void CProcUnit::Execute(CRunContext* pContext, CValue& pvarRetValue, bool bDelta
 
 start_label:
 
-	try { //медленнее на 2-3% на каждый вложенный модуль
+	try { //slower by 2-3% for each nested module
 		while (lCodeLine < lFinish) {
 			if (!CBackendException::IsEvalMode()) {
 				pContext->m_lCurLine = lCodeLine;
@@ -499,9 +500,9 @@ start_label:
 				SetTypeBoolean(variable1, true); else SetTypeBoolean(variable1, false);
 				break;
 			case OPER_OR:
-				if (IsHasValue(variable2) || IsHasValue(variable3))
-					SetTypeBoolean(variable1, true);
-				else SetTypeBoolean(variable1, false); break;
+			if (IsHasValue(variable2) || IsHasValue(variable3))
+				SetTypeBoolean(variable1, true);
+			else SetTypeBoolean(variable1, false); break;
 			case OPER_EQ: CompareValueEQ(variable1, variable2, variable3); break;
 			case OPER_NE: CompareValueNE(variable1, variable2, variable3); break;
 			case OPER_GT: CompareValueGT(variable1, variable2, variable3); break;
@@ -509,15 +510,15 @@ start_label:
 			case OPER_GE: CompareValueGE(variable1, variable2, variable3); break;
 			case OPER_LE: CompareValueLE(variable1, variable2, variable3); break;
 			case OPER_IF:
-				if (IsEmptyValue(variable1))
-					lCodeLine = index2 - 1;
-				break;
+			if (IsEmptyValue(variable1))
+				lCodeLine = index2 - 1;
+			break;
 			case OPER_FOR:
-				if (variable1.m_typeClass != eValueTypes::TYPE_NUMBER)
-					CBackendException::Error("Only variables with type can be used to organize the loop \"number\"");
-				if (variable1.m_fData == variable2.m_fData)
-					lCodeLine = index3 - 1;
-				break;
+			if (variable1.m_typeClass != eValueTypes::TYPE_NUMBER)
+				CBackendException::Error("Only variables with type can be used to organize the loop \"number\"");
+			if (variable1.m_fData == variable2.m_fData)
+				lCodeLine = index3 - 1;
+			break;
 			case OPER_FOREACH: {
 				if (!variable2.HasIterator())
 					CBackendException::Error("Undefined value iterator");
@@ -549,7 +550,7 @@ start_label:
 				CRunContextSmall cRunContext(array2);
 				cRunContext.m_lParamCount = array2;
 				const wxString className = m_pByteCode->m_listConst[index2].m_sData;
-				//загружаем параметры
+				//load parameters
 				for (long i = 0; i < cRunContext.m_lParamCount; i++) {
 					lCodeLine++;
 					if (index1 >= 0) {
@@ -570,7 +571,7 @@ start_label:
 				if (!variable1.IsPropWritable(lPropNum)) CBackendException::Error("Object field not writable (%s)", strPropName);
 				variable1.SetPropVal(lPropNum, GetValue(variable3));
 			} break;
-			case OPER_GET_A://получение атрибута
+			case OPER_GET_A://get attribute
 			{
 				CValue* pRetValue = &variable1;
 				CValue* pVariable2 = &variable2;
@@ -592,16 +593,16 @@ start_label:
 
 				const wxString& funcName = m_pByteCode->m_listConst[index3].m_sData;
 				long lMethodNum = wxNOT_FOUND;
-				//оптимизация вызовов
+				//call optimization
 				CValue* storageValue = reinterpret_cast<CValue*>(array4);
-				if (storageValue && storageValue == pVariable2->GetRef()) { //ранее были вызовы 
+				if (storageValue && storageValue == pVariable2->GetRef()) { //previously there were calls
 					lMethodNum = index4;
 #ifdef DEBUG
 					lMethodNum = pVariable2->FindMethod(funcName);
 					if (lMethodNum != index4) CBackendException::Error("Error value %d must %d (It is recommended to turn off method optimization)", index4, lMethodNum);
 #endif
 				}
-				else {//не было вызовов
+				else {//there were no calls
 					lMethodNum = pVariable2->FindMethod(funcName);
 					index4 = lMethodNum;
 					array4 = reinterpret_cast<wxLongLong_t>(pVariable2->GetRef());
@@ -621,7 +622,7 @@ start_label:
 				else if (paramCount == wxNOT_FOUND && cRunContext.m_lParamCount == 0)
 					CBackendException::Error(ERROR_MANY_PARAMS, funcName, funcName);
 
-				//загружаем параметры
+				//load parameters
 				for (long i = 0; i < cRunContext.m_lParamCount; i++) {
 					lCodeLine++;
 					if (index1 >= 0 && !pVariable2->GetParamDefValue(lMethodNum, i, *cRunContext.m_pRefLocVars[i])) {
@@ -638,13 +639,13 @@ start_label:
 					pVariable2->CallAsFunc(lMethodNum, *pRetValue, cRunContext.m_pRefLocVars, cRunContext.m_lParamCount);
 				}
 				else {
-					// operator = 
+					// operator =
 					if (m_pByteCode->m_listCode[lCodeLine + 1].m_numOper == OPER_LET)
 						CBackendException::Error(ERROR_USE_PROCEDURE_AS_FUNCTION, funcName, funcName);
 					pVariable2->CallAsProc(lMethodNum, cRunContext.m_pRefLocVars, cRunContext.m_lParamCount);
 				} break;
 			}
-			case OPER_CALL: { //вызов обычной функции
+			case OPER_CALL: { //call a regular function
 				const long lModuleNumber = array2;
 				CRunContext cRunContext(index3);
 				cRunContext.m_lStart = index2;
@@ -652,14 +653,14 @@ start_label:
 				CByteCode* pLocalByteCode = m_ppArrayCode[lModuleNumber]->m_pByteCode;
 				cRunContext.m_compileContext = reinterpret_cast<CCompileContext*>(pLocalByteCode->m_listCode[cRunContext.m_lStart].m_param1.m_numArray);
 				CValue* pRetValue = &variable1;
-				//загружаем параметры
+				//load parameters
 				for (long i = 0; i < cRunContext.m_lParamCount; i++) {
 					lCodeLine++;
 					if (curCode.m_numOper == OPER_SETCONST) {
 						CopyValue(cRunContext.m_pLocVars[i], pLocalByteCode->m_listConst[index1]);
 					}
 					else {
-						if (variable1.m_bReadOnly || index2 == 1) {//передача параметра по значению
+						if (variable1.m_bReadOnly || index2 == 1) {//pass parameter by value
 							CopyValue(cRunContext.m_pLocVars[i], variable1);
 						}
 						else {
@@ -670,27 +671,27 @@ start_label:
 				m_ppArrayCode[lModuleNumber]->Execute(&cRunContext, *pRetValue, false);
 				break;
 			}
-			case OPER_SET_ARRAY: SetArrayValue(variable1, variable2, GetValue(variable3)); break; //установка значения массива
-			case OPER_GET_ARRAY: GetArrayValue(variable1, variable2, variable3); break; //получение значения массива			
+			case OPER_SET_ARRAY: SetArrayValue(variable1, variable2, GetValue(variable3)); break; //setting the array value
+			case OPER_GET_ARRAY: GetArrayValue(variable1, variable2, variable3); break; //getting the array value
 			case OPER_GOTO: case OPER_ENDTRY: {
 				long lNewLine = index1;
 				long size = tryList.size() - 1;
 				if (size >= 0) {
 					if (lNewLine >= tryList[size].m_lEndLine ||
 						lNewLine <= tryList[size].m_lStartLine) {
-						tryList.resize(size);//выход из поля видимости  try..catch
+						tryList.resize(size);//exit from try..catch scope
 					}
 				}
-				lCodeLine = lNewLine - 1;//т.к. потом добавим 1
+				lCodeLine = lNewLine - 1;//since we'll add 1 later
 			} break;
-			case OPER_TRY: tryList.emplace_back(lCodeLine, index1); break; //переход при ошибке
+			case OPER_TRY: tryList.emplace_back(lCodeLine, index1); break; //transition on error
 			case OPER_RAISE: CBackendException::Error(CBackendException::GetLastError()); break;
 			case OPER_RAISE_T: CBackendException::Error(m_pByteCode->m_listConst[index1].GetString()); break;
 			case OPER_RET: if (index1 != DEF_VAR_NORET) CopyValue(pvarRetValue, variable1);
 			case OPER_ENDFUNC:
 			case OPER_END:
-				lCodeLine = lFinish;
-				break; //выход
+			lCodeLine = lFinish;
+			break; //exit
 			case OPER_FUNC: if (bDelta) {
 				while (lCodeLine < lFinish) {
 					if (curCode.m_numOper != OPER_ENDFUNC) {
@@ -698,12 +699,12 @@ start_label:
 					}
 					else break;
 				}
-			} break; //это начальный запуск - пропускаем тела процедур и функций
+			} break; //this is the initial run - skip the bodies of procedures and functions
 			case OPER_SET_TYPE:
-				variable1.SetType(CValue::GetVTByID(array2));
-				break;
-				//Операторы работы с типизированными данными
-				//NUMBER
+			variable1.SetType(CValue::GetVTByID(array2));
+			break;
+			//Operators for working with typed data
+			//NUMBER
 			case OPER_ADD + TYPE_DELTA1: variable1.m_fData = variable2.m_fData + variable3.m_fData; break;
 			case OPER_SUB + TYPE_DELTA1: variable1.m_fData = variable2.m_fData - variable3.m_fData; break;
 			case OPER_DIV + TYPE_DELTA1: if (variable3.m_fData.IsZero()) { CBackendException::Error("Divide by zero"); } variable1.m_fData = variable2.m_fData / variable3.m_fData; break;
@@ -718,14 +719,14 @@ start_label:
 			case OPER_LS + TYPE_DELTA1: variable1.m_fData = (variable2.m_fData < variable3.m_fData); break;
 			case OPER_GE + TYPE_DELTA1: variable1.m_fData = (variable2.m_fData >= variable3.m_fData); break;
 			case OPER_LE + TYPE_DELTA1: variable1.m_fData = (variable2.m_fData <= variable3.m_fData); break;
-			case OPER_SET_ARRAY + TYPE_DELTA1:	SetArrayValue(variable1, variable2, GetValue(variable3)); break;//установка значения массива
-			case OPER_GET_ARRAY + TYPE_DELTA1: GetArrayValue(variable1, variable2, variable3); break; //получение значения массива	
+			case OPER_SET_ARRAY + TYPE_DELTA1: SetArrayValue(variable1, variable2, GetValue(variable3)); break;//set array value
+			case OPER_GET_ARRAY + TYPE_DELTA1: GetArrayValue(variable1, variable2, variable3); break; //getting the array value
 			case OPER_IF + TYPE_DELTA1: if (variable1.m_fData.IsZero()) lCodeLine = index2 - 1; break;
 				//STRING
 			case OPER_ADD + TYPE_DELTA2: variable1.m_sData = variable2.m_sData + variable3.m_sData; break;
 			case OPER_LET + TYPE_DELTA2: variable1.m_sData = variable2.m_sData; break;
-			case OPER_SET_ARRAY + TYPE_DELTA2: SetArrayValue(variable1, variable2, GetValue(variable3)); break;//установка значения массива			
-			case OPER_GET_ARRAY + TYPE_DELTA2: GetArrayValue(variable1, variable2, variable3); break; //получение значения массива
+			case OPER_SET_ARRAY + TYPE_DELTA2: SetArrayValue(variable1, variable2, GetValue(variable3)); break;//set array value
+			case OPER_GET_ARRAY + TYPE_DELTA2: GetArrayValue(variable1, variable2, variable3); break; //getting the array value
 			case OPER_IF + TYPE_DELTA2: if (variable1.m_sData.IsEmpty()) lCodeLine = index2 - 1; break;
 				//DATE
 			case OPER_ADD + TYPE_DELTA3: variable1.m_dData = variable2.m_dData + variable3.m_dData; break;
@@ -742,8 +743,8 @@ start_label:
 			case OPER_LS + TYPE_DELTA3: variable1.m_dData = (variable2.m_dData < variable3.m_dData); break;
 			case OPER_GE + TYPE_DELTA3: variable1.m_dData = (variable2.m_dData >= variable3.m_dData); break;
 			case OPER_LE + TYPE_DELTA3: variable1.m_dData = (variable2.m_dData <= variable3.m_dData); break;
-			case OPER_SET_ARRAY + TYPE_DELTA3:	SetArrayValue(variable1, variable2, GetValue(variable3)); break; //установка значения массива
-			case OPER_GET_ARRAY + TYPE_DELTA3: GetArrayValue(variable1, variable2, variable3); break; //получение значения массива
+			case OPER_SET_ARRAY + TYPE_DELTA3: SetArrayValue(variable1, variable2, GetValue(variable3)); break; //setting the array value
+			case OPER_GET_ARRAY + TYPE_DELTA3: GetArrayValue(variable1, variable2, variable3); break; //getting the array value
 			case OPER_IF + TYPE_DELTA3: if (!variable1.m_dData) lCodeLine = index2 - 1; break;
 				//BOOLEAN
 			case OPER_ADD + TYPE_DELTA4: variable1.m_bData = variable2.m_bData + variable3.m_bData; break;
@@ -777,22 +778,21 @@ start_label:
 				break;
 			}
 		}
-		//return CValue();
 	}
 	catch (const CBackendException* err) {
 		long size = tryList.size() - 1;
 		if (size >= 0) {
-			s_errorPlace.Reset(); //Ошибка обрабатывается в этом модуле - стираем место ошибки
+			s_errorPlace.Reset(); //Error is handled in this module - erase the error location
 			long nLine = tryList[size].m_lEndLine;
 			tryList.resize(size);
 			lCodeLine = nLine;
 			goto start_label;
 		}
-		//в этом модуле нет обработчика - сохраняем место ошибки для следующих модулей
-		//Но ошибку сразу не выдаем, т.к. не знаем есть ли дальше обработчики
+		//there is no handler in this module - save the error location for the following modules
+		//But we don't throw an error right away, because we don't know if there are any handlers further
 		if (!s_errorPlace.m_byteCode) {
-			if (m_pByteCode != s_errorPlace.m_skipByteCode) { //системная функция Ошибка выдает исключение только для дочерних модулей
-				//ранее сохранили оргинально место ошибки (т.е. ошибка произошла не в этом модуле)
+			if (m_pByteCode != s_errorPlace.m_skipByteCode) { //the Error system function throws an exception only for child modules
+				//previously saved the original error location (i.e. the error didn't occur in this module)
 				s_errorPlace.m_byteCode = m_pByteCode;
 				s_errorPlace.m_errorLine = lCodeLine;
 			}
@@ -802,9 +802,9 @@ start_label:
 	//return cRetValue;
 }
 
-//параметры nRunModule:
-//false-не запускать
-//true-запускать
+//nRunModule parameters:
+//false-do not run
+//true-run
 void CProcUnit::Execute(CByteCode& cByteCode, CValue& pvarRetValue, bool bRunModule)
 {
 	Reset();
@@ -815,7 +815,7 @@ void CProcUnit::Execute(CByteCode& cByteCode, CValue& pvarRetValue, bool bRunMod
 	s_nRecCount = 0;
 	m_pByteCode = &cByteCode;
 
-	//проверяем соответствия модулей (скомпилированного и запущенного)
+	//check the conformity of modules (compiled and running)
 	if (GetParent() && GetParent()->m_pByteCode != m_pByteCode->m_parent) {
 		m_pByteCode = nullptr;
 		CBackendException::Error("System error - compilation failed (#1)\nModule:%s\nParent1:%s\nParent2:%s",
@@ -842,7 +842,7 @@ void CProcUnit::Execute(CByteCode& cByteCode, CValue& pvarRetValue, bool bRunMod
 
 	m_pppArrayList = new CValue * *[nParentCount + 2];
 	m_pppArrayList[0] = m_cCurContext.m_pRefLocVars;
-	m_pppArrayList[1] = m_cCurContext.m_pRefLocVars;//начинаем с 1, т.к. 0 - означает локальный контекст
+	m_pppArrayList[1] = m_cCurContext.m_pRefLocVars;//start with 1, because 0 means local context
 
 	for (unsigned int i = 0; i < nParentCount; i++) {
 		CProcUnit* pCurUnit = GetParent(i);
@@ -859,7 +859,7 @@ void CProcUnit::Execute(CByteCode& cByteCode, CValue& pvarRetValue, bool bRunMod
 
 	bool bDelta = true;
 
-	//Начальная инициализация переменных модуля
+	//Initial initialization of module variables
 	unsigned int lFinish = m_pByteCode->m_listCode.size();
 	CValue** pRefLocVars = m_cCurContext.m_pRefLocVars;
 
@@ -870,7 +870,7 @@ void CProcUnit::Execute(CByteCode& cByteCode, CValue& pvarRetValue, bool bRunMod
 		}
 	}
 
-	//Запрещаем на запись константы
+	//Disable writing constants
 	for (unsigned int i = 0; i < m_pByteCode->m_listConst.size(); i++) {
 		m_pByteCode->m_listConst[i].m_bReadOnly = true;
 	}
@@ -881,10 +881,10 @@ void CProcUnit::Execute(CByteCode& cByteCode, CValue& pvarRetValue, bool bRunMod
 	}
 }
 
-//Поиск функции в модуле по имени
-//bExportOnly=0-поиск любых функций в текущем модуле + экспортные в родительских модулях
-//bExportOnly=1-поиск экспортных функций в текущем и родительских модулях
-//bExportOnly=2-поиск экспортных функций в только текущем модуле
+//Search for a function in a module by name
+//bExportOnly=0-search for any functions in the current module + exported ones in parent modules
+//bExportOnly=1-search for exported functions in the current and parent modules
+//bExportOnly=2-search for exported functions in the current module only
 long CProcUnit::FindMethod(const wxString& strMethodName, bool bError, int bExportOnly) const
 {
 	if (m_pByteCode == nullptr ||
@@ -1073,7 +1073,7 @@ bool CProcUnit::Evaluate(const wxString& strExpression, CRunContext* pRunContext
 		}
 	);
 	CProcUnit* pRunEval = nullptr;
-	if (it == pRunContext->m_listEval.end()) { //еще не было компиляции такого текста
+	if (it == pRunContext->m_listEval.end()) { //this text has not yet been compiled
 		CCompileCode* compileCode = new CCompileCode;
 		compileCode->Load(strExpression);
 		CProcUnit* simpleRun = new CProcUnit;
@@ -1086,7 +1086,7 @@ bool CProcUnit::Evaluate(const wxString& strExpression, CRunContext* pRunContext
 			return false;
 		}
 
-		//все ОК
+		//everything is OK
 		pRunContext->m_listEval.insert_or_assign(
 			stringUtils::MakeUpper(strExpression), simpleRun
 		);
@@ -1096,7 +1096,7 @@ bool CProcUnit::Evaluate(const wxString& strExpression, CRunContext* pRunContext
 	else {
 		pRunEval = it->second;
 	}
-	//Запускаем
+	//Launch
 	bool bDelta = false;
 	CCompileContext* compileContext = pRunContext->m_compileContext;
 	wxASSERT(compileContext);
@@ -1135,7 +1135,7 @@ bool CProcUnit::CompileExpression(CRunContext* pRunContext, CValue& pvarRetValue
 {
 	CByteCode* const byteCode = pRunContext->GetByteCode();
 
-	//задаем в качестве родителей контекст вызова выражения
+	//set the expression calling context as parents
 	if (byteCode != nullptr) {
 		cModule.m_cByteCode.m_parent = byteCode;
 		cModule.m_parent = byteCode->m_compileModule;
@@ -1157,14 +1157,14 @@ bool CProcUnit::CompileExpression(CRunContext* pRunContext, CValue& pvarRetValue
 
 	cModule.m_cByteCode.m_compileModule = &cModule;
 
-	//дорабатываем массив байт-кодов для возвращения результата выражения
+	//process the bytecode array to return the expression result
 	CByteUnit code;
 	code.m_numOper = OPER_RET;
 
 	try {
-		if (bCompileBlock) 
+		if (bCompileBlock)
 			cModule.CompileBlock(cModule.GetContext());
-		else 
+		else
 			code.m_param1 = cModule.GetExpression(cModule.GetContext());
 	}
 	catch (...)
@@ -1182,10 +1182,10 @@ bool CProcUnit::CompileExpression(CRunContext* pRunContext, CValue& pvarRetValue
 	cModule.m_cByteCode.m_listCode.push_back(code2);
 	cModule.m_cByteCode.m_lVarCount = cModule.m_rootContext->m_listVariable.size();
 
-	//признак завершенности компилирования
+	//flag of compilation completion
 	cModule.m_cByteCode.m_bCompile = true;
 
-	//Проецируем в памяти
+	//Project in memory
 	SetParent(pRunContext->m_procUnit);
 
 	try {
