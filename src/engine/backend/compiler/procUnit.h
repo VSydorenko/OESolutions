@@ -91,10 +91,12 @@ public:
 		CValue pvarRetValue;
 		Execute(ByteCode, pvarRetValue, true);
 	}
+	
 	void Execute(CByteCode& ByteCode, bool bRunModule) {
 		CValue pvarRetValue;
 		Execute(ByteCode, pvarRetValue, bRunModule);
 	}
+	
 	void Execute(CByteCode& ByteCode, CValue& pvarRetValue, bool bRunModule = true);
 	void Execute(CRunContext* pContext, CValue& pvarRetValue, bool bDelta); // bDelta=true - flag for executing module operators that come at the end of functions and procedures
 
@@ -185,10 +187,6 @@ public:
 	}
 
 	static void Raise();
-
-private:
-	friend class CRunContext;
-	friend class CRunContextSmall;
 };
 
 #endif 

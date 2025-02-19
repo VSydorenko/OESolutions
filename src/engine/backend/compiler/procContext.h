@@ -4,9 +4,19 @@
 #include "byteCode.h"
 #include "compileContext.h"
 
-class CProcUnit;
-
 struct CRunContextSmall {
+
+	long m_lStart, m_lParamCount;
+
+	CValue m_cLocVars[MAX_STATIC_VAR] = {};
+	CValue* m_pLocVars = nullptr;
+
+	CValue* m_cRefLocVars[MAX_STATIC_VAR] = {};
+	CValue** m_pRefLocVars = nullptr;
+
+	long m_lVarCount;
+
+public:
 
 	CRunContextSmall(int varCount = wxNOT_FOUND) :
 		m_lVarCount(0), m_lParamCount(0) {
@@ -21,18 +31,6 @@ struct CRunContextSmall {
 			delete[]m_pRefLocVars;
 		}
 	}
-
-	long m_lStart, m_lParamCount;
-
-	CValue m_cLocVars[MAX_STATIC_VAR] = {};
-	CValue* m_pLocVars = nullptr;
-
-	CValue* m_cRefLocVars[MAX_STATIC_VAR] = {};
-	CValue** m_pRefLocVars = nullptr;
-
-private:
-	long m_lVarCount;
-public:
 
 	void SetLocalCount(const long varCount) {
 		m_lVarCount = varCount;
@@ -49,22 +47,22 @@ public:
 		}
 	};
 
-	long GetLocalCount() const {
-		return m_lVarCount;
-	}
+	long GetLocalCount() const { return m_lVarCount; }
 };
 
+class CProcUnit;
+
 struct CRunContext {
-	
+
 	CProcUnit* m_procUnit = nullptr;
 	CCompileContext* m_compileContext = nullptr;
 
 	long m_lStart, m_lCurLine; //current executing bytecode line
 	long m_lVarCount, m_lParamCount;
-	
+
 	CValue m_cLocVars[MAX_STATIC_VAR] = {};
 	CValue* m_pLocVars = nullptr;
-	
+
 	CValue* m_cRefLocVars[MAX_STATIC_VAR] = {};
 	CValue** m_pRefLocVars = nullptr;
 
@@ -72,10 +70,10 @@ struct CRunContext {
 
 public:
 
-	CRunContext(int iLocal = wxNOT_FOUND) :
+	CRunContext(int varCount = wxNOT_FOUND) :
 		m_lVarCount(0), m_lParamCount(0), m_lStart(0), m_lCurLine(0) {
-		if (iLocal >= 0) {
-			SetLocalCount(iLocal);
+		if (varCount >= 0) {
+			SetLocalCount(varCount);
 		}
 	};
 
@@ -98,17 +96,10 @@ public:
 		for (long i = 0; i < m_lVarCount; i++) m_pRefLocVars[i] = &m_pLocVars[i];
 	}
 
-	long GetLocalCount() const {
-		return m_lVarCount;
-	}
+	long GetLocalCount() const { return m_lVarCount; }
 
-	void SetProcUnit(CProcUnit* procUnit) {
-		m_procUnit = procUnit;
-	}
-
-	CProcUnit* GetProcUnit() const {
-		return m_procUnit;
-	}
+	void SetProcUnit(CProcUnit* procUnit) { m_procUnit = procUnit; }
+	CProcUnit* GetProcUnit() const { return m_procUnit; }
 };
 
 #endif // ! _PROC_CONTEXT__H__

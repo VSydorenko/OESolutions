@@ -1035,7 +1035,7 @@ bool CProcUnit::SetPropVal(const wxString& strPropName, const CValue& varPropVal
 		*m_cCurContext.m_pRefLocVars[lPropNum] = varPropVal;
 	}
 	else {
-		long lPropPos = m_cCurContext.GetLocalCount();
+		const long lPropPos = m_cCurContext.GetLocalCount();
 		m_cCurContext.SetLocalCount(lPropPos + 1);
 		m_cCurContext.m_cLocVars[lPropPos] = CValue(strPropName);
 		*m_cCurContext.m_pRefLocVars[lPropPos] = varPropVal;

@@ -419,10 +419,10 @@ void CFrameCodeRunner::PrepareTABs()
 		fold_level = (fold_level ^ wxSTC_FOLDLEVELELSE_FLAG);
 		if (fold_level >= 0) {
 			const int start_line_pos = m_codeEditor->PositionFromLine(curr_line);
-			int currFold = 0; unsigned int toPos = 0;
+			int currFold = 0; int toPos = 0;
 			std::string strBuffer(m_codeEditor->GetLineRaw(curr_line));
 			const int length = curr_position - start_line_pos;
-			for (unsigned int i = 0; i < length; i++) {
+			for (int i = 0; i < length; i++) {
 				if (strBuffer[i] == '\t' || strBuffer[i] == ' ') {
 					currFold++; toPos = i + 1;
 				}
@@ -447,10 +447,10 @@ void CFrameCodeRunner::PrepareTABs()
 		fold_level = (fold_level ^ wxSTC_FOLDLEVELWHITE_FLAG) - 1;
 		if (fold_level >= 0) {
 			const int start_line_pos = m_codeEditor->PositionFromLine(curr_line);
-			int currFold = 0; unsigned int toPos = 0;
+			int currFold = 0; int toPos = 0;
 			std::string strBuffer(m_codeEditor->GetLineRaw(curr_line));
 			const int length = curr_position - start_line_pos;
-			for (unsigned int i = 0; i < length; i++) {
+			for (int i = 0; i < length; i++) {
 				if (strBuffer[i] == '\t' || strBuffer[i] == ' ') {
 					currFold++; toPos = i + 1;
 				}
@@ -472,7 +472,7 @@ void CFrameCodeRunner::PrepareTABs()
 	strTabs.append("\r\n");
 
 	if ((curr_line + 1) < m_codeEditor->GetLineCount()) {
-		int currFold = 0; unsigned int toPos = 0;
+		int currFold = 0; int toPos = 0;
 		const int length = m_codeEditor->GetLineLength(curr_line + 1);
 		if (length > 0) {
 			std::string strBuffer(m_codeEditor->GetLineRaw(curr_line + 1));
