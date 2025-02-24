@@ -399,7 +399,7 @@ private:
 				&& m_winButton->m_buttonClear != event.GetWindow()) {
 
 				wxFocusEvent focusEvent(wxEVT_SET_FOCUS, event.GetId());
-				focusEvent.SetEventObject(this);
+				focusEvent.SetEventObject(m_textCtrl);
 				focusEvent.SetWindow(event.GetWindow());
 				wxTextContainerCtrl::ProcessEvent(focusEvent);
 			}
@@ -412,7 +412,7 @@ private:
 				&& m_winButton->m_buttonClear != event.GetWindow()) {
 
 				wxFocusEvent focusEvent(wxEVT_KILL_FOCUS, event.GetId());
-				focusEvent.SetEventObject(this);
+				focusEvent.SetEventObject(m_textCtrl);
 				focusEvent.SetWindow(event.GetWindow());
 				wxTextContainerCtrl::ProcessEvent(focusEvent);
 			}
