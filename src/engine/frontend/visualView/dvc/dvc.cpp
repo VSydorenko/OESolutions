@@ -2,9 +2,7 @@
 
 #include "frontend/win/ctrls/checkBoxEditor.h"
 #include "frontend/win/ctrls/textEditor.h"
-
 #include "frontend/visualView/ctrl/tableBox.h"
-
 #include "backend/appData.h"
 
 wxWindow* CValueViewRenderer::CreateEditorCtrl(wxWindow* dv,

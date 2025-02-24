@@ -25,12 +25,12 @@ CValueForm::CValueForm(IControlFrame* ownerControl, IMetaObjectForm* metaForm,
 	m_controlId = defaultFormId;
 
 	//init frame controls
-	m_formControls = CValue::CreateAndConvertObjectValueRef<CValueFormControl>(this);
-	m_formControls->IncrRef();
+	m_formCollectionControl = CValue::CreateAndConvertObjectValueRef<CValueFormCollectionControl>(this);
+	m_formCollectionControl->IncrRef();
 
 	//init attributes controls
-	m_formData = CValue::CreateAndConvertObjectValueRef<CValueFormData>(this);
-	m_formData->IncrRef();
+	m_formCollectionData = CValue::CreateAndConvertObjectValueRef<CValueFormCollectionData>(this);
+	m_formCollectionData->IncrRef();
 }
 
 CValueForm::~CValueForm()
@@ -44,8 +44,8 @@ CValueForm::~CValueForm()
 		delete timer;
 	}
 
-	m_formControls->DecrRef();
-	m_formData->DecrRef();
+	m_formCollectionControl->DecrRef();
+	m_formCollectionData->DecrRef();
 	
 	for (unsigned int idx = GetChildCount(); idx > 0; idx--) {
 		IValueFrame* controlChild =
@@ -208,8 +208,8 @@ void CValueForm::PrepareNames() const
 		}
 	}
 
-	m_formControls->PrepareNames();
-	m_formData->PrepareNames();
+	m_formCollectionControl->PrepareNames();
+	m_formCollectionData->PrepareNames();
 }
 
 bool CValueForm::SetPropVal(const long lPropNum, const CValue& varPropVal)
@@ -253,10 +253,10 @@ bool CValueForm::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 			pvarPropVal = GetValue();
 			return true;
 		case eControls:
-			pvarPropVal = m_formControls;
+			pvarPropVal = m_formCollectionControl;
 			return true;
 		case eDataSources:
-			pvarPropVal = m_formData;
+			pvarPropVal = m_formCollectionData;
 			return true;
 		case eModified:
 			pvarPropVal = IsModified();

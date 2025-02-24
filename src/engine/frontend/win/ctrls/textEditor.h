@@ -50,6 +50,10 @@ class wxTextContainerCtrl : public wxWindow,
 		virtual void SetValue(const wxString& value) override {
 			DoSetValue(value, SetValue_NoEvent);
 		}
+
+		virtual bool TryBefore(wxEvent& event) override {
+			return wxWindow::TryBefore(event);
+		}
 	};
 
 	class wxTextButtonCtrl : public wxTextCtrl {
@@ -296,6 +300,7 @@ class wxTextContainerCtrl : public wxWindow,
 			m_buttonClear->SetToolTip(tip);
 		}
 #endif // wxUSE_TOOLTIPS
+
 	};
 
 private:
@@ -384,33 +389,34 @@ private:
 	}
 
 	//events:
-	void OnKillFocus(wxFocusEvent &event)
+	void OnFocusEvent(wxFocusEvent &event)
 	{
-		/*wxWindow *focusedWnd = wxWindow::FindFocus();
+		if (event.GetEventType() == wxEVT_SET_FOCUS) {
 
-		if (focusedWnd != m_textCtrl) {
+			if (m_textCtrl != event.GetWindow()
+				&& m_winButton->m_buttonSelect != event.GetWindow()
+				&& m_winButton->m_buttonOpen != event.GetWindow()
+				&& m_winButton->m_buttonClear != event.GetWindow()) {
 
-			wxCommandEvent evt(wxEVT_TEXT_ENTER, m_textCtrl->GetId());
-			evt.SetEventObject(m_textCtrl);
-
-			switch (m_clientDataType)
-			{
-			case wxClientData_Void:
-				evt.SetClientData(m_textCtrl->GetClientData());
-				break;
-
-			case wxClientData_Object:
-				evt.SetClientObject(m_textCtrl->GetClientObject());
-				break;
-
-			case wxClientData_None:
-				// nothing to do
-				;
+				wxFocusEvent focusEvent(wxEVT_SET_FOCUS, event.GetId());
+				focusEvent.SetEventObject(this);
+				focusEvent.SetWindow(event.GetWindow());
+				wxTextContainerCtrl::ProcessEvent(focusEvent);
 			}
+		}
+		else if (event.GetEventType() == wxEVT_KILL_FOCUS) {
 
-			evt.SetString(m_textCtrl->GetValue());
-			wxPostEvent(m_textCtrl, evt);
-		}*/
+			if (m_textCtrl != event.GetWindow() 
+				&& m_winButton->m_buttonSelect != event.GetWindow()
+				&& m_winButton->m_buttonOpen != event.GetWindow()
+				&& m_winButton->m_buttonClear != event.GetWindow()) {
+
+				wxFocusEvent focusEvent(wxEVT_KILL_FOCUS, event.GetId());
+				focusEvent.SetEventObject(this);
+				focusEvent.SetWindow(event.GetWindow());
+				wxTextContainerCtrl::ProcessEvent(focusEvent);
+			}
+		}
 
 		event.Skip();
 	}
@@ -419,15 +425,12 @@ private:
 	{
 		event.Skip();
 	}
+	
 	void OnCharEvent(wxKeyEvent& event)
 	{
 		event.Skip();
 	}
-	void OnFocusEvent(wxFocusEvent& event)
-	{
-		Refresh();
-	}
-
+	
 public:
 
 	wxTextContainerCtrl() :
@@ -451,13 +454,13 @@ public:
 
 	virtual ~wxTextContainerCtrl() {
 
-		wxWindow::Unbind(wxEVT_KEY_DOWN, &wxTextContainerCtrl::OnKeyEvent, this);
-		wxWindow::Unbind(wxEVT_CHAR, &wxTextContainerCtrl::OnCharEvent, this);
-		wxWindow::Unbind(wxEVT_SET_FOCUS, &wxTextContainerCtrl::OnFocusEvent, this);
-		wxWindow::Unbind(wxEVT_KILL_FOCUS, &wxTextContainerCtrl::OnFocusEvent, this);
+		if (m_textCtrl != nullptr) {
 
-		if (m_textCtrl) {
-			m_textCtrl->Unbind(wxEVT_KILL_FOCUS, &wxTextContainerCtrl::OnKillFocus, this);
+			m_textCtrl->Unbind(wxEVT_KEY_DOWN, &wxTextContainerCtrl::OnKeyEvent, this);
+			m_textCtrl->Unbind(wxEVT_CHAR, &wxTextContainerCtrl::OnCharEvent, this);
+		
+			m_textCtrl->Unbind(wxEVT_SET_FOCUS, &wxTextContainerCtrl::OnFocusEvent, this);	
+			m_textCtrl->Unbind(wxEVT_KILL_FOCUS, &wxTextContainerCtrl::OnFocusEvent, this);
 		}
 	}
 
@@ -470,16 +473,18 @@ public:
 		if (!wxWindow::Create(parent, id, pos, size, style))
 			return false;
 
-		wxWindow::Bind(wxEVT_KEY_DOWN, &wxTextContainerCtrl::OnKeyEvent, this);
-		wxWindow::Bind(wxEVT_CHAR, &wxTextContainerCtrl::OnCharEvent, this);
-		wxWindow::Bind(wxEVT_SET_FOCUS, &wxTextContainerCtrl::OnFocusEvent, this);
-		wxWindow::Bind(wxEVT_KILL_FOCUS, &wxTextContainerCtrl::OnFocusEvent, this);
-
 		wxWindow::SetSizeHints(wxDefaultSize, wxDefaultSize);
 
 		CreateControl(pos, size, val);
 
-		m_textCtrl->Bind(wxEVT_KILL_FOCUS, &wxTextContainerCtrl::OnKillFocus, this);
+		m_textCtrl->Bind(wxEVT_KEY_DOWN, &wxTextContainerCtrl::OnKeyEvent, this);
+		m_textCtrl->Bind(wxEVT_CHAR, &wxTextContainerCtrl::OnCharEvent, this);
+		
+		m_textCtrl->Bind(wxEVT_SET_FOCUS, &wxTextContainerCtrl::OnFocusEvent, this);
+		m_textCtrl->Bind(wxEVT_KILL_FOCUS, &wxTextContainerCtrl::OnFocusEvent, this);
+
+		m_winButton->Bind(wxEVT_SET_FOCUS, &wxTextContainerCtrl::OnFocusEvent, this);
+		m_winButton->Bind(wxEVT_KILL_FOCUS, &wxTextContainerCtrl::OnFocusEvent, this);
 
 		wxWindow::SetSizer(m_boxSizer);
 		wxWindow::Layout();
@@ -511,7 +516,7 @@ public:
 	template <typename Functor, typename EventHandler>
 	void BindTextUpdated(const Functor& functor, EventHandler handler) { m_textCtrl->Bind(wxEVT_COMMAND_TEXT_UPDATED, functor, handler); }
 	template <typename Functor, typename EventHandler>
-	void BindKillFocus(const Functor &functor, EventHandler handler) { m_textCtrl->Bind(wxEVT_KILL_FOCUS, functor, handler); }
+	void BindKillFocus(const Functor &functor, EventHandler handler) { wxTextContainerCtrl::Bind(wxEVT_KILL_FOCUS, functor, handler); }
 
 	// Unbind functors to an event:
 	template <typename Functor, typename EventHandler>
@@ -525,7 +530,7 @@ public:
 	template <typename Functor, typename EventHandler>
 	void UnbindTextUpdated(const Functor& functor, EventHandler handler) { m_textCtrl->Unbind(wxEVT_COMMAND_TEXT_UPDATED, functor, handler); }
 	template <typename Functor, typename EventHandler>
-	void UnbindKillFocus(const Functor &functor, EventHandler handler) { m_textCtrl->Unbind(wxEVT_KILL_FOCUS, functor, handler); }
+	void UnbindKillFocus(const Functor &functor, EventHandler handler) { wxTextContainerCtrl::Unbind(wxEVT_KILL_FOCUS, functor, handler); }
 
 	void SetMultilineMode(bool mode) {
 		if (m_textCtrl != nullptr) {
@@ -749,18 +754,6 @@ public:
 	virtual void AfterCalc() {
 		CalculateButton(); 
 	}
-
-	/*#if wxUSE_VALIDATORS
-		virtual void SetValidator(const wxValidator& validator) override {
-			if (m_textCtrl) {
-				m_textCtrl->SetValidator(validator);
-			}
-		}
-
-		virtual wxValidator *GetValidator() override {
-			return m_textCtrl ? m_textCtrl->GetValidator() : nullptr;
-		}
-	#endif // wxUSE_VALIDATORS*/
 };
 
 #endif

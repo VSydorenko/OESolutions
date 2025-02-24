@@ -412,6 +412,15 @@ void CValueForm::ActivateForm()
 	}
 }
 
+void CValueForm::RefreshForm()
+{
+	if (!appData->DesignerMode()) {
+		if (m_procUnit != nullptr) {
+			m_procUnit->CallAsProc("refreshDisplay");
+		}
+	}
+}
+
 void CValueForm::UpdateForm()
 {
 	if (CBackendException::IsEvalMode())
@@ -426,12 +435,6 @@ void CValueForm::UpdateForm()
 			visualView->Freeze();
 			visualView->UpdateFrame();
 			visualView->Thaw();
-		}
-
-		if (!appData->DesignerMode()) {
-			if (m_procUnit != nullptr) {
-				m_procUnit->CallAsProc("refreshDisplay");
-			}
 		}
 	}
 }
@@ -526,8 +529,8 @@ IValueFrame* CValueForm::CreateControl(const wxString& clsControl, IValueFrame* 
 		}
 	}
 
-	m_formControls->PrepareNames();
-	m_formData->PrepareNames();
+	m_formCollectionControl->PrepareNames();
+	m_formCollectionData->PrepareNames();
 
 	//return value 
 	if (newControl->GetComponentType() == COMPONENT_TYPE_SIZERITEM)
@@ -576,16 +579,17 @@ void CValueForm::RemoveControl(IValueFrame* control)
 		currentControl->DecrRef();
 	}
 
-	m_formControls->PrepareNames();
-	m_formData->PrepareNames();
+	m_formCollectionControl->PrepareNames();
+	m_formCollectionData->PrepareNames();
 }
 
 void CValueForm::OnIdleHandler(wxTimerEvent& event)
 {
 	if (m_procUnit != nullptr) {
-		auto& it = std::find_if(m_aIdleHandlers.begin(), m_aIdleHandlers.end(), [event](std::pair<wxString, wxTimer*> pair) {
+		auto& it = std::find_if(m_aIdleHandlers.begin(), m_aIdleHandlers.end(), [event](std::pair<wxString, wxTimer*> pair)
+		{
 			return pair.second == event.GetEventObject();
-			}
+		}
 		);
 		if (it != m_aIdleHandlers.end()) CallAsEvent(it->first);
 

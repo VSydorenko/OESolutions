@@ -7,32 +7,32 @@
 
 
 //////////////////////////////////////////////////////////////////////
-wxIMPLEMENT_DYNAMIC_CLASS(CValueForm::CValueFormControl, CValue);
+wxIMPLEMENT_DYNAMIC_CLASS(CValueForm::CValueFormCollectionControl, CValue);
 //////////////////////////////////////////////////////////////////////
 
-CValueForm::CValueFormControl::CValueFormControl() : CValue(eValueTypes::TYPE_VALUE, true),
+CValueForm::CValueFormCollectionControl::CValueFormCollectionControl() : CValue(eValueTypes::TYPE_VALUE, true),
 m_formOwner(nullptr), m_methodHelper(nullptr)
 {
 }
 
-CValueForm::CValueFormControl::CValueFormControl(CValueForm* ownerFrame) : CValue(eValueTypes::TYPE_VALUE, true),
+CValueForm::CValueFormCollectionControl::CValueFormCollectionControl(CValueForm* ownerFrame) : CValue(eValueTypes::TYPE_VALUE, true),
 m_formOwner(ownerFrame), m_methodHelper(new CMethodHelper())
 {
 }
 
 #include "backend/compiler/value/valueMap.h"
 
-CValueForm::CValueFormControl::~CValueFormControl()
+CValueForm::CValueFormCollectionControl::~CValueFormCollectionControl()
 {
 	wxDELETE(m_methodHelper);
 }
 
-CValue CValueForm::CValueFormControl::GetIteratorEmpty()
+CValue CValueForm::CValueFormCollectionControl::GetIteratorEmpty()
 {
 	return CValue::CreateAndConvertObjectValueRef<CValueContainer::CValueReturnContainer>();
 }
 
-CValue CValueForm::CValueFormControl::GetIteratorAt(unsigned int idx)
+CValue CValueForm::CValueFormCollectionControl::GetIteratorAt(unsigned int idx)
 {
 	if (m_formOwner->m_aControls.size() < idx)
 		return CValue();
@@ -46,7 +46,7 @@ CValue CValueForm::CValueFormControl::GetIteratorAt(unsigned int idx)
 	);
 }
 
-bool CValueForm::CValueFormControl::GetAt(const CValue& varKeyValue, CValue& pvarValue)
+bool CValueForm::CValueFormCollectionControl::GetAt(const CValue& varKeyValue, CValue& pvarValue)
 {
 	const number_t& number = varKeyValue.GetNumber();
 	if (m_formOwner->m_aControls.size() < number.ToUInt())
@@ -56,7 +56,7 @@ bool CValueForm::CValueFormControl::GetAt(const CValue& varKeyValue, CValue& pva
 	return true;
 }
 
-bool CValueForm::CValueFormControl::Property(const CValue& varKeyValue, CValue& cValueFound)
+bool CValueForm::CValueFormCollectionControl::Property(const CValue& varKeyValue, CValue& cValueFound)
 {
 	const wxString& key = varKeyValue.GetString();
 	auto it = std::find_if(m_formOwner->m_aControls.begin(), m_formOwner->m_aControls.end(),
@@ -80,7 +80,7 @@ enum
 	enControlCount
 };
 
-void CValueForm::CValueFormControl::PrepareNames() const
+void CValueForm::CValueFormCollectionControl::PrepareNames() const
 {
 	m_methodHelper->ClearHelper();
 
@@ -100,7 +100,7 @@ void CValueForm::CValueFormControl::PrepareNames() const
 	}
 }
 
-bool CValueForm::CValueFormControl::GetPropVal(const long lPropNum, CValue& pvarPropVal)
+bool CValueForm::CValueFormCollectionControl::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 {
 	wxASSERT(m_formOwner);
 	pvarPropVal = m_formOwner->FindControlByID(
@@ -111,7 +111,7 @@ bool CValueForm::CValueFormControl::GetPropVal(const long lPropNum, CValue& pvar
 
 #include "backend/compiler/value/valueType.h"
 
-bool CValueForm::CValueFormControl::CallAsProc(const long lMethodNum, CValue** paParams, const long lSizeArray)
+bool CValueForm::CValueFormCollectionControl::CallAsProc(const long lMethodNum, CValue** paParams, const long lSizeArray)
 {
 	switch (lMethodNum)
 	{
@@ -122,7 +122,7 @@ bool CValueForm::CValueFormControl::CallAsProc(const long lMethodNum, CValue** p
 	return false;
 }
 
-bool CValueForm::CValueFormControl::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)
+bool CValueForm::CValueFormCollectionControl::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)
 {
 	switch (lMethodNum)
 	{
@@ -147,4 +147,4 @@ bool CValueForm::CValueFormControl::CallAsFunc(const long lMethodNum, CValue& pv
 //*                       Runtime register                             *
 //**********************************************************************
 
-SYSTEM_TYPE_REGISTER(CValueForm::CValueFormControl, "formControl", string_to_clsid("VL_CNTR"));
+SYSTEM_TYPE_REGISTER(CValueForm::CValueFormCollectionControl, "formControl", string_to_clsid("VL_CNTR"));

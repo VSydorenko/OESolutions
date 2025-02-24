@@ -103,13 +103,13 @@ class wxVariantSourceAttributeData : public wxVariantAttributeData {
 	void UpdateSourceAttribute();
 public:
 	wxVariantSourceAttributeData(IMetaData* metaData, CValueForm* formData, const meta_identifier_t& id = wxNOT_FOUND)
-		: wxVariantAttributeData(metaData), m_formData(formData)
+		: wxVariantAttributeData(metaData), m_formCollectionData(formData)
 	{
 		DoSetFromMetaId(id);
 	}
 
 	wxVariantSourceAttributeData(const wxVariantSourceAttributeData& srcData)
-		: wxVariantAttributeData(srcData), m_formData(srcData.m_formData)
+		: wxVariantAttributeData(srcData), m_formCollectionData(srcData.m_formCollectionData)
 	{
 		UpdateSourceAttribute();
 	}
@@ -117,7 +117,7 @@ public:
 protected:
 	virtual void DoSetFromMetaId(const meta_identifier_t& id);
 protected:
-	CValueForm* m_formData;
+	CValueForm* m_formCollectionData;
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -150,11 +150,11 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	wxVariantSourceData(IMetaData* metadata, CValueForm* formData, const meta_identifier_t& id = wxNOT_FOUND) : wxVariantData(),
-		m_typeDescription(new wxVariantSourceAttributeData(metadata, formData, id)), m_srcId(id), m_formData(formData), m_metaData(metadata) {
+		m_typeDescription(new wxVariantSourceAttributeData(metadata, formData, id)), m_srcId(id), m_formCollectionData(formData), m_metaData(metadata) {
 	}
 
 	wxVariantSourceData(const wxVariantSourceData& srcData) : wxVariantData(),
-		m_typeDescription(new wxVariantSourceAttributeData(*srcData.m_typeDescription)), m_srcId(srcData.m_srcId), m_formData(srcData.m_formData), m_metaData(srcData.m_metaData) {
+		m_typeDescription(new wxVariantSourceAttributeData(*srcData.m_typeDescription)), m_srcId(srcData.m_srcId), m_formCollectionData(srcData.m_formCollectionData), m_metaData(srcData.m_metaData) {
 	}
 
 	virtual ~wxVariantSourceData() {
@@ -189,7 +189,7 @@ public:
 	}
 
 	CValueForm* GetOwnerForm() const {
-		return m_formData;
+		return m_formCollectionData;
 	}
 
 	IMetaData* GetMetaData() const {
@@ -202,7 +202,7 @@ protected:
 
 	IMetaData* m_metaData;
 
-	CValueForm* m_formData;
+	CValueForm* m_formCollectionData;
 	wxVariantSourceAttributeData* m_typeDescription;
 
 	meta_identifier_t m_srcId;

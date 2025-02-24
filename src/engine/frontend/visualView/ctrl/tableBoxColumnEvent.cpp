@@ -30,7 +30,7 @@ bool CValueTableBoxColumn::TextProcessing(wxTextCtrl* textCtrl, const wxString& 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-
+#include "frontend/visualView/dvc/dvc.h"
 #include "frontend/win/ctrls/textEditor.h"
 
 void CValueTableBoxColumn::ChoiceProcessing(CValue& vSelected)
@@ -44,8 +44,10 @@ void CValueTableBoxColumn::ChoiceProcessing(CValue& vSelected)
 				m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId, vSelected
 			);
 		}
-		wxDataViewColumnObject* columnObject =
-			dynamic_cast<wxDataViewColumnObject*>(GetWxObject());
+		
+		ÑDataViewColumnContainer* columnObject =
+			dynamic_cast<ÑDataViewColumnContainer*>(GetWxObject());
+		
 		if (columnObject != nullptr) {
 			CValueViewRenderer* renderer = columnObject->GetRenderer();
 			wxASSERT(renderer);
@@ -76,6 +78,15 @@ void CValueTableBoxColumn::OnTextEnter(wxCommandEvent& event)
 
 void CValueTableBoxColumn::OnKillFocus(wxFocusEvent& event)
 {
+	ÑDataViewColumnContainer* columnObject =
+		dynamic_cast<ÑDataViewColumnContainer*>(GetWxObject());
+	
+	if (columnObject != nullptr) {
+		CValueViewRenderer* renderer = columnObject->GetRenderer();
+		wxASSERT(renderer);
+		renderer->FinishEditing();
+	}
+
 	event.Skip();
 }
 
@@ -99,8 +110,8 @@ void CValueTableBoxColumn::OnSelectButtonPressed(wxCommandEvent& event)
 			setType = true;
 		}
 		if (!setType) {
-			wxDataViewColumnObject* columnObject =
-				dynamic_cast<wxDataViewColumnObject*>(GetWxObject());
+			ÑDataViewColumnContainer* columnObject =
+				dynamic_cast<ÑDataViewColumnContainer*>(GetWxObject());
 			wxASSERT(columnObject);
 			CValueViewRenderer* columnRenderer = columnObject->GetRenderer();
 			wxASSERT(columnRenderer);

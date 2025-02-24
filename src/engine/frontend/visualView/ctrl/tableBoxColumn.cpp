@@ -1,4 +1,5 @@
 #include "tableBox.h"
+#include "frontend/visualView/dvc/dvc.h"
 
 //***********************************************************************************
 //*                           IMPLEMENT_DYNAMIC_CLASS                               *
@@ -7,10 +8,9 @@
 wxIMPLEMENT_DYNAMIC_CLASS(CValueTableBoxColumn, IValueControl);
 
 //****************************************************************************
-
-#include "form.h"
 #include "backend/metaData.h"
 #include "backend/objCtor.h"
+
 
 OptionList* CValueTableBoxColumn::GetChoiceForm(PropertyOption* property)
 {
@@ -88,7 +88,7 @@ IMetaData* CValueTableBoxColumn::GetMetaData() const
 
 wxObject* CValueTableBoxColumn::Create(wxWindow* wxparent, IVisualHost* visualHost)
 {
-	wxDataViewColumnObject* columnObject = new wxDataViewColumnObject(this, m_propertyCaption->GetValueAsString(),
+	ÑDataViewColumnContainer* columnObject = new ÑDataViewColumnContainer(this, m_propertyCaption->GetValueAsString(),
 		m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId, m_propertyWidth->GetValueAsInteger(),
 		(wxAlignment)m_propertyAlign->GetValueAsInteger(),
 		wxDATAVIEW_COL_REORDERABLE
@@ -117,7 +117,7 @@ void CValueTableBoxColumn::OnCreated(wxObject* wxobject, wxWindow* wxparent, IVi
 {
 	wxDataViewCtrl* tableCtrl = dynamic_cast<wxDataViewCtrl*>(wxparent);
 	wxASSERT(tableCtrl);
-	wxDataViewColumnObject* columnObject = dynamic_cast<wxDataViewColumnObject*>(wxobject);
+	ÑDataViewColumnContainer* columnObject = dynamic_cast<ÑDataViewColumnContainer*>(wxobject);
 	wxASSERT(columnObject);
 
 	wxHeaderCtrl* headerCtrl = tableCtrl->GenericGetHeader();
@@ -141,7 +141,7 @@ void CValueTableBoxColumn::OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVi
 
 	wxDataViewCtrl* tableCtrl = dynamic_cast<wxDataViewCtrl*>(wxparent);
 	wxASSERT(tableCtrl);
-	wxDataViewColumnObject* columnObject = dynamic_cast<wxDataViewColumnObject*>(wxobject);
+	ÑDataViewColumnContainer* columnObject = dynamic_cast<ÑDataViewColumnContainer*>(wxobject);
 	wxASSERT(columnObject);
 
 	columnObject->SetControl(this);
@@ -190,7 +190,7 @@ void CValueTableBoxColumn::Cleanup(wxObject* obj, IVisualHost* visualHost)
 {
 	wxDataViewCtrl* tableCtrl = dynamic_cast<wxDataViewCtrl*>(visualHost->GetWxObject(GetOwner()));
 	wxASSERT(tableCtrl);
-	wxDataViewColumnObject* columnObject = dynamic_cast<wxDataViewColumnObject*>(obj);
+	ÑDataViewColumnContainer* columnObject = dynamic_cast<ÑDataViewColumnContainer*>(obj);
 	wxASSERT(columnObject);
 	wxHeaderCtrl* headerCtrl = tableCtrl->GenericGetHeader();
 	if (headerCtrl != nullptr) {
@@ -228,8 +228,8 @@ bool CValueTableBoxColumn::SetControlValue(const CValue& varControlVal)
 			m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId, varControlVal
 		);
 	}
-	wxDataViewColumnObject* columnObject =
-		dynamic_cast<wxDataViewColumnObject*>(GetWxObject());
+	ÑDataViewColumnContainer* columnObject =
+		dynamic_cast<ÑDataViewColumnContainer*>(GetWxObject());
 	if (columnObject != nullptr) {
 		CValueViewRenderer* renderer = columnObject->GetRenderer();
 		wxASSERT(renderer);
@@ -244,6 +244,7 @@ bool CValueTableBoxColumn::SetControlValue(const CValue& varControlVal)
 		}
 	}
 
+	m_formOwner->RefreshForm();
 	return true;
 }
 

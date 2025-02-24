@@ -204,6 +204,8 @@ bool CValueTextCtrl::SetControlValue(const CValue& varControlVal)
 		m_selValue = ITypeAttribute::AdjustValue(varControlVal);
 	}
 
+	m_formOwner->RefreshForm();
+
 	wxTextContainerCtrl* textEditor = dynamic_cast<wxTextContainerCtrl*>(GetWxObject());
 	if (textEditor != nullptr) {
 		textEditor->SetTextValue(m_selValue.GetString());

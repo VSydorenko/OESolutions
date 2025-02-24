@@ -1,11 +1,12 @@
 #include "tableBox.h" 
-#include "form.h"
 #include "backend/appData.h"
+
+#include "frontend/visualView/dvc/dvc.h"
 
 void CValueTableBox::OnColumnClick(wxDataViewEvent& event)
 {
-	wxDataViewColumnObject* dataViewColumn =
-		dynamic_cast<wxDataViewColumnObject*>(event.GetDataViewColumn());
+	ÑDataViewColumnContainer* dataViewColumn =
+		dynamic_cast<ÑDataViewColumnContainer*>(event.GetDataViewColumn());
 	wxASSERT(dataViewColumn);
 	if (g_visualHostContext != nullptr) {
 		CValueTableBoxColumn* columnControl = dataViewColumn->GetControl();
@@ -42,8 +43,8 @@ void CValueTableBox::OnColumnClick(wxDataViewEvent& event)
 
 void CValueTableBox::OnColumnReordered(wxDataViewEvent& event)
 {
-	wxDataViewColumnObject* dataViewColumn =
-		dynamic_cast<wxDataViewColumnObject*>(event.GetDataViewColumn());
+	ÑDataViewColumnContainer* dataViewColumn =
+		dynamic_cast<ÑDataViewColumnContainer*>(event.GetDataViewColumn());
 	wxASSERT(dataViewColumn);
 	if (g_visualHostContext != nullptr) {
 		CValueTableBoxColumn* columnControl = dataViewColumn->GetControl();
@@ -167,6 +168,13 @@ void CValueTableBox::OnItemValueChanged(wxDataViewEvent& event)
 	event.Skip();
 }
 
+void CValueTableBox::OnItemStartInserting(wxDataViewEvent& event)
+{
+	if (m_dataViewRefresh) m_formOwner->RefreshForm();
+	
+	event.Skip();
+}
+
 void CValueTableBox::OnItemStartDeleting(wxDataViewEvent& event)
 {
 	// event is a wxDataViewEvent
@@ -179,6 +187,8 @@ void CValueTableBox::OnItemStartDeleting(wxDataViewEvent& event)
 		cancel //cancel
 	);
 
+	if (m_dataViewRefresh) m_formOwner->RefreshForm();
+
 	if (cancel.GetBoolean())
 		event.Veto();
 	else
@@ -189,8 +199,8 @@ void CValueTableBox::OnHeaderResizing(wxHeaderCtrlEvent& event)
 {
 	wxDataModelViewCtrl* dataViewCtrl = dynamic_cast<wxDataModelViewCtrl*>(GetWxObject());
 	if (dataViewCtrl != nullptr) {
-		wxDataViewColumnObject* dataViewColumn =
-			dynamic_cast<wxDataViewColumnObject*>(dataViewCtrl->GetColumn(event.GetColumn()));
+		ÑDataViewColumnContainer* dataViewColumn =
+			dynamic_cast<ÑDataViewColumnContainer*>(dataViewCtrl->GetColumn(event.GetColumn()));
 		CValueTableBoxColumn* columnControl = dataViewColumn->GetControl();
 		wxASSERT(columnControl);
 		columnControl->SetWidthColumn(event.GetWidth());

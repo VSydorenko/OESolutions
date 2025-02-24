@@ -20,6 +20,8 @@ void CValueCheckbox::OnClickedCheckbox(wxCommandEvent& event)
 		srcData->SetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
 	}
 
+	m_formOwner->RefreshForm();
+
 	event.Skip(
 		CallAsEvent(m_onCheckboxClicked)
 	);

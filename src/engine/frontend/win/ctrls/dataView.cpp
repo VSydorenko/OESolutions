@@ -1,6 +1,7 @@
 #include "dataView.h"
 #include "backend/wrapper/tableInfo.h"
 
+wxDEFINE_EVENT(wxEVT_DATAVIEW_ITEM_START_INSERTING, wxDataViewEvent);
 wxDEFINE_EVENT(wxEVT_DATAVIEW_ITEM_START_DELETING, wxDataViewEvent);
 
 wxBEGIN_EVENT_TABLE(wxDataModelViewCtrl::CDataViewFreezeRowsWindow, wxWindow)
@@ -669,6 +670,11 @@ void wxDataModelViewCtrl::CDataViewFreezeRowsWindow::OnPaint(wxPaintEvent& WXUNU
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool wxTableModelNotifier::NotifyInsert(const wxDataViewItem& item)
+{
+	return SendEvent(wxEVT_DATAVIEW_ITEM_START_INSERTING, item);
+}
 
 bool wxTableModelNotifier::NotifyDelete(const wxDataViewItem& item)
 {

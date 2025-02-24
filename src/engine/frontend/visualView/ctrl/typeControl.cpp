@@ -24,7 +24,7 @@ void wxVariantSourceAttributeData::UpdateSourceAttribute()
 void wxVariantSourceAttributeData::DoSetFromMetaId(const meta_identifier_t& id)
 {
 	if (m_metaData != nullptr && id != wxNOT_FOUND) {
-		ISourceObject* srcData = m_formData->GetSourceObject();
+		ISourceObject* srcData = m_formCollectionData->GetSourceObject();
 		if (srcData != nullptr) {
 			IMetaObjectGenericData* metaObject = srcData->GetSourceMetaObject();
 			if (metaObject != nullptr && metaObject->IsAllowed() && id == metaObject->GetMetaID()) {

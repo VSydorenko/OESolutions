@@ -3,8 +3,6 @@
 
 #include "window.h"
 #include "typeControl.h"
-
-#include "frontend/visualView/dvc/dvc.h"
 #include "frontend/win/ctrls/dataView.h"
 
 //********************************************************************************************
@@ -36,7 +34,7 @@ protected:
 private:
 	IValueModel* m_tableModel;
 	IValueModel::IValueModelReturnLine* m_tableCurrentLine;
-	bool m_dataViewUpdated, m_dataViewSizeChanged;
+	bool m_dataViewUpdated, m_dataViewSizeChanged, m_dataViewRefresh;
 	wxSize m_dataViewSize;
 public:
 
@@ -149,6 +147,8 @@ protected:
 	void OnItemEditingStarted(wxDataViewEvent& event);
 	void OnItemEditingDone(wxDataViewEvent& event);
 	void OnItemValueChanged(wxDataViewEvent& event);
+
+	void OnItemStartInserting(wxDataViewEvent& event);
 	void OnItemStartDeleting(wxDataViewEvent& event);
 
 	void OnHeaderResizing(wxHeaderCtrlEvent& event);

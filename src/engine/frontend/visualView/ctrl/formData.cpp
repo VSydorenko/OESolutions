@@ -8,31 +8,31 @@
 
 //////////////////////////////////////////////////////////////////////
 
-wxIMPLEMENT_DYNAMIC_CLASS(CValueForm::CValueFormData, CValue);
+wxIMPLEMENT_DYNAMIC_CLASS(CValueForm::CValueFormCollectionData, CValue);
 
-CValueForm::CValueFormData::CValueFormData() : CValue(eValueTypes::TYPE_VALUE, true),
+CValueForm::CValueFormCollectionData::CValueFormCollectionData() : CValue(eValueTypes::TYPE_VALUE, true),
 m_formOwner(nullptr), m_methodHelper(nullptr)
 {
 }
 
-CValueForm::CValueFormData::CValueFormData(CValueForm* ownerFrame) : CValue(eValueTypes::TYPE_VALUE, true),
+CValueForm::CValueFormCollectionData::CValueFormCollectionData(CValueForm* ownerFrame) : CValue(eValueTypes::TYPE_VALUE, true),
 m_formOwner(ownerFrame), m_methodHelper(new CMethodHelper())
 {
 }
 
 #include "backend/compiler/value/valueMap.h"
 
-CValueForm::CValueFormData::~CValueFormData()
+CValueForm::CValueFormCollectionData::~CValueFormCollectionData()
 {
 	wxDELETE(m_methodHelper);
 }
 
-CValue CValueForm::CValueFormData::GetIteratorEmpty()
+CValue CValueForm::CValueFormCollectionData::GetIteratorEmpty()
 {
 	return CValue::CreateAndConvertObjectValueRef<CValueContainer::CValueReturnContainer>();
 }
 
-CValue CValueForm::CValueFormData::GetIteratorAt(unsigned int idx)
+CValue CValueForm::CValueFormCollectionData::GetIteratorAt(unsigned int idx)
 {
 	IValueControl* valueControl = nullptr;
 	if (m_formOwner->m_aControls.size() < idx) {
@@ -58,7 +58,7 @@ CValue CValueForm::CValueFormData::GetIteratorAt(unsigned int idx)
 
 #include "backend/appData.h"
 
-bool CValueForm::CValueFormData::SetAt(const CValue& varKeyValue, const CValue& varValue)
+bool CValueForm::CValueFormCollectionData::SetAt(const CValue& varKeyValue, const CValue& varValue)
 {
 	const number_t& number = varKeyValue.GetNumber();
 	if (number.ToUInt() > Count())
@@ -76,7 +76,7 @@ bool CValueForm::CValueFormData::SetAt(const CValue& varKeyValue, const CValue& 
 	return true;
 }
 
-bool CValueForm::CValueFormData::GetAt(const CValue& varKeyValue, CValue& pvarValue)
+bool CValueForm::CValueFormCollectionData::GetAt(const CValue& varKeyValue, CValue& pvarValue)
 {
 	const number_t& number = varKeyValue.GetNumber();
 	if (Count() < number.ToUInt())
@@ -95,7 +95,7 @@ bool CValueForm::CValueFormData::GetAt(const CValue& varKeyValue, CValue& pvarVa
 	return false;
 }
 
-bool CValueForm::CValueFormData::Property(const CValue& varKeyValue, CValue& cValueFound)
+bool CValueForm::CValueFormCollectionData::Property(const CValue& varKeyValue, CValue& cValueFound)
 {
 	wxString key = varKeyValue.GetString();
 	auto it = std::find_if(m_formOwner->m_aControls.begin(), m_formOwner->m_aControls.end(), [key](IValueControl* control) {
@@ -107,7 +107,7 @@ bool CValueForm::CValueFormData::Property(const CValue& varKeyValue, CValue& cVa
 	return false;
 }
 
-unsigned int CValueForm::CValueFormData::Count() const
+unsigned int CValueForm::CValueFormCollectionData::Count() const
 {
 	unsigned int count = 0;
 	for (auto control : m_formOwner->m_aControls) {
@@ -123,7 +123,7 @@ enum Func {
 	enAttributeCount
 };
 
-void CValueForm::CValueFormData::PrepareNames() const
+void CValueForm::CValueFormCollectionData::PrepareNames() const
 {
 	m_methodHelper->ClearHelper();
 	for (auto control : m_formOwner->m_aControls) {
@@ -138,7 +138,7 @@ void CValueForm::CValueFormData::PrepareNames() const
 
 #include "frontend/visualView/visualHost.h"
 
-bool CValueForm::CValueFormData::SetPropVal(const long lPropNum, const CValue& varPropVal)
+bool CValueForm::CValueFormCollectionData::SetPropVal(const long lPropNum, const CValue& varPropVal)
 {
 	unsigned int id = m_methodHelper->GetPropData(lPropNum);
 	auto& it = std::find_if(m_formOwner->m_aControls.begin(), m_formOwner->m_aControls.end(),
@@ -180,7 +180,7 @@ bool CValueForm::CValueFormData::SetPropVal(const long lPropNum, const CValue& v
 	return true;
 }
 
-bool CValueForm::CValueFormData::GetPropVal(const long lPropNum, CValue& pvarPropVal)
+bool CValueForm::CValueFormCollectionData::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 {
 	unsigned int id = m_methodHelper->GetPropData(lPropNum);
 	auto& it = std::find_if(m_formOwner->m_aControls.begin(), m_formOwner->m_aControls.end(),
@@ -196,7 +196,7 @@ bool CValueForm::CValueFormData::GetPropVal(const long lPropNum, CValue& pvarPro
 	return false;
 }
 
-bool CValueForm::CValueFormData::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)
+bool CValueForm::CValueFormCollectionData::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)
 {
 	switch (lMethodNum)
 	{
@@ -215,4 +215,4 @@ bool CValueForm::CValueFormData::CallAsFunc(const long lMethodNum, CValue& pvarR
 //*                       Runtime register                             *
 //**********************************************************************
 
-SYSTEM_TYPE_REGISTER(CValueForm::CValueFormData, "formData", string_to_clsid("VL_FDTA"));
+SYSTEM_TYPE_REGISTER(CValueForm::CValueFormCollectionData, "formData", string_to_clsid("VL_FDTA"));

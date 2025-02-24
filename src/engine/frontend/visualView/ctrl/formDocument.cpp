@@ -360,6 +360,8 @@ bool CValueForm::CreateDocForm(CMetaDocument* docParent, bool demoRun)
 	if (!view->ShowFrame())
 		return false;
 
+	RefreshForm();
+
 	return view.release() != nullptr;
 }
 

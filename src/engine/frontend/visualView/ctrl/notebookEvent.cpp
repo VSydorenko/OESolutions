@@ -1,4 +1,5 @@
 #include "notebook.h"
+#include "form.h"
 #include "backend/appData.h"
 
 void CValueNotebook::OnPageChanged(wxAuiNotebookEvent& event)
@@ -33,6 +34,8 @@ void CValueNotebook::OnPageChanged(wxAuiNotebookEvent& event)
 			)
 		);
 	}
+
+	m_formOwner->RefreshForm();
 }
 
 void CValueNotebook::OnBGDClick(wxAuiNotebookEvent& event)

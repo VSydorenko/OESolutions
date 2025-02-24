@@ -14,7 +14,7 @@
 
 class BACKEND_API wxTableNotifier {
 public:
-
+	virtual bool NotifyInsert(const wxDataViewItem& item) = 0;
 	virtual bool NotifyDelete(const wxDataViewItem& item) = 0;
 	virtual wxDataViewColumn* GetCurrentColumn() const = 0;
 	virtual void StartEditing(const wxDataViewItem& item, unsigned int col) const = 0;
@@ -739,6 +739,8 @@ public:
 
 	long Append(wxValueTableRow* child, bool notify = true) {
 		wxASSERT(child);
+		if (notify && m_srcNotifier != nullptr && m_srcNotifier->NotifyInsert(wxDataViewItem(child)))
+			return wxNOT_FOUND;
 		child->m_valueTable = this;
 		m_nodeValues.emplace_back(child);
 		if (notify) /* wxDataViewModel:: */ ItemAdded(
@@ -750,6 +752,8 @@ public:
 
 	long Insert(wxValueTableRow* child, unsigned int row, bool notify = true) {
 		wxASSERT(child);
+		if (notify && m_srcNotifier != nullptr && m_srcNotifier->NotifyInsert(wxDataViewItem(child)))
+			return wxNOT_FOUND;
 		child->m_valueTable = this;
 		m_nodeValues.insert(m_nodeValues.begin() + row, child);
 		if (notify) /* wxDataViewModel:: */ ItemAdded(
@@ -765,7 +769,7 @@ public:
 			m_nodeValues.begin(),
 			m_nodeValues.end(), child
 		);
-		if (notify && m_srcNotifier->NotifyDelete(wxDataViewItem(child)))
+		if (notify && m_srcNotifier != nullptr && m_srcNotifier->NotifyDelete(wxDataViewItem(child)))
 			return false;
 		if (notify) /* wxDataViewModel:: */ ItemDeleted(
 			wxDataViewItem(nullptr),
@@ -1018,26 +1022,34 @@ public:
 			return m_children.at(n);
 		}
 
-		void Append(wxValueTreeNode* child, bool notify = true) {
+		bool Append(wxValueTreeNode* child, bool notify = true) {
+			if (notify && m_valueTree->m_srcNotifier != nullptr && m_valueTree->m_srcNotifier->NotifyInsert(wxDataViewItem(child)))
+				return false;
 			child->m_valueTree = m_valueTree;
 			m_children.emplace_back(child);
 			if (notify) m_valueTree->ItemAdded(
 				wxDataViewItem(this),
 				wxDataViewItem(child)
 			);
+			return true;
 		}
 
-		void Insert(wxValueTreeNode* child, unsigned int n, bool notify = true) {
+		bool Insert(wxValueTreeNode* child, unsigned int n, bool notify = true) {
+			if (notify && m_valueTree->m_srcNotifier != nullptr && m_valueTree->m_srcNotifier->NotifyInsert(wxDataViewItem(child)))
+				return false;
 			child->m_valueTree = m_valueTree;
 			m_children.insert(m_children.begin() + n, child);
 			if (notify) m_valueTree->ItemAdded(
 				wxDataViewItem(this),
 				wxDataViewItem(child)
 			);
+			return true;
 		}
 
-		void Remove(wxValueTreeNode* child, bool notify = true) {
+		bool Remove(wxValueTreeNode* child, bool notify = true) {
 			auto& it = std::find(m_children.begin(), m_children.end(), child);
+			if (notify && m_valueTree->m_srcNotifier != nullptr && m_valueTree->m_srcNotifier->NotifyDelete(wxDataViewItem(child)))
+				return false;
 			if (notify) m_valueTree->ItemDeleted(
 				wxDataViewItem(this),
 				wxDataViewItem(child)
@@ -1046,6 +1058,7 @@ public:
 				m_children.erase(it);
 			child->m_valueTree = nullptr;
 			child->DecRef();
+			return true;
 		}
 
 		void Sort(std::vector<sortModel_t>& paSort) {
@@ -1210,7 +1223,7 @@ public:
 			return false;
 		}
 
-		if (notify && m_srcNotifier->NotifyDelete(item))
+		if (notify && m_srcNotifier != nullptr && m_srcNotifier->NotifyDelete(item))
 			return false;
 
 		// first remove the node from the parent's array of children;

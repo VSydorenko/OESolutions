@@ -8,13 +8,19 @@
 // CValueViewRenderer
 // ----------------------------------------------------------------------------
 
-class CValueTableBoxColumn;
+#include "frontend/visualView/ctrl/form.h"
+#include "frontend/visualView/ctrl/tableBox.h"
 
 class CValueViewRenderer : public wxDataViewCustomRenderer {
 	CValueTableBoxColumn* m_colControl;
 public:
 
-	void FinishSelecting() {
+	virtual void FinishSelecting() {
+
+		if (m_colControl != nullptr) {
+			CValueForm* valueForm = m_colControl->GetOwnerForm();
+			if (valueForm != nullptr) valueForm->RefreshForm();
+		}
 
 		if (m_editorCtrl != nullptr) {
 			// Remove our event handler first to prevent it from (recursively) calling
@@ -34,6 +40,26 @@ public:
 		}
 
 		DoHandleEditingDone(nullptr);
+	}
+
+	virtual void CancelEditing() {
+		
+		if (m_colControl != nullptr) {
+			CValueForm *valueForm = m_colControl->GetOwnerForm();
+			if (valueForm != nullptr) valueForm->RefreshForm();	
+		}
+		
+		wxDataViewCustomRenderer::CancelEditing();
+	}
+		
+	virtual bool FinishEditing() {
+
+		if (m_colControl != nullptr) {
+			CValueForm* valueForm = m_colControl->GetOwnerForm();
+			if (valueForm != nullptr) valueForm->RefreshForm();
+		}
+
+		return wxDataViewCustomRenderer::FinishEditing();
 	}
 
 	// This renderer can be either activatable or editable, for demonstration
@@ -110,16 +136,16 @@ private:
 };
 
 // ----------------------------------------------------------------------------
-// wxDataViewColumnObject
+// ÑDataViewColumnContainer
 // ----------------------------------------------------------------------------
 
-class wxDataViewColumnObject : public wxObject,
+class ÑDataViewColumnContainer : public wxObject,
 	public wxDataViewColumn {
 	unsigned int m_controlId; 
 	CValueTableBoxColumn* m_valColumn;
 public:
 
-	wxDataViewColumnObject(CValueTableBoxColumn* col,
+	ÑDataViewColumnContainer(CValueTableBoxColumn* col,
 		const wxString& title,
 		unsigned int model_column,
 		int width = wxDVC_DEFAULT_WIDTH,
@@ -129,7 +155,7 @@ public:
 	{
 	}
 
-	wxDataViewColumnObject(CValueTableBoxColumn* col,
+	ÑDataViewColumnContainer(CValueTableBoxColumn* col,
 		const wxBitmap& bitmap,
 		unsigned int model_column,
 		int width = wxDVC_DEFAULT_WIDTH,

@@ -262,12 +262,12 @@ public:
 
 	std::vector<IValueControl*> m_aControls;
 
-	class CValueFormControl : public CValue {
-		wxDECLARE_DYNAMIC_CLASS(CValueFormControl);
+	class CValueFormCollectionControl : public CValue {
+		wxDECLARE_DYNAMIC_CLASS(CValueFormCollectionControl);
 	public:
-		CValueFormControl();
-		CValueFormControl(CValueForm* ownerFrame);
-		virtual ~CValueFormControl();
+		CValueFormCollectionControl();
+		CValueFormCollectionControl(CValueForm* ownerFrame);
+		virtual ~CValueFormCollectionControl();
 
 		virtual CMethodHelper* GetPMethods() const {  // get a reference to the class helper for parsing attribute and method names
 			//PrepareNames(); 
@@ -295,12 +295,12 @@ public:
 		CMethodHelper* m_methodHelper;
 	};
 
-	class CValueFormData : public CValue {
-		wxDECLARE_DYNAMIC_CLASS(CValueFormData);
+	class CValueFormCollectionData : public CValue {
+		wxDECLARE_DYNAMIC_CLASS(CValueFormCollectionData);
 	public:
-		CValueFormData();
-		CValueFormData(CValueForm* ownerFrame);
-		virtual ~CValueFormData();
+		CValueFormCollectionData();
+		CValueFormCollectionData(CValueForm* ownerFrame);
+		virtual ~CValueFormCollectionData();
 
 		virtual CMethodHelper* GetPMethods() const {  // get a reference to the class helper for parsing attribute and method names
 			//PrepareNames(); 
@@ -328,8 +328,8 @@ public:
 		CMethodHelper* m_methodHelper;
 	};
 
-	CValueFormControl* m_formControls;
-	CValueFormData* m_formData;
+	CValueFormCollectionControl* m_formCollectionControl;
+	CValueFormCollectionData* m_formCollectionData;
 
 public:
 
@@ -340,7 +340,7 @@ protected:
 	friend class CVisualDocument;
 	friend class CVisualView;
 
-	friend class CValueFormControl;
+	friend class CValueFormCollectionControl;
 
 	bool CreateDocForm(CMetaDocument* docParent, bool demo = false);
 	bool CloseDocForm();
@@ -374,6 +374,7 @@ public:
 	virtual void ShowForm(IBackendMetaDocument* docParent = nullptr, bool demo = false) override;
 
 	virtual void ActivateForm();
+	virtual void RefreshForm();
 	virtual void UpdateForm();
 	virtual bool CloseForm(bool force = false);
 	virtual void HelpForm();

@@ -116,6 +116,7 @@ public:
 		m_mainWindow(mainWindow) {
 	}
 
+	virtual bool NotifyInsert(const wxDataViewItem& item);
 	virtual bool NotifyDelete(const wxDataViewItem& item);
 
 	virtual wxDataViewColumn* GetCurrentColumn() const;
@@ -134,6 +135,7 @@ private:
 	bool SendEvent(const wxEventType& eventType, const wxDataViewItem& item, wxDataViewColumn* column);
 };
 
+wxDECLARE_EVENT(wxEVT_DATAVIEW_ITEM_START_INSERTING, wxDataViewEvent);
 wxDECLARE_EVENT(wxEVT_DATAVIEW_ITEM_START_DELETING, wxDataViewEvent);
 
 #endif 
