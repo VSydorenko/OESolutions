@@ -132,7 +132,7 @@ void CTranslateCode::CDefineList::SetDefine(const wxString& strName, const wxStr
 {
 	CLexemList listLexem;
 	if (strValue.length() > 0) {
-		lexem_t Lex;
+		CLexem Lex;
 		Lex.m_lexType = CONSTANT;
 		if (strValue[0] == '-' || strValue[0] == '+' || (strValue[0] >= '0' && strValue[0] <= '9')) //digit
 			Lex.m_valData.SetNumber(strValue);
@@ -783,7 +783,7 @@ bool CTranslateCode::PrepareLexem()
 
 	while (!IsEnd()) {
 
-		lexem_t lex;
+		CLexem lex;
 
 		lex.m_strModuleName = m_strModuleName;
 		lex.m_strDocPath = m_strDocPath;
@@ -800,7 +800,7 @@ bool CTranslateCode::PrepareLexem()
 			if (m_defineList->HasDefine(strCurWord)) {
 				CLexemList* pDef = m_defineList->GetDefine(strCurWord);
 				for (unsigned int i = 0; i < pDef->size(); i++) {
-					lexem_t* lex = pDef[i].data();
+					CLexem* lex = pDef[i].data();
 					lex->m_numString = m_currentPos;
 					lex->m_numLine = m_currentLine;//for breakpoints
 					lex->m_strModuleName = m_strModuleName;
@@ -1020,7 +1020,7 @@ bool CTranslateCode::PrepareLexem()
 		m_currentPos += translateCode->m_currentPos;
 	}
 
-	lexem_t lex;
+	CLexem lex;
 
 	lex.m_lexType = ENDPROGRAM;
 	lex.m_numData = 0;

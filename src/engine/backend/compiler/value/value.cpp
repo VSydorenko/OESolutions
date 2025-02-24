@@ -451,30 +451,30 @@ bool CValue::SetString(const wxString& strString)
 	return true;
 }
 
-bool CValue::FindValue(const wxString& findData, std::vector<CValue>& foundedObjects) const
+bool CValue::FindValue(const wxString& findData, std::vector<CValue>& listValue) const
 {
 	if (m_pRef != nullptr && m_typeClass == eValueTypes::TYPE_REFFER)
-		return m_pRef->FindValue(findData, foundedObjects);
+		return m_pRef->FindValue(findData, listValue);
 
 	try {
 		if (m_typeClass == eValueTypes::TYPE_BOOLEAN) {
 			CValue cFounded;
 			cFounded.SetBoolean(findData);
-			foundedObjects.emplace_back(cFounded);
-			if (cFounded.GetBoolean()) foundedObjects.emplace_back(false);
-			else foundedObjects.emplace_back(true);
+			listValue.emplace_back(cFounded);
+			if (cFounded.GetBoolean()) listValue.emplace_back(false);
+			else listValue.emplace_back(true);
 			return true;
 		}
 		else if (m_typeClass == eValueTypes::TYPE_NUMBER) {
-			foundedObjects.emplace_back().SetNumber(findData);
+			listValue.emplace_back().SetNumber(findData);
 			return true;
 		}
 		else if (m_typeClass == eValueTypes::TYPE_DATE) {
-			foundedObjects.emplace_back().SetDate(findData);
+			listValue.emplace_back().SetDate(findData);
 			return true;
 		}
 		else if (m_typeClass == eValueTypes::TYPE_STRING) {
-			foundedObjects.emplace_back().SetString(findData);
+			listValue.emplace_back().SetString(findData);
 			return true;
 		}
 	}

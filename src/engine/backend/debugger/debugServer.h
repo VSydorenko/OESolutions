@@ -6,7 +6,7 @@
 #include <wx/thread.h>
 #include <wx/socket.h>
 
-class CRunContext;
+struct CRunContext;
 
 #define debugServer           (CDebuggerServer::Get())
 #define debugServerInit(f)    (CDebuggerServer::Initialize(f))
@@ -24,17 +24,17 @@ class BACKEND_API CDebuggerServer {
 	bool		m_bDebugLoop;
 	bool		m_bDebugStopLine;
 
-	unsigned int m_nCurrentNumberStopContext;
+	unsigned int m_numCurrentNumberStopContext;
 
 	bool		m_waitConnection;
-
-	std::map <wxString, std::map<unsigned int, int>> m_listBreakpoint; //список точек 
-	std::map <wxString, std::map<unsigned int, int>> m_offsetPoints; //список измененных переходов
+	
+	std::map <wxString, std::map<unsigned int, int>> m_listBreakpoint; //list of points 
+	std::map <wxString, std::map<unsigned int, int>> m_listOffsetBreakpoint; //list of changed transitions
 
 #if _USE_64_BIT_POINT_IN_DEBUGGER == 1
-	std::map <unsigned long long, wxString> m_expressions;
+	std::map <unsigned long long, wxString> m_listExpression;
 #else 
-	std::map <unsigned int, wxString> m_expressions;
+	std::map <unsigned int, wxString> m_listExpression;
 #endif 
 
 	wxCriticalSection m_clearBreakpointsCS;

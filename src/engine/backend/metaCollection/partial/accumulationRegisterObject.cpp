@@ -102,7 +102,8 @@ bool CRecordSetObjectAccumulationRegister::DeleteRecordSet()
 	return true;
 }
 
-enum func {
+enum func
+{
 	eAdd = 0,
 	eCount,
 	eClear,
@@ -115,7 +116,8 @@ enum func {
 	eGetMetadataRecordSet,
 };
 
-enum prop {
+enum prop
+{
 	eThisObject,
 	eFilter
 };
@@ -139,8 +141,8 @@ void CRecordSetObjectAccumulationRegister::PrepareNames() const
 	m_methodHelper->AppendFunc("selected", "selected()");
 	m_methodHelper->AppendFunc("getMetadata", "getMetadata()");
 
-	m_methodHelper->AppendProp(wxT("thisObject"), true, false, eThisObject, wxNOT_FOUND);
-	m_methodHelper->AppendProp(wxT("filter"), true, false, eFilter, wxNOT_FOUND);
+	m_methodHelper->AppendProp(wxT("thisObject"), true, false, prop::eThisObject, wxNOT_FOUND);
+	m_methodHelper->AppendProp(wxT("filter"), true, false, prop::eFilter, wxNOT_FOUND);
 }
 
 bool CRecordSetObjectAccumulationRegister::SetPropVal(const long lPropNum, const CValue& varPropVal)
@@ -152,12 +154,12 @@ bool CRecordSetObjectAccumulationRegister::GetPropVal(const long lPropNum, CValu
 {
 	switch (lPropNum)
 	{
-	case eThisObject:
-		pvarPropVal = this;
-		return true;
-	case eFilter:
-		pvarPropVal = m_recordSetKeyValue;
-		return true;
+		case prop::eThisObject:
+			pvarPropVal = this;
+			return true;
+		case prop::eFilter:
+			pvarPropVal = m_recordSetKeyValue;
+			return true;
 	}
 
 	return false;
@@ -167,39 +169,39 @@ bool CRecordSetObjectAccumulationRegister::CallAsFunc(const long lMethodNum, CVa
 {
 	switch (lMethodNum)
 	{
-	case func::eAdd:
-		pvarRetValue = new CRecordSetObjectRegisterReturnLine(this, GetItem(AppendRow()));
-		return true; 
-	case func::eCount:
-		pvarRetValue = (unsigned int)GetRowCount();
-		return true;
-	case func::eClear:
-		IValueTable::Clear();
-		return true;
-	case func::eLoad:
-		LoadDataFromTable(paParams[0]->ConvertToType<IValueTable>());
-		return true;
-	case func::eUnload:
-		pvarRetValue = SaveDataToTable();
-		return true;
-	case func::eWriteRecordSet:
-		WriteRecordSet(
-			lSizeArray > 0 ?
-			paParams[0]->GetBoolean() : true
-		);
-		return true;
-	case func::eModifiedRecordSet:
-		pvarRetValue = m_objModified;
-		return true;
-	case func::eReadRecordSet:
-		Read();
-		return true;
-	case func::eSelectedRecordSet:
-		pvarRetValue = Selected();
-		return true;
-	case func::eGetMetadataRecordSet:
-		pvarRetValue = GetMetaObject();
-		return true;
+		case func::eAdd:
+			pvarRetValue = CValue::CreateAndConvertObjectValueRef<CRecordSetObjectRegisterReturnLine>(this, GetItem(AppendRow()));
+			return true;
+		case func::eCount:
+			pvarRetValue = (unsigned int)GetRowCount();
+			return true;
+		case func::eClear:
+			IValueTable::Clear();
+			return true;
+		case func::eLoad:
+			LoadDataFromTable(paParams[0]->ConvertToType<IValueTable>());
+			return true;
+		case func::eUnload:
+			pvarRetValue = SaveDataToTable();
+			return true;
+		case func::eWriteRecordSet:
+			WriteRecordSet(
+				lSizeArray > 0 ?
+				paParams[0]->GetBoolean() : true
+			);
+			return true;
+		case func::eModifiedRecordSet:
+			pvarRetValue = m_objModified;
+			return true;
+		case func::eReadRecordSet:
+			Read();
+			return true;
+		case func::eSelectedRecordSet:
+			pvarRetValue = Selected();
+			return true;
+		case func::eGetMetadataRecordSet:
+			pvarRetValue = GetMetaObject();
+			return true;
 	}
 
 	return false;

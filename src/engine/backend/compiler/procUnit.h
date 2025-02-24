@@ -5,7 +5,7 @@
 
 class BACKEND_API CProcUnit {
 	//attributes:
-	int m_nAutoDeleteParent; //flag for deleting the parent module
+	int m_numAutoDeleteParent; //flag for deleting the parent module
 	CByteCode* m_pByteCode = nullptr;
 	CValue*** m_pppArrayList = {}; //pointers to arrays of variable pointers (0 - local variables, 1 - variables of the current module, 2 and higher - variables of parent modules)
 	CProcUnit** m_ppArrayCode = {}; //pointers to arrays of executable modules (0 - current module, 1 and higher - parent modules)
@@ -22,7 +22,7 @@ public:
 	CProcUnit() : m_pppArrayList(nullptr),
 		m_ppArrayCode(nullptr),
 		m_pByteCode(nullptr),
-		m_nAutoDeleteParent(0) {
+		m_numAutoDeleteParent(0) {
 	}
 
 	virtual ~CProcUnit() {
@@ -44,7 +44,7 @@ public:
 			m_currentRunModule = nullptr;
 		}
 
-		m_nAutoDeleteParent = 0;
+		m_numAutoDeleteParent = 0;
 
 		m_pppArrayList = nullptr;
 		m_ppArrayCode = nullptr;
@@ -91,12 +91,12 @@ public:
 		CValue pvarRetValue;
 		Execute(ByteCode, pvarRetValue, true);
 	}
-	
+
 	void Execute(CByteCode& ByteCode, bool bRunModule) {
 		CValue pvarRetValue;
 		Execute(ByteCode, pvarRetValue, bRunModule);
 	}
-	
+
 	void Execute(CByteCode& ByteCode, CValue& pvarRetValue, bool bRunModule = true);
 	void Execute(CRunContext* pContext, CValue& pvarRetValue, bool bDelta); // bDelta=true - flag for executing module operators that come at the end of functions and procedures
 
@@ -180,13 +180,18 @@ public:
 	}
 
 	static CByteCode* GetCurrentByteCode() {
-		CRunContext* runContext = GetCurrentRunContext();
+		const CRunContext* runContext = GetCurrentRunContext();
 		if (runContext != nullptr)
 			return runContext->GetByteCode();
 		return nullptr;
 	}
 
 	static void Raise();
+
+private:
+
+	friend struct CRunContextSmall;
+	friend struct CRunContext;
 };
 
 #endif 

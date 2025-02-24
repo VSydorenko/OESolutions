@@ -39,7 +39,7 @@ void CValueForm::BuildForm(const form_identifier_t& formType)
 
 		CValueTableBox* mainTableBox = nullptr;
 
-		const actionData_t& actionData = CValueForm::GetActions(formType);
+		const CActionCollection& actionData = CValueForm::GetActionCollection(formType);
 		for (unsigned int idx = 0; idx < actionData.GetCount(); idx++) {
 			const action_identifier_t& id = actionData.GetID(idx);
 			if (id != wxNOT_FOUND) {
@@ -111,7 +111,7 @@ void CValueForm::BuildForm(const form_identifier_t& formType)
 
 					toolBar->SetActionSrc(tableBox->GetControlID());
 
-					actionData_t actionData = tableBox->GetActions(formType);
+					CActionCollection actionData = tableBox->GetActionCollection(formType);
 					for (unsigned int idx = 0; idx < actionData.GetCount(); idx++) {
 						const action_identifier_t& id = actionData.GetID(idx);
 						if (id != wxNOT_FOUND) {
@@ -203,7 +203,7 @@ void CValueForm::BuildForm(const form_identifier_t& formType)
 
 		CValueTableBox* mainTableBox = nullptr;
 
-		actionData_t actionData = CValueForm::GetActions(formType);
+		CActionCollection actionData = CValueForm::GetActionCollection(formType);
 		for (unsigned int idx = 0; idx < actionData.GetCount(); idx++) {
 			CValueToolBarItem* toolBarItem =
 				wxDynamicCast(
@@ -436,13 +436,13 @@ void CValueForm::UpdateForm()
 	}
 }
 
-bool CValueForm::CloseForm()
+bool CValueForm::CloseForm(bool force)
 {
 	if (CBackendException::IsEvalMode())
 		return false;
 
 	if (!appData->DesignerMode()) {
-		if (!CloseDocForm()) {
+		if (!force && !CloseDocForm()) {
 			return false;
 		}
 	}

@@ -18,15 +18,15 @@ enum
 //*                              actionData                                     *
 //****************************************************************************
 
-CValueForm::actionData_t CValueForm::GetActions(const form_identifier_t& formType)
+CValueForm::CActionCollection CValueForm::GetActionCollection(const form_identifier_t& formType)
 {
-	actionData_t actionData(this);
+	CActionCollection actionData(this);
 
 	IActionSource* srcAction =
 		dynamic_cast<IActionSource*>(CValueForm::GetSourceObject());
 
 	if (srcAction != nullptr) {
-		srcAction->AddActions(actionData, formType);
+		srcAction->AppendActionCollection(actionData, formType);
 	}
 
 	actionData.AddAction("close", _("Close"), enClose);

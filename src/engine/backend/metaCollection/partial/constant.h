@@ -149,7 +149,7 @@ public:
 	virtual IBackendValueForm* GetFormValue();
 
 	//support actionData
-	virtual actionData_t GetActions(const form_identifier_t& formType);
+	virtual CActionCollection GetActionCollection(const form_identifier_t& formType);
 	virtual void ExecuteAction(const action_identifier_t& lNumAction, IBackendValueForm* srcForm);
 
 	//default showing

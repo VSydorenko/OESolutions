@@ -123,7 +123,7 @@ bool CCodeEditor::PrepareExpression(unsigned int currPos, wxString& strExpressio
 			if (i < m_precompileModule->m_listLexem.size() - 1) {
 				if (m_precompileModule->m_listLexem[i + 1].m_numString >= currPos)
 					break;
-				const lexem_t& lex = m_precompileModule->m_listLexem[i + 1];
+				const CLexem& lex = m_precompileModule->m_listLexem[i + 1];
 				if (lex.m_lexType == DELIMITER && lex.m_numData == '(')
 					strExpression = wxEmptyString;
 				if (lex.m_lexType == DELIMITER && lex.m_numData == '(' && !hasPoint)
@@ -186,7 +186,7 @@ void CCodeEditor::PrepareTooTipExpression(unsigned int currPos, wxString& strExp
 			sCurrWord = m_precompileModule->m_listLexem[i].m_valData.GetString();
 
 			if (i < m_precompileModule->m_listLexem.size() - 1) {
-				const lexem_t& lex = m_precompileModule->m_listLexem[i + 1];
+				const CLexem& lex = m_precompileModule->m_listLexem[i + 1];
 				if (lex.m_lexType == DELIMITER && lex.m_numData == '(')
 					strExpression = wxEmptyString;
 				hasPoint = lex.m_lexType == DELIMITER && lex.m_numData == '.';

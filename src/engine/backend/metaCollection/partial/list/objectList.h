@@ -265,7 +265,7 @@ public:
 	//*                               Support model                              *
 	//****************************************************************************
 
-	virtual void RefreshModel(const int countPerPage = defaultCountPerPage);
+	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
 	virtual void RefreshItemModel(
 		const wxDataViewItem& topItem,
 		const wxDataViewItem& currentItem,
@@ -312,7 +312,7 @@ public:
 	virtual wxString GetString() const;
 
 	//support actionData
-	virtual actionData_t GetActions(const form_identifier_t& formType);
+	virtual CActionCollection GetActionCollection(const form_identifier_t& formType);
 	virtual void ExecuteAction(const action_identifier_t& lNumAction, IBackendValueForm* srcForm);
 
 	//events:
@@ -344,7 +344,7 @@ public:
 	virtual wxDataViewItem FindRowValue(IValueModelReturnLine* retLine) const;
 
 	//Constructor
-	CListDataObjectRef(IMetaObjectRecordDataRef* metaObject = nullptr, const form_identifier_t& formType = wxNOT_FOUND, bool choiceMode = false);
+	CListDataObjectRef(IMetaObjectRecordDataMutableRef* metaObject = nullptr, const form_identifier_t& formType = wxNOT_FOUND, bool choiceMode = false);
 
 	virtual void GetValueByRow(wxVariant& variant,
 		const wxDataViewItem& row, unsigned int col) const;
@@ -355,7 +355,7 @@ public:
 	//*                               Support model                              *
 	//****************************************************************************
 
-	virtual void RefreshModel(const int countPerPage = defaultCountPerPage);
+	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
 	virtual void RefreshItemModel(
 		const wxDataViewItem& topItem,
 		const wxDataViewItem& currentItem,
@@ -406,7 +406,7 @@ public:
 	virtual wxString GetString() const;
 
 	//support actionData
-	virtual actionData_t GetActions(const form_identifier_t& formType);
+	virtual CActionCollection GetActionCollection(const form_identifier_t& formType);
 	virtual void ExecuteAction(const action_identifier_t& lNumAction, IBackendValueForm* srcForm);
 
 	//events:
@@ -415,13 +415,14 @@ public:
 	virtual void EditValue() override;
 	virtual void DeleteValue() override;
 
+	virtual void MarkAsDeleteValue();
 	virtual void ChooseValue(IBackendValueForm* srcForm);
 
 private:
 
 	bool m_choiceMode;
 
-	IMetaObjectRecordDataRef* m_metaObject;
+	IMetaObjectRecordDataMutableRef* m_metaObject;
 };
 
 // list register
@@ -447,6 +448,8 @@ public:
 	};
 public:
 
+	virtual bool UseStandartCommand() const { return !m_metaObject->HasRecorder(); }
+
 	virtual wxDataViewItem FindRowValue(const CValue& varValue, const wxString& colName = wxEmptyString) const;
 	virtual wxDataViewItem FindRowValue(IValueModelReturnLine* retLine) const;
 
@@ -462,7 +465,7 @@ public:
 	//*                               Support model                              *
 	//****************************************************************************
 
-	virtual void RefreshModel(const int countPerPage = defaultCountPerPage);
+	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
 	virtual void RefreshItemModel(
 		const wxDataViewItem& topItem,
 		const wxDataViewItem& currentItem,
@@ -507,7 +510,7 @@ public:
 	virtual wxString GetString() const;
 
 	//support actionData
-	virtual actionData_t GetActions(const form_identifier_t& formType);
+	virtual CActionCollection GetActionCollection(const form_identifier_t& formType);
 	virtual void ExecuteAction(const action_identifier_t& lNumAction, IBackendValueForm* srcForm);
 
 	//events:
@@ -769,7 +772,7 @@ public:
 	//*                               Support model                              *
 	//****************************************************************************
 
-	virtual void RefreshModel(const int countPerPage = defaultCountPerPage);
+	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
 
 	//support source data 
 	virtual CSourceExplorer GetSourceExplorer() const;
@@ -814,7 +817,7 @@ public:
 	virtual wxString GetString() const;
 
 	//support actionData
-	virtual actionData_t GetActions(const form_identifier_t& formType);
+	virtual CActionCollection GetActionCollection(const form_identifier_t& formType);
 	virtual void ExecuteAction(const action_identifier_t& lNumAction, IBackendValueForm* srcForm);
 
 	//events:
@@ -824,6 +827,7 @@ public:
 	virtual void EditValue() override;
 	virtual void DeleteValue() override;
 
+	virtual void MarkAsDeleteValue();
 	virtual void ChooseValue(IBackendValueForm* srcForm);
 
 private:

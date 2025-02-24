@@ -2629,7 +2629,7 @@ wxPGEditorDialogAdapter* wxPGSourceDataProperty::GetEditorDialog() const
 			if (typeCtor != nullptr) {
 				wxTreeItemId rootItem =
 					tc->AddRoot(tableBox->GetControlName(), icon_table, icon_table, srcItemData);
-				IMetaTableData* metaObject = nullptr;
+				IMetaObjectContextData* metaObject = nullptr;
 				if (typeCtor->ConvertToMetaValue(metaObject)) {
 					for (auto& obj : metaObject->GetGenericAttributes()) {
 						if (!obj->IsAllowed())

@@ -6,7 +6,7 @@
 #include "metaTableObject.h"
 #include "backend/metaData.h"
 
-wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectTable, IMetaObject)
+wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectTableData, IMetaObjectContextData)
 
 //***********************************************************************
 //*                         Attributes                                  * 
@@ -15,7 +15,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectTable, IMetaObject)
 #include "backend/objCtor.h"
 #include "backend/metaCollection/partial/object.h"
 
-typeDescription_t CMetaObjectTable::GetTypeDescription() const
+typeDescription_t CMetaObjectTableData::GetTypeDescription() const
 {
 	IMetaValueTypeCtor* typeCtor =
 		m_metaData->GetTypeCtor(this, eCtorMetaType::eCtorMetaType_TabularSection);
@@ -27,20 +27,17 @@ typeDescription_t CMetaObjectTable::GetTypeDescription() const
 
 ////////////////////////////////////////////////////////////////////////////
 
-CMetaObjectTable::CMetaObjectTable() : IMetaObject()
+CMetaObjectTableData::CMetaObjectTableData() : IMetaObjectContextData()
 {
-	m_numberLine = CMetaObjectAttributeDefault::CreateNumber("numberLine", _("N"), wxEmptyString, 6, 0);
-	//set child/parent
-	m_numberLine->SetParent(this);
-	AddChild(m_numberLine);
+	m_numberLine = IMetaObjectContextData::CreateNumber("numberLine", _("N"), wxEmptyString, 6, 0);
 }
 
-CMetaObjectTable::~CMetaObjectTable()
+CMetaObjectTableData::~CMetaObjectTableData()
 {
 	wxDELETE(m_numberLine);
 }
 
-bool CMetaObjectTable::LoadData(CMemoryReader& dataReader)
+bool CMetaObjectTableData::LoadData(CMemoryReader& dataReader)
 {
 	m_propertyUse->SetValue(dataReader.r_u16());
 
@@ -49,7 +46,7 @@ bool CMetaObjectTable::LoadData(CMemoryReader& dataReader)
 	return true;
 }
 
-bool CMetaObjectTable::SaveData(CMemoryWriter& dataWritter)
+bool CMetaObjectTableData::SaveData(CMemoryWriter& dataWritter)
 {
 	dataWritter.w_u16(m_propertyUse->GetValueAsInteger());
 
@@ -62,7 +59,7 @@ bool CMetaObjectTable::SaveData(CMemoryWriter& dataWritter)
 //*								Events								    *
 //***********************************************************************
 
-bool CMetaObjectTable::OnCreateMetaObject(IMetaData* metaData)
+bool CMetaObjectTableData::OnCreateMetaObject(IMetaData* metaData)
 {
 	if (!IMetaObject::OnCreateMetaObject(metaData))
 		return false;
@@ -72,7 +69,7 @@ bool CMetaObjectTable::OnCreateMetaObject(IMetaData* metaData)
 	return true;
 }
 
-bool CMetaObjectTable::OnLoadMetaObject(IMetaData* metaData)
+bool CMetaObjectTableData::OnLoadMetaObject(IMetaData* metaData)
 {
 	if (!m_numberLine->OnLoadMetaObject(metaData))
 		return false;
@@ -80,7 +77,7 @@ bool CMetaObjectTable::OnLoadMetaObject(IMetaData* metaData)
 	return IMetaObject::OnLoadMetaObject(metaData);
 }
 
-bool CMetaObjectTable::OnSaveMetaObject()
+bool CMetaObjectTableData::OnSaveMetaObject()
 {
 	if (!m_numberLine->OnDeleteMetaObject())
 		return false;
@@ -88,7 +85,7 @@ bool CMetaObjectTable::OnSaveMetaObject()
 	return IMetaObject::OnSaveMetaObject();
 }
 
-bool CMetaObjectTable::OnDeleteMetaObject()
+bool CMetaObjectTableData::OnDeleteMetaObject()
 {
 	if (!m_numberLine->OnDeleteMetaObject())
 		return false;
@@ -96,7 +93,7 @@ bool CMetaObjectTable::OnDeleteMetaObject()
 	return IMetaObject::OnDeleteMetaObject();
 }
 
-bool CMetaObjectTable::OnReloadMetaObject()
+bool CMetaObjectTableData::OnReloadMetaObject()
 {
 	IMetaObject* metaObject = GetParent();
 	wxASSERT(metaObject);
@@ -105,7 +102,7 @@ bool CMetaObjectTable::OnReloadMetaObject()
 	return false;
 }
 
-bool CMetaObjectTable::OnBeforeRunMetaObject(int flags)
+bool CMetaObjectTableData::OnBeforeRunMetaObject(int flags)
 {
 	if (!m_numberLine->OnBeforeRunMetaObject(flags))
 		return false;
@@ -119,13 +116,13 @@ bool CMetaObjectTable::OnBeforeRunMetaObject(int flags)
 	return IMetaObject::OnBeforeRunMetaObject(flags);
 }
 
-bool CMetaObjectTable::OnAfterRunMetaObject(int flags)
+bool CMetaObjectTableData::OnAfterRunMetaObject(int flags)
 {
 	if ((flags & newObjectFlag) != 0) OnReloadMetaObject();
 	return IMetaObject::OnAfterRunMetaObject(flags);
 }
 
-bool CMetaObjectTable::OnAfterCloseMetaObject()
+bool CMetaObjectTableData::OnAfterCloseMetaObject()
 {
 	if (!m_numberLine->OnAfterCloseMetaObject())
 		return false;
@@ -142,7 +139,7 @@ bool CMetaObjectTable::OnAfterCloseMetaObject()
 //*                           System metaData                           *
 //***********************************************************************
 
-std::vector<IMetaObjectAttribute*> CMetaObjectTable::GetObjectAttributes() const
+std::vector<IMetaObjectAttribute*> CMetaObjectTableData::GetObjectAttributes() const
 {
 	std::vector<IMetaObjectAttribute*> tableAttributes;
 	tableAttributes.push_back(m_numberLine);
@@ -156,7 +153,7 @@ std::vector<IMetaObjectAttribute*> CMetaObjectTable::GetObjectAttributes() const
 	return tableAttributes;
 }
 
-IMetaObjectAttribute* CMetaObjectTable::FindProp(const meta_identifier_t& id) const
+IMetaObjectAttribute* CMetaObjectTableData::FindProp(const meta_identifier_t& id) const
 {
 	for (auto metaObject : m_listMetaObject) {
 		if (metaObject->GetClassType() == g_metaAttributeCLSID && metaObject->GetMetaID() == id) {
@@ -175,4 +172,4 @@ IMetaObjectAttribute* CMetaObjectTable::FindProp(const meta_identifier_t& id) co
 //*                       Register in runtime                           *
 //***********************************************************************
 
-METADATA_TYPE_REGISTER(CMetaObjectTable, "tabularSection", g_metaTableCLSID);
+METADATA_TYPE_REGISTER(CMetaObjectTableData, "tabularSection", g_metaTableCLSID);

@@ -34,9 +34,9 @@ bool IRecordSetObject::SetValueByRow(const wxVariant& variant,
 	wxASSERT(metaObject);
 	CValue newValue = metaObjectAttribute->CreateValue();
 	if (strData.Length() > 0) {
-		std::vector<CValue> foundedObjects;
-		if (newValue.FindValue(strData, foundedObjects)) {
-			return node->SetValue(col, foundedObjects.at(0));
+		std::vector<CValue> listValue;
+		if (newValue.FindValue(strData, listValue)) {
+			return node->SetValue(col, listValue.at(0));
 		}
 		else {
 			return false;

@@ -12,9 +12,9 @@ enum
 	eCopy,
 };
 
-CRecordManagerObjectInformationRegister::actionData_t CRecordManagerObjectInformationRegister::GetActions(const form_identifier_t &formType)
+CRecordManagerObjectInformationRegister::CActionCollection CRecordManagerObjectInformationRegister::GetActionCollection(const form_identifier_t &formType)
 {
-	actionData_t registerActions(this);
+	CActionCollection registerActions(this);
 
 	registerActions.AddAction("saveAndClose", _("Save and close"), eDefActionAndClose);
 	registerActions.AddAction("save", _("Save"), eSave);

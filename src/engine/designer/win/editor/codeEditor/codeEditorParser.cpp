@@ -26,7 +26,7 @@ bool CParserModule::ParseModule(const wxString& sModule)
 		return false;
 	};
 
-	lexem_t lex;
+	CLexem lex;
 
 	while ((lex = GETLexem()).m_lexType != ERRORTYPE)
 	{
@@ -277,9 +277,9 @@ wxArrayString CParserModule::GetProcedures(bool bOnlyExport)
  * Возвращаемое значение:
  * 0 или указатель на лексему
  */
-lexem_t CParserModule::GetLexem()
+CLexem CParserModule::GetLexem()
 {
-	lexem_t lex;
+	CLexem lex;
 	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
 		lex = m_listLexem[++m_numCurrentCompile];
 	}
@@ -287,9 +287,9 @@ lexem_t CParserModule::GetLexem()
 }
 
 //Получить следующую лексему из списка байт кода без увеличения счетчика текущей позиции
-lexem_t CParserModule::PreviewGetLexem()
+CLexem CParserModule::PreviewGetLexem()
 {
-	lexem_t lex;
+	CLexem lex;
 	while (true) {
 		lex = GetLexem();
 		if (!(lex.m_lexType == DELIMITER && (lex.m_numData == ';' || lex.m_numData == '\n')))
@@ -306,9 +306,9 @@ lexem_t CParserModule::PreviewGetLexem()
  * Возвращаемое значение:
  * нет (в случае неудачи генерится исключение)
  */
-lexem_t CParserModule::GETLexem()
+CLexem CParserModule::GETLexem()
 {
-	const lexem_t& lex = GetLexem();
+	const CLexem& lex = GetLexem();
 	if (lex.m_lexType == ERRORTYPE) {}
 	return lex;
 }
@@ -321,7 +321,7 @@ lexem_t CParserModule::GETLexem()
  */
 void CParserModule::GETDelimeter(const wxUniChar& c)
 {
-	lexem_t lex = GETLexem();
+	CLexem lex = GETLexem();
 	while (!(lex.m_lexType == DELIMITER && c == lex.m_numData)) {
 		if (m_numCurrentCompile + 1 >= m_listLexem.size())
 			break;
@@ -338,7 +338,7 @@ void CParserModule::GETDelimeter(const wxUniChar& c)
 bool CParserModule::IsNextDelimeter(const wxUniChar& c)
 {
 	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_numCurrentCompile + 1];
+		const CLexem& lex = m_listLexem[m_numCurrentCompile + 1];
 		if (lex.m_lexType == DELIMITER && c == lex.m_numData)
 			return true;
 	}
@@ -355,7 +355,7 @@ bool CParserModule::IsNextDelimeter(const wxUniChar& c)
 bool CParserModule::IsNextKeyWord(int nKey)
 {
 	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_numCurrentCompile + 1];
+		const CLexem& lex = m_listLexem[m_numCurrentCompile + 1];
 		if (lex.m_lexType == KEYWORD && lex.m_numData == nKey)
 			return true;
 	}
@@ -370,7 +370,7 @@ bool CParserModule::IsNextKeyWord(int nKey)
  */
 void CParserModule::GETKeyWord(int nKey)
 {
-	lexem_t lex = GETLexem();
+	CLexem lex = GETLexem();
 	while (!(lex.m_lexType == KEYWORD && lex.m_numData == nKey)) {
 		if (m_numCurrentCompile + 1 >= m_listLexem.size())
 			break;
@@ -386,7 +386,7 @@ void CParserModule::GETKeyWord(int nKey)
  */
 wxString CParserModule::GETIdentifier(bool strRealName)
 {
-	const lexem_t& lex = GETLexem();
+	const CLexem& lex = GETLexem();
 
 	if (lex.m_lexType != IDENTIFIER) {
 		if (strRealName && lex.m_lexType == KEYWORD)
@@ -408,7 +408,7 @@ wxString CParserModule::GETIdentifier(bool strRealName)
  */
 CValue CParserModule::GETConstant()
 {
-	lexem_t lex;
+	CLexem lex;
 	int iNumRequire = 0;
 	if (IsNextDelimeter('-') || IsNextDelimeter('+')) {
 		iNumRequire = 1;

@@ -21,11 +21,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectConstant, CMetaObjectAttribute)
 CMetaObjectConstant::CMetaObjectConstant() : CMetaObjectAttribute()
 {
 	//create module
-	m_moduleObject = new CMetaObjectModule(objectModule);
-
-	//set child/parent
-	m_moduleObject->SetParent(this);
-	AddChild(m_moduleObject);
+	m_moduleObject = IMetaObject::CreateMetaObjectAndSetParent<CMetaObjectModule>(objectModule);
 
 	//set default proc
 	m_moduleObject->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, { "cancel" });

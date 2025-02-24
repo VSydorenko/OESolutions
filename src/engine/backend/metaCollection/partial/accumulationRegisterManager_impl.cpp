@@ -21,12 +21,12 @@ CValue CAccumulationRegisterManager::Balance(const CValue& cPeriod, const CValue
 	CValueTable* retTable = CValue::CreateAndConvertObjectValueRef<CValueTable>();
 	CValueTable::IValueModelColumnCollection* colCollection = retTable->GetColumnCollection();
 	wxASSERT(colCollection);
-	for (auto dimention : m_metaObject->GetObjectDimensions()) {
+	for (auto dimension : m_metaObject->GetObjectDimensions()) {
 		CValueTable::IValueModelColumnCollection::IValueModelColumnInfo* colInfo =
 			colCollection->AddColumn(
-				dimention->GetName(),
-				dimention->GetTypeDescription(),
-				dimention->GetSynonym()
+				dimension->GetName(),
+				dimension->GetTypeDescription(),
+				dimension->GetSynonym()
 			);
 	}
 
@@ -192,12 +192,12 @@ CValue CAccumulationRegisterManager::Turnovers(const CValue& cBeginOfPeriod, con
 	CValueTable* retTable = CValue::CreateAndConvertObjectValueRef<CValueTable>();
 	CValueTable::IValueModelColumnCollection* colCollection = retTable->GetColumnCollection();
 	wxASSERT(colCollection);
-	for (auto dimention : m_metaObject->GetObjectDimensions()) {
+	for (auto dimension : m_metaObject->GetObjectDimensions()) {
 		CValueTable::IValueModelColumnCollection::IValueModelColumnInfo* colInfo =
 			colCollection->AddColumn(
-				dimention->GetName(),
-				dimention->GetTypeDescription(),
-				dimention->GetSynonym()
+				dimension->GetName(),
+				dimension->GetTypeDescription(),
+				dimension->GetSynonym()
 			);
 	}
 	for (auto& obj : m_metaObject->GetObjectResources()) {

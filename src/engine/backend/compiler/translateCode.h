@@ -48,7 +48,7 @@ enum {
 //definitions
 
 //storing one primitive from the source code
-struct lexem_t {
+struct CLexem {
 
 	//lexem type:
 	short m_lexType;
@@ -68,12 +68,12 @@ struct lexem_t {
 
 public:
 
-	size_t line() const {
+	unsigned int GetLine() const {
 		return m_numLine + 1;
 	}
 
-	size_t length() const {
-
+	unsigned int GetLength() const
+	{
 		if (m_lexType == DELIMITER)
 			return 1;
 		else if (m_lexType == IDENTIFIER)
@@ -89,16 +89,16 @@ public:
 		return 0;
 	}
 
-	size_t front() const {
+	unsigned int StartPos() const {
 		return m_numString;
 	}
 
-	size_t back() const {
-		return m_numString + length();
+	unsigned int EndPos() const {
+		return m_numString + GetLength();
 	}
 
 	//Constructor:
-	lexem_t() :
+	CLexem() :
 		m_lexType(0),
 		m_numData(0),
 		m_numString(0),
@@ -107,7 +107,7 @@ public:
 	}
 };
 
-typedef std::vector<lexem_t> CLexemList;
+typedef std::vector<CLexem> CLexemList;
 
 /***************************************************
 CTranslateCode-stage of source code parsing
@@ -263,6 +263,6 @@ protected:
 	mutable unsigned int m_currentLine; //current line of the processed text
 
 	//intermediate array with lexemes:
-	std::vector<lexem_t> m_listLexem;
+	std::vector<CLexem> m_listLexem;
 };
 #endif

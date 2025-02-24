@@ -67,7 +67,7 @@ int IMetaObjectRecordDataRef::ProcessEnumeration(const wxString& tableName, CMet
 	return retCode;
 }
 
-int IMetaObjectRecordDataRef::ProcessTable(const wxString& tabularName, CMetaObjectTable* srcTable, CMetaObjectTable* dstTable)
+int IMetaObjectRecordDataRef::ProcessTable(const wxString& tabularName, CMetaObjectTableData* srcTable, CMetaObjectTableData* dstTable)
 {
 	int retCode = 1;
 	//is null - create
@@ -758,6 +758,7 @@ bool IRecordManagerObject::ReadData()
 			m_recordLine = m_recordSet->GetRowAt(
 				m_recordSet->GetItem(0)
 			);
+			m_recordLine->IncrRef();
 		}
 		return true;
 	}

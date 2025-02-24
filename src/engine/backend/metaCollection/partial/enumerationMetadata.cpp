@@ -22,13 +22,9 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectEnumeration, IMetaObjectRecordDataEnumRef)
 
 CMetaObjectEnumeration::CMetaObjectEnumeration() : IMetaObjectRecordDataEnumRef()
 {
+	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
+
 	m_propertyQuickChoice->SetValue(true);
-
-	m_moduleManager = new CMetaObjectManagerModule(managerModule);
-
-	//set child/parent
-	m_moduleManager->SetParent(this);
-	AddChild(m_moduleManager);
 }
 
 CMetaObjectEnumeration::~CMetaObjectEnumeration()

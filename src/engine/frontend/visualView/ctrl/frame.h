@@ -321,7 +321,7 @@ public:
 public:
 
 	//support actionData 
-	virtual actionData_t GetActions(const form_identifier_t& formType) override { return actionData_t(); }
+	virtual CActionCollection GetActionCollection(const form_identifier_t& formType) override { return CActionCollection(); }
 	virtual void ExecuteAction(const action_identifier_t& lNumAction, IBackendValueForm* srcForm) override {}
 
 	class CValueEventContainer : public CValue {

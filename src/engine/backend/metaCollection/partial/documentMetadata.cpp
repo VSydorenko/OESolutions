@@ -33,27 +33,12 @@ public:
 CMetaObjectDocument::CMetaObjectDocument() : IMetaObjectRecordDataMutableRef()
 {
 	//create default attributes
-	m_attributeNumber = CMetaObjectAttributeDefault::CreateString(wxT("number"), _("Number"), wxEmptyString, 11, true);
-	//set child/parent
-	m_attributeNumber->SetParent(this);
-	AddChild(m_attributeNumber);
-
-	m_attributeDate = CMetaObjectAttributeDefault::CreateDate(wxT("date"), _("Date"), wxEmptyString, eDateFractions::eDateFractions_DateTime, true);
-	//set child/parent
-	m_attributeDate->SetParent(this);
-	AddChild(m_attributeDate);
-
-	m_attributePosted = CMetaObjectAttributeDefault::CreateBoolean(wxT("posted"), _("Posted"), wxEmptyString);
-	//set child/parent
-	m_attributePosted->SetParent(this);
-	AddChild(m_attributePosted);
+	m_attributeNumber = IMetaObjectContextData::CreateString(wxT("number"), _("Number"), wxEmptyString, 11, true);
+	m_attributeDate = IMetaObjectContextData::CreateDate(wxT("date"), _("Date"), wxEmptyString, eDateFractions::eDateFractions_DateTime, true);
+	m_attributePosted = IMetaObjectContextData::CreateBoolean(wxT("posted"), _("Posted"), wxEmptyString);
 
 	//create module
-	m_moduleObject = new CMetaObjectModule(objectModule);
-
-	//set child/parent
-	m_moduleObject->SetParent(this);
-	AddChild(m_moduleObject);
+	m_moduleObject = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectModule>(objectModule);
 
 	//set default proc
 	m_moduleObject->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, { "cancel", "writeMode", "postingMode" });
@@ -67,11 +52,7 @@ CMetaObjectDocument::CMetaObjectDocument() : IMetaObjectRecordDataMutableRef()
 	m_moduleObject->SetDefaultProcedure("filling", eContentHelper::eProcedureHelper, { "source", "standartProcessing" });
 	m_moduleObject->SetDefaultProcedure("onCopy", eContentHelper::eProcedureHelper, { "source" });
 
-	m_moduleManager = new CMetaObjectManagerModule(managerModule);
-
-	//set child/parent
-	m_moduleManager->SetParent(this);
-	AddChild(m_moduleManager);
+	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
 }
 
 CMetaObjectDocument::~CMetaObjectDocument()
@@ -300,6 +281,7 @@ std::vector<IMetaObjectAttribute*> CMetaObjectDocument::GetDefaultAttributes() c
 	attributes.push_back(m_attributeDate);
 	attributes.push_back(m_attributePosted);
 	attributes.push_back(m_attributeReference);
+	attributes.push_back(m_attributeDeletionMark);
 	return attributes;
 }
 

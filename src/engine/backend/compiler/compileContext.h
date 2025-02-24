@@ -108,6 +108,7 @@ public:
 
 	//Setting jump addresses for Continue and Break commands
 	void StartDoList() {
+	
 		//create lists for Continue and Break commands (they will store the addresses of byte codes where the corresponding commands were encountered)
 		m_numDoNumber++;
 		m_listContinue[m_numDoNumber] = new std::vector<int>();
@@ -142,20 +143,18 @@ public:
 	void DoLabels();
 
 	void SetModule(CCompileCode* module) { m_compileModule = module; }
-
-	CParamUnit CreateVariable(const wxString strPrefix = wxT("@temp_"));
-
 	void SetFunction(CFunction* function) { m_functionContext = function; }
 
+	CParamUnit CreateVariable(const wxString strPrefix = wxT("@temp_"));
 	CParamUnit AddVariable(const wxString& strVarName, const wxString& strType = wxEmptyString, bool bExport = false, bool bContext = false, bool bTempVar = false);
 	CParamUnit GetVariable(const wxString& strVarName, bool bFindInParent = true, bool bCheckError = false, bool bContext = false, bool bTempVar = false);
 
 	bool FindVariable(const wxString& strVarName, CVariable*& foundedVar, bool context = false);
 	bool FindFunction(const wxString& funcName, CFunction*& foundedFunc, bool context = false);
 
-	CCompileContext(CCompileContext* parentContext = nullptr) : m_parentContext(parentContext),
-		m_numDoNumber(0), m_numReturn(0), m_numTempVar(0), m_numFindLocalInParent(1),
-		m_compileModule(nullptr) {
+	CCompileContext(CCompileContext* parentContext = nullptr) : 
+		m_parentContext(parentContext), m_functionContext(nullptr), m_compileModule(nullptr),
+		m_numDoNumber(0), m_numReturn(0), m_numTempVar(0), m_numFindLocalInParent(1) {
 	};
 
 	virtual ~CCompileContext();

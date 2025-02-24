@@ -116,9 +116,9 @@ public:
 
 protected:
 
-	lexem_t PreviewGetLexem();
-	lexem_t GetLexem();
-	lexem_t GETLexem();
+	CLexem PreviewGetLexem();
+	CLexem GetLexem();
+	CLexem GETLexem();
 	void GETDelimeter(const wxUniChar& c);
 
 	bool IsDelimeter(const wxUniChar& c);

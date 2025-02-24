@@ -48,7 +48,7 @@ public:
 
 	virtual void ActivateForm() = 0;
 	virtual void UpdateForm() = 0;
-	virtual bool CloseForm() = 0;
+	virtual bool CloseForm(bool force = false) = 0;
 	virtual void HelpForm() = 0;
 
 	virtual bool GenerateForm(class IRecordDataObjectRef* obj) const = 0;

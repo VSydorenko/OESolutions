@@ -23,17 +23,10 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectCatalog, IMetaObjectRecordDataFolderMutable
 
 CMetaObjectCatalog::CMetaObjectCatalog() : IMetaObjectRecordDataFolderMutableRef()
 {
-	m_attributeOwner = CMetaObjectAttributeDefault::CreateEmptyType(wxT("owner"), _("Owner"), wxEmptyString, true, eItemMode::eItemMode_Folder_Item);
-	//set child/parent
-	m_attributeOwner->SetParent(this);
-	AddChild(m_attributeOwner);
+	m_attributeOwner = IMetaObjectContextData::CreateEmptyType(wxT("owner"), _("Owner"), wxEmptyString, true, eItemMode::eItemMode_Folder_Item);
 
 	//create module
-	m_moduleObject = new CMetaObjectModule(objectModule);
-
-	//set child/parent
-	m_moduleObject->SetParent(this);
-	AddChild(m_moduleObject);
+	m_moduleObject = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectModule>(objectModule);
 
 	//set default proc
 	m_moduleObject->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, { "cancel" });
@@ -44,11 +37,7 @@ CMetaObjectCatalog::CMetaObjectCatalog() : IMetaObjectRecordDataFolderMutableRef
 	m_moduleObject->SetDefaultProcedure("filling", eContentHelper::eProcedureHelper, { "source", "standartProcessing" });
 	m_moduleObject->SetDefaultProcedure("onCopy", eContentHelper::eProcedureHelper, { "source" });
 
-	m_moduleManager = new CMetaObjectManagerModule(managerModule);
-
-	//set child/parent
-	m_moduleManager->SetParent(this);
-	AddChild(m_moduleManager);
+	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
 }
 
 CMetaObjectCatalog::~CMetaObjectCatalog()
@@ -369,6 +358,7 @@ std::vector<IMetaObjectAttribute*> CMetaObjectCatalog::GetDefaultAttributes() co
 	attributes.push_back(m_attributeParent);
 	attributes.push_back(m_attributeIsFolder);
 	attributes.push_back(m_attributeReference);
+	attributes.push_back(m_attributeDeletionMark);
 
 	return attributes;
 }

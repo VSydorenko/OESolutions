@@ -57,12 +57,12 @@ static const char *s_tableGroup_xpm[] = {
 	"                "
 };
 
-wxIcon CMetaObjectTable::GetIcon() const
+wxIcon CMetaObjectTableData::GetIcon() const
 {
 	return wxIcon(s_table_xpm);
 }
 
-wxIcon CMetaObjectTable::GetIconGroup()
+wxIcon CMetaObjectTableData::GetIconGroup()
 {
 	return wxIcon(s_tableGroup_xpm);
 }

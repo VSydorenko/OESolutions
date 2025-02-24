@@ -483,6 +483,10 @@
     <ClInclude Include="metaCollection\partial\tabularSection\tabularSection.h">
       <Filter>metaCollection\partial\tabularSection</Filter>
     </ClInclude>
+    <ClInclude Include="value_ptr.h" />
+    <ClInclude Include="metaCollection\metaContext.h">
+      <Filter>metaCollection</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="backend.cpp" />

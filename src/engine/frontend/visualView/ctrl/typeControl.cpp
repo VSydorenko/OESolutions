@@ -160,7 +160,7 @@ void ITypeControlAttribute::DoSetFromMetaId(const meta_identifier_t& id)
 				return;
 			}
 		}
-		CMetaObjectTable* metaTable = nullptr;
+		CMetaObjectTableData* metaTable = nullptr;
 		if (metaData->GetMetaObject(metaTable, id)) {
 			if (metaTable != nullptr && metaTable->IsAllowed()) {
 				ITypeWrapper::SetDefaultMetatype(
@@ -519,11 +519,11 @@ bool ITypeControlAttribute::QuickChoice(IControlFrame* ownerValue, const class_i
 
 	if (ownerValue != nullptr) {
 		CValue cValue; ownerValue->GetControlValue(cValue);
-		std::vector<CValue> foundedObjects;
-		if (cValue.FindValue(wxEmptyString, foundedObjects)) {
+		std::vector<CValue> listValue;
+		if (cValue.FindValue(wxEmptyString, listValue)) {
 			wxPopupQuickSelectWindow* popup =
 				new wxPopupQuickSelectWindow(ownerValue, parent);
-			for (auto selObj : foundedObjects)
+			for (auto selObj : listValue)
 				popup->AppendItem(selObj, selObj == cValue);
 			popup->Popup();
 			return true;
@@ -689,18 +689,18 @@ void ITypeControlAttribute::QuickChoice(IControlFrame* controlValue, CValue& new
 
 	if (controlValue != nullptr) {
 		if (strData.Length() > 0) {
-			std::vector<CValue> foundedObjects;
-			if (newValue.FindValue(strData, foundedObjects)) {
-				size_t count = foundedObjects.size();
+			std::vector<CValue> listValue;
+			if (newValue.FindValue(strData, listValue)) {
+				size_t count = listValue.size();
 				if (count > 1) {
 					wxPopupQuickSelectWindow* popup =
 						new wxPopupQuickSelectWindow(controlValue, parent);
-					for (auto selObj : foundedObjects)
+					for (auto selObj : listValue)
 						popup->AppendItem(selObj, selObj == newValue);
 					popup->Popup();
 				}
 				else if (count == 1) {
-					controlValue->ChoiceProcessing(foundedObjects.at(0));
+					controlValue->ChoiceProcessing(listValue.at(0));
 				}
 			}
 		}

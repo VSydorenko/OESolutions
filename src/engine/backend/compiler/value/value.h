@@ -22,7 +22,7 @@ public:
 		bool          m_bData;  //TYPE_BOOL
 		number_t      m_fData;  //TYPE_NUMBER
 		wxLongLong_t  m_dData;  //TYPE_DATE
-		CValue* m_pRef;	//TYPE_REFFER
+		CValue*       m_pRef;	//TYPE_REFFER
 	};
 	wxString m_sData;  //TYPE_STRING
 public:
@@ -709,7 +709,7 @@ public:
 	virtual bool SetDate(const wxString& strValue);
 	virtual bool SetString(const wxString& strValue);
 
-	virtual bool FindValue(const wxString& findData, std::vector<CValue>& foundedObjects) const;
+	virtual bool FindValue(const wxString& findData, std::vector<CValue>& listValue) const;
 
 	void SetData(const CValue& varValue); //setting the value without changing the type
 
@@ -907,5 +907,6 @@ public:
 private:
 	unsigned int m_refCount;
 };
+#include "backend/value_ptr.h"
 #include "backend/value_cast.h"
 #endif 

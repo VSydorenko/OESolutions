@@ -6,7 +6,7 @@
 //*                              actionData                                     *
 //****************************************************************************
 
-CValueTableBox::actionData_t CValueTableBox::GetActions(const form_identifier_t& formType)
+CValueTableBox::CActionCollection CValueTableBox::GetActionCollection(const form_identifier_t& formType)
 {
 	if (m_tableModel == nullptr) {
 		ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
@@ -14,14 +14,14 @@ CValueTableBox::actionData_t CValueTableBox::GetActions(const form_identifier_t&
 			if (srcObject != nullptr) {
 				IValueModel* tableModel = nullptr;
 				if (srcObject->GetModel(tableModel, GetIdByGuid(m_dataSource))) {
-					return tableModel->GetActions(formType);
+					return tableModel->GetActionCollection(formType);
 				}
 			}
 		}
-		return actionData_t();
+		return CActionCollection();
 	}
 
-	return m_tableModel->GetActions(formType);
+	return m_tableModel->GetActionCollection(formType);
 }
 
 #include "backend/appData.h"

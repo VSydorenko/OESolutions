@@ -350,9 +350,9 @@ protected:
 
 //tabular section class
 class CMetaValueTabularSectionTypeCtor : public IMetaValueTypeCtor {
-	CMetaObjectTable* m_metaTable;
+	CMetaObjectTableData* m_metaTable;
 public:
-	CMetaValueTabularSectionTypeCtor(IMetaObjectRecordData* metaRef, CMetaObjectTable* metaTable) : IMetaValueTypeCtor(),
+	CMetaValueTabularSectionTypeCtor(IMetaObjectRecordData* metaRef, CMetaObjectTableData* metaTable) : IMetaValueTypeCtor(),
 		m_metaObject(metaRef), m_metaTable(metaTable) {
 	}
 
@@ -392,9 +392,9 @@ protected:
 
 //tabular section string class
 class CMetaValueTabularSectionStringTypeCtor : public IMetaValueTypeCtor {
-	CMetaObjectTable* m_metaTable;
+	CMetaObjectTableData* m_metaTable;
 public:
-	CMetaValueTabularSectionStringTypeCtor(IMetaObjectRecordData* metaRef, CMetaObjectTable* metaTable) : IMetaValueTypeCtor(),
+	CMetaValueTabularSectionStringTypeCtor(IMetaObjectRecordData* metaRef, CMetaObjectTableData* metaTable) : IMetaValueTypeCtor(),
 		m_metaObject(metaRef), m_metaTable(metaTable) {
 	}
 

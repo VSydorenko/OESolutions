@@ -123,8 +123,8 @@ void wxVariantAttributeData::DoSetFromMetaId(const meta_identifier_t& id)
 			ITypeWrapper::SetDefaultMetatype(metaAttribute->GetTypeDescription());
 			return;
 		}
-		CMetaObjectTable* metaTable =
-			dynamic_cast<CMetaObjectTable*>(m_metaData->GetMetaObject(id));
+		CMetaObjectTableData* metaTable =
+			dynamic_cast<CMetaObjectTableData*>(m_metaData->GetMetaObject(id));
 		if (metaTable != nullptr && metaTable->IsAllowed()) {
 			ITypeWrapper::SetDefaultMetatype(metaTable->GetTypeDescription());
 			return;

@@ -23,7 +23,7 @@ bool CValueArray::Init(CValue** paParams, const long lSizeArray)
 	if (paParams[0]->GetType() == eValueTypes::TYPE_NUMBER) {
 		const number_t& number = paParams[0]->GetNumber();
 		if (number > 0) {
-			m_arrValues.resize(number.ToUInt());
+			m_listValue.resize(number.ToUInt());
 			return true;
 		}
 	}
@@ -34,7 +34,7 @@ bool CValueArray::Init(CValue** paParams, const long lSizeArray)
 
 void CValueArray::CheckIndex(unsigned int index) const //array index must start from 1
 {
-	if ((index < 0 || index >= m_arrValues.size() && !appData->DesignerMode()))
+	if ((index < 0 || index >= m_listValue.size() && !appData->DesignerMode()))
 		CBackendException::Error("Index goes beyond array");
 }
 
@@ -90,14 +90,14 @@ bool CValueArray::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue
 bool CValueArray::GetAt(const CValue& varKeyValue, CValue& pvarValue) //array index must start from 0
 {
 	CheckIndex(varKeyValue.GetUInteger());
-	pvarValue = m_arrValues[varKeyValue.GetUInteger()];
+	pvarValue = m_listValue[varKeyValue.GetUInteger()];
 	return true;
 }
 
 bool CValueArray::SetAt(const CValue& varKeyValue, const CValue& varValue)//array index must start from 0
 {
 	CheckIndex(varKeyValue.GetUInteger());
-	m_arrValues[varKeyValue.GetUInteger()] = varValue;
+	m_listValue[varKeyValue.GetUInteger()] = varValue;
 	return true;
 }
 

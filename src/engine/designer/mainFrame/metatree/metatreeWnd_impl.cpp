@@ -778,7 +778,7 @@ void CMetadataTree::AddCatalogItem(IMetaObject* metaObject, const wxTreeItemId& 
 	for (auto metaAttribute : metaObjectValue->GetObjectAttributes()) {
 		if (metaAttribute->IsDeleted())
 			continue;
-		if (metaAttribute->DefaultAttribute())
+		if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 			continue;
 		AppendItem(hAttributes, metaAttribute);
 	}
@@ -792,7 +792,7 @@ void CMetadataTree::AddCatalogItem(IMetaObject* metaObject, const wxTreeItemId& 
 		for (auto metaAttribute : metaTable->GetObjectAttributes()) {
 			if (metaAttribute->IsDeleted())
 				continue;
-			if (metaAttribute->DefaultAttribute())
+			if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 				continue;
 			AppendItem(hItem, metaAttribute);
 		}
@@ -825,7 +825,7 @@ void CMetadataTree::AddDocumentItem(IMetaObject* metaObject, const wxTreeItemId&
 	for (auto metaAttribute : metaObjectValue->GetObjectAttributes()) {
 		if (metaAttribute->IsDeleted())
 			continue;
-		if (metaAttribute->DefaultAttribute())
+		if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 			continue;
 		AppendItem(hAttributes, metaAttribute);
 	}
@@ -839,7 +839,7 @@ void CMetadataTree::AddDocumentItem(IMetaObject* metaObject, const wxTreeItemId&
 		for (auto metaAttribute : metaTable->GetObjectAttributes()) {
 			if (metaAttribute->IsDeleted())
 				continue;
-			if (metaAttribute->DefaultAttribute())
+			if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 				continue;
 			AppendItem(hItem, metaAttribute);
 		}
@@ -903,7 +903,7 @@ void CMetadataTree::AddDataProcessorItem(IMetaObject* metaObject, const wxTreeIt
 	for (auto metaAttribute : metaObjectValue->GetObjectAttributes()) {
 		if (metaAttribute->IsDeleted())
 			continue;
-		if (metaAttribute->DefaultAttribute())
+		if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 			continue;
 		AppendItem(hAttributes, metaAttribute);
 	}
@@ -917,7 +917,7 @@ void CMetadataTree::AddDataProcessorItem(IMetaObject* metaObject, const wxTreeIt
 		for (auto metaAttribute : metaTable->GetObjectAttributes()) {
 			if (metaAttribute->IsDeleted())
 				continue;
-			if (metaAttribute->DefaultAttribute())
+			if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 				continue;
 			AppendItem(hItem, metaAttribute);
 		}
@@ -950,7 +950,7 @@ void CMetadataTree::AddReportItem(IMetaObject* metaObject, const wxTreeItemId& h
 	for (auto metaAttribute : metaObjectValue->GetObjectAttributes()) {
 		if (metaAttribute->IsDeleted())
 			continue;
-		if (metaAttribute->DefaultAttribute())
+		if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 			continue;
 		AppendItem(hAttributes, metaAttribute);
 	}
@@ -964,7 +964,7 @@ void CMetadataTree::AddReportItem(IMetaObject* metaObject, const wxTreeItemId& h
 		for (auto metaAttribute : metaTable->GetObjectAttributes()) {
 			if (metaAttribute->IsDeleted())
 				continue;
-			if (metaAttribute->DefaultAttribute())
+			if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 				continue;
 			AppendItem(hItem, metaAttribute);
 		}
@@ -997,7 +997,7 @@ void CMetadataTree::AddInformationRegisterItem(IMetaObject* metaObject, const wx
 	for (auto metaDimension : metaObjectValue->GetObjectDimensions()) {
 		if (metaDimension->IsDeleted())
 			continue;
-		if (metaDimension->DefaultAttribute())
+		if (metaDimension->GetClassType() == g_metaDefaultAttributeCLSID)
 			continue;
 		AppendItem(hDimentions, metaDimension);
 	}
@@ -1007,7 +1007,7 @@ void CMetadataTree::AddInformationRegisterItem(IMetaObject* metaObject, const wx
 	for (auto metaResource : metaObjectValue->GetObjectResources()) {
 		if (metaResource->IsDeleted())
 			continue;
-		if (metaResource->DefaultAttribute())
+		if (metaResource->GetClassType() == g_metaDefaultAttributeCLSID)
 			continue;
 		AppendItem(hResources, metaResource);
 	}
@@ -1017,7 +1017,7 @@ void CMetadataTree::AddInformationRegisterItem(IMetaObject* metaObject, const wx
 	for (auto metaAttribute : metaObjectValue->GetObjectAttributes()) {
 		if (metaAttribute->IsDeleted())
 			continue;
-		if (metaAttribute->DefaultAttribute())
+		if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 			continue;
 		AppendItem(hAttributes, metaAttribute);
 	}
@@ -1049,7 +1049,7 @@ void CMetadataTree::AddAccumulationRegisterItem(IMetaObject* metaObject, const w
 	for (auto metaDimension : metaObjectValue->GetObjectDimensions()) {
 		if (metaDimension->IsDeleted())
 			continue;
-		if (metaDimension->DefaultAttribute())
+		if (metaDimension->GetClassType() == g_metaDefaultAttributeCLSID)
 			continue;
 		AppendItem(hDimentions, metaDimension);
 	}
@@ -1059,7 +1059,7 @@ void CMetadataTree::AddAccumulationRegisterItem(IMetaObject* metaObject, const w
 	for (auto metaResource : metaObjectValue->GetObjectResources()) {
 		if (metaResource->IsDeleted())
 			continue;
-		if (metaResource->DefaultAttribute())
+		if (metaResource->GetClassType() == g_metaDefaultAttributeCLSID)
 			continue;
 		AppendItem(hResources, metaResource);
 	}
@@ -1069,7 +1069,7 @@ void CMetadataTree::AddAccumulationRegisterItem(IMetaObject* metaObject, const w
 	for (auto metaAttribute : metaObjectValue->GetObjectAttributes()) {
 		if (metaAttribute->IsDeleted())
 			continue;
-		if (metaAttribute->DefaultAttribute())
+		if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 			continue;
 		AppendItem(hAttributes, metaAttribute);
 	}

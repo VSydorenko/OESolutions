@@ -115,39 +115,39 @@ wxString IMetaObjectAttribute::GetSQLFieldName(IMetaObjectAttribute* metaAttr, c
 		+ sqlField;
 }
 
-wxString IMetaObjectAttribute::GetCompositeSQLFieldName(IMetaObjectAttribute* metaAttr, const wxString& oper)
+wxString IMetaObjectAttribute::GetCompositeSQLFieldName(IMetaObjectAttribute* metaAttr, const wxString& cmp)
 {
 	const wxString& fieldName = metaAttr->GetFieldNameDB(); wxString sqlField = wxEmptyString;
 
 	if (metaAttr->ContainType(eValueTypes::TYPE_BOOLEAN)) {
 		if (!sqlField.IsEmpty())
 			sqlField += " AND ";
-		sqlField += fieldName + "_B " + oper + " ? ";
+		sqlField += fieldName + "_B " + cmp + " ? ";
 	}
 	if (metaAttr->ContainType(eValueTypes::TYPE_NUMBER)) {
 		if (!sqlField.IsEmpty())
 			sqlField += " AND ";
-		sqlField += fieldName + "_N " + oper + " ? ";
+		sqlField += fieldName + "_N " + cmp + " ? ";
 	}
 	if (metaAttr->ContainType(eValueTypes::TYPE_DATE)) {
 		if (!sqlField.IsEmpty())
 			sqlField += " AND ";
-		sqlField += fieldName + "_D " + oper + " ? ";
+		sqlField += fieldName + "_D " + cmp + " ? ";
 	}
 	if (metaAttr->ContainType(eValueTypes::TYPE_STRING)) {
 		if (!sqlField.IsEmpty())
 			sqlField += " AND ";
-		sqlField += fieldName + "_S " + oper + " ? ";
+		sqlField += fieldName + "_S " + cmp + " ? ";
 	}
 	if (metaAttr->ContainType(eValueTypes::TYPE_ENUM)) {
 		if (!sqlField.IsEmpty())
 			sqlField += " AND ";
-		sqlField += fieldName + "_E " + oper + " ? ";
+		sqlField += fieldName + "_E " + cmp + " ? ";
 	}
 	if (metaAttr->ContainMetaType(eCtorMetaType::eCtorMetaType_Reference)) {
 		if (!sqlField.IsEmpty())
 			sqlField += " AND ";
-		sqlField += fieldName + "_RTRef = ? AND " + fieldName + "_RRRef " + oper + " ? ";
+		sqlField += fieldName + "_RTRef = ? AND " + fieldName + "_RRRef " + cmp + " ? ";
 	}
 
 	return fieldName + "_TYPE = ? "

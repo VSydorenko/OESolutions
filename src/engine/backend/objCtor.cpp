@@ -39,7 +39,7 @@ CValue* CMetaValueListRefTypeCtor::CreateObject() const
 	else if (m_metaObject->ConvertToValue(enumRef)) {
 		return new CListDataObjectEnumRef(enumRef);
 	}
-	return new CListDataObjectRef(m_metaObject);
+	return new CListDataObjectRef((IMetaObjectRecordDataMutableRef *)m_metaObject);
 }
 
 wxClassInfo* CMetaValueListRegisterTypeCtor::GetClassInfo() const
@@ -88,7 +88,7 @@ wxClassInfo* CMetaValueRecordKeyTypeCtor::GetClassInfo() const
 
 CValue* CMetaValueRecordKeyTypeCtor::CreateObject() const
 {
-	return new CRecordKeyObject(m_metaObject);
+	return m_metaObject->CreateRecordKeyObjectValue();
 }
 
 //object record manager

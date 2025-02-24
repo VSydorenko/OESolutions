@@ -88,13 +88,6 @@ int CEnterpriseApp::OnRun()
 	// Abnormal Termination Handling
 #if wxUSE_ON_FATAL_EXCEPTION && wxUSE_STACKWALKER
 	::wxHandleFatalExceptions(true);
-#elif defined(_WIN32) && defined(__MINGW32__)
-	// Structured Exception handlers are stored in a linked list at FS:[0]
-	// THIS MUST BE A LOCAL VARIABLE - windows won't use an object outside of the thread's stack valueFrame
-	EXCEPTION_REGISTRATION ex;
-	ex.handler = StructuredExceptionHandler;
-	asm volatile ("movl %%fs:0, %0" : "=r" (ex.prev));
-	asm volatile ("movl %0, %%fs:0" : : "r" (&ex));
 #endif
 
 	// Get the data directory

@@ -19,17 +19,8 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectReportExternal, CMetaObjectReport)
 CMetaObjectReport::CMetaObjectReport(int objMode) : IMetaObjectRecordDataExt(objMode)
 {
 	//create module
-	m_moduleObject = new CMetaObjectModule(objectModule);
-
-	//set child/parent
-	m_moduleObject->SetParent(this);
-	AddChild(m_moduleObject);
-
-	m_moduleManager = new CMetaObjectManagerModule(managerModule);
-
-	//set child/parent
-	m_moduleManager->SetParent(this);
-	AddChild(m_moduleManager);
+	m_moduleObject = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectModule>(objectModule);
+	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
 }
 
 CMetaObjectReport::~CMetaObjectReport()

@@ -531,6 +531,18 @@ protected:
 
 protected:
 
+	template<typename T, typename... Args>
+	T* CreateMetaObjectAndSetParent(Args&&... args) {
+		T* createdObject = CValue::CreateAndConvertObjectValueRef<T>(args...);
+		wxASSERT(createdObject);
+		//set child/parent
+		createdObject->SetParent(this);
+		this->AddChild(createdObject);
+		return createdObject;
+	}
+
+protected:
+
 	int m_metaFlags;
 	meta_identifier_t m_metaId;			//type id (default is undefined)
 	Guid m_metaGuid;

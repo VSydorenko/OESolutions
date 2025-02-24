@@ -3,14 +3,28 @@
 #include "procUnit.h"
 
 //*************************************************************************************************
-//*                                        RunContext                                             *
+//*                                        RunContextSmall                                        *
 //*************************************************************************************************
 
-CRunContext::~CRunContext() {
+CRunContextSmall::~CRunContextSmall()
+{
 	if (m_lVarCount > MAX_STATIC_VAR) {
 		wxDELETEA(m_pLocVars);
 		wxDELETEA(m_pRefLocVars);
 	}
+}
+
+//*************************************************************************************************
+//*                                        RunContext                                             *
+//*************************************************************************************************
+
+CRunContext::~CRunContext()
+{
+	if (m_lVarCount > MAX_STATIC_VAR) {
+		wxDELETEA(m_pLocVars);
+		wxDELETEA(m_pRefLocVars);
+	}
+	
 	// delete m_listEval
 	for (auto& it : m_listEval) {
 		CProcUnit*& procUnit(it.second);
@@ -21,7 +35,8 @@ CRunContext::~CRunContext() {
 	}
 }
 
-CByteCode* CRunContext::GetByteCode() const {
+CByteCode* CRunContext::GetByteCode() const 
+{
 	return m_procUnit ?
 		m_procUnit->GetByteCode() : nullptr;
 }

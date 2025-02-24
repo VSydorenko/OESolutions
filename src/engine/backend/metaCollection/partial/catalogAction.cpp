@@ -14,9 +14,9 @@ enum
 	eMarkAsDelete,
 };
 
-CRecordDataObjectCatalog::actionData_t CRecordDataObjectCatalog::GetActions(const form_identifier_t &formType)
+CRecordDataObjectCatalog::CActionCollection CRecordDataObjectCatalog::GetActionCollection(const form_identifier_t &formType)
 {
-	actionData_t catalogActions(this);
+	CActionCollection catalogActions(this);
 	catalogActions.AddAction("saveAndClose", _("Save and close"), eDefActionAndClose);
 	catalogActions.AddAction("save", _("Save"), eSave);
 	catalogActions.AddSeparator();

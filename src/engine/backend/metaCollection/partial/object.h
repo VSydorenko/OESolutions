@@ -49,8 +49,10 @@ public:
 	virtual IBackendValueForm* GetDefaultCommandForm() = 0;
 };
 
+#include "backend/metaCollection/metaContext.h"
+
 class BACKEND_API IMetaObjectGenericData
-	: public IMetaObject, public IMetaCommandData, public IMetaTableData {
+	: public IMetaObjectContextData, public IMetaCommandData {
 	wxDECLARE_ABSTRACT_CLASS(IMetaObjectGenericData);
 public:
 	friend class IMetaData;
@@ -172,7 +174,7 @@ public:
 
 	//get attributes, form etc.. 
 	virtual std::vector<IMetaObjectAttribute*> GetObjectAttributes() const;
-	virtual std::vector<CMetaObjectTable*> GetObjectTables() const;
+	virtual std::vector<CMetaObjectTableData*> GetObjectTables() const;
 	virtual std::vector<CMetaObjectForm*> GetObjectForms() const;
 	virtual std::vector<CMetaObjectGrid*> GetObjectTemplates() const;
 
@@ -209,7 +211,7 @@ public:
 		return nullptr;
 	}
 
-	virtual CMetaObjectTable* FindTableById(const meta_identifier_t& id) const {
+	virtual CMetaObjectTableData* FindTableById(const meta_identifier_t& id) const {
 		for (auto& obj : GetObjectTables()) {
 			if (id == obj->GetMetaID())
 				return obj;
@@ -217,7 +219,7 @@ public:
 		return nullptr;
 	}
 
-	virtual CMetaObjectTable* FindTableByGuid(const wxString& strDocPath) const {
+	virtual CMetaObjectTableData* FindTableByGuid(const wxString& strDocPath) const {
 		for (auto& obj : GetObjectTables()) {
 			if (strDocPath == obj->GetDocPath())
 				return obj;
@@ -258,7 +260,7 @@ enum eObjectMode {
 class BACKEND_API IMetaObjectRecordDataExt : public IMetaObjectRecordData {
 	wxDECLARE_ABSTRACT_CLASS(IMetaObjectRecordDataExt);
 protected:
-	Role* m_roleUse = IMetaObject::CreateRole({ "use", _("use") });
+	Role* m_roleUse = IMetaObject::CreateRole({"use", _("use")});
 protected:
 	//external or default dataProcessor
 	int m_objMode;
@@ -286,9 +288,9 @@ protected:
 class BACKEND_API IMetaObjectRecordDataRef : public IMetaObjectRecordData {
 	wxDECLARE_ABSTRACT_CLASS(IMetaObjectRecordDataRef);
 protected:
-	PropertyCategory* m_categoryData = CreatePropertyCategory({ "data", _("data") });
-	PropertyCategory* m_categoryPresentation = CreatePropertyCategory({ "presentation", _("presentation") });
-	Property* m_propertyQuickChoice = CreateProperty(m_categoryPresentation, { "quickChoice",  _("quick choice") }, PropertyType::PT_BOOL, false);
+	PropertyCategory* m_categoryData = CreatePropertyCategory({"data", _("data")});
+	PropertyCategory* m_categoryPresentation = CreatePropertyCategory({"presentation", _("presentation")});
+	Property* m_propertyQuickChoice = CreateProperty(m_categoryPresentation, {"quickChoice",  _("quick choice")}, PropertyType::PT_BOOL, false);
 protected:
 	//ctor
 	IMetaObjectRecordDataRef();
@@ -389,7 +391,7 @@ public:
 	//process default query
 	int ProcessAttribute(const wxString& tableName, IMetaObjectAttribute* srcAttr, IMetaObjectAttribute* dstAttr);
 	int ProcessEnumeration(const wxString& tableName, CMetaObjectEnum* srcEnum, CMetaObjectEnum* dstEnum);
-	int ProcessTable(const wxString& tabularName, CMetaObjectTable* srcTable, CMetaObjectTable* dstTable);
+	int ProcessTable(const wxString& tabularName, CMetaObjectTableData* srcTable, CMetaObjectTableData* dstTable);
 
 protected:
 
@@ -459,19 +461,30 @@ protected:
 	};
 	genData_t m_genData;
 private:
-	Role* m_roleRead = IMetaObject::CreateRole({ "read", _("read") });
-	Role* m_roleInsert = IMetaObject::CreateRole({ "insert", _("insert") });
-	Role* m_roleUpdate = IMetaObject::CreateRole({ "update", _("update") });
-	Role* m_roleDelete = IMetaObject::CreateRole({ "delete", _("delete") });
+	Role* m_roleRead = IMetaObject::CreateRole({"read", _("read")});
+	Role* m_roleInsert = IMetaObject::CreateRole({"insert", _("insert")});
+	Role* m_roleUpdate = IMetaObject::CreateRole({"update", _("update")});
+	Role* m_roleDelete = IMetaObject::CreateRole({"delete", _("delete")});
 protected:
-	Property* m_propertyGeneration = IPropertyObject::CreateGenerationProperty(m_categoryData, { "generation", _("generation") });
-private:
+	Property* m_propertyGeneration = IPropertyObject::CreateGenerationProperty(m_categoryData, {"generation", _("generation")});
+protected:
+	CMetaObjectAttributeDefault* m_attributeDataVersion;
 	CMetaObjectAttributeDefault* m_attributeDeletionMark;
 protected:
 	//ctor
 	IMetaObjectRecordDataMutableRef();
 	virtual ~IMetaObjectRecordDataMutableRef();
 public:
+
+	CMetaObjectAttributeDefault* GetDataVersion() const
+	{
+		return m_attributeDataVersion;
+	}
+
+	bool IsDataVersion(const meta_identifier_t& id) const
+	{
+		return id == m_attributeDataVersion->GetMetaID();
+	}
 
 	CMetaObjectAttributeDefault* GetDataDeletionMark() const {
 		return m_attributeDeletionMark;
@@ -644,8 +657,8 @@ class BACKEND_API IMetaObjectRegisterData :
 	public IMetaObjectGenericData {
 	wxDECLARE_ABSTRACT_CLASS(IMetaObjectRegisterData);
 private:
-	Role* m_roleRead = IMetaObject::CreateRole({ "read", _("read") });
-	Role* m_roleUpdate = IMetaObject::CreateRole({ "update", _("update") });
+	Role* m_roleRead = IMetaObject::CreateRole({"read", _("read")});
+	Role* m_roleUpdate = IMetaObject::CreateRole({"update", _("update")});
 protected:
 	IMetaObjectRegisterData();
 	virtual ~IMetaObjectRegisterData();
@@ -756,9 +769,13 @@ public:
 		return true;
 	}
 
+	CRecordKeyObject* CreateRecordKeyObjectValue();
+
 	IRecordSetObject* CreateRecordSetObjectValue(bool needInitialize = true);
 	IRecordSetObject* CreateRecordSetObjectValue(const CUniquePairKey& uniqueKey, bool needInitialize = true);
 	IRecordSetObject* CreateRecordSetObjectValue(IRecordSetObject* source, bool needInitialize = true);
+
+	IRecordSetObject* CopyRecordSetObjectValue(const CUniquePairKey& uniqueKey);
 
 	IRecordManagerObject* CreateRecordManagerObjectValue();
 	IRecordManagerObject* CreateRecordManagerObjectValue(const CUniquePairKey& uniqueKey);
@@ -923,7 +940,7 @@ public:
 	virtual ~IRecordDataObject();
 
 	//support actionData 
-	virtual actionData_t GetActions(const form_identifier_t& formType) { return actionData_t(); }
+	virtual CActionCollection GetActionCollection(const form_identifier_t& formType) { return CActionCollection(); }
 	virtual void ExecuteAction(const action_identifier_t& lNumAction, IBackendValueForm* srcForm) {}
 
 	virtual IRecordDataObject* CopyObjectValue() = 0;
@@ -1079,10 +1096,14 @@ protected:
 	IRecordDataObjectRef(IMetaObjectRecordDataMutableRef* metaObject, const Guid& objGuid);
 	IRecordDataObjectRef(const IRecordDataObjectRef& src);
 public:
+
 	virtual ~IRecordDataObjectRef();
 
 	virtual bool InitializeObject(const Guid& copyGuid = wxNullGuid);
 	virtual bool InitializeObject(IRecordDataObjectRef* source, bool generate = false);
+
+	virtual bool WriteObject() = 0;
+	virtual bool DeleteObject() = 0;
 
 	//Get ref class 
 	virtual class_identifier_t GetClassType() const;
@@ -1109,7 +1130,6 @@ public:
 
 	//default methods
 	virtual bool Generate();
-
 	//filling object 
 	virtual bool Filling(CValue& cValue = CValue()) const;
 
@@ -1140,8 +1160,8 @@ public:
 	//get reference
 	virtual class CReferenceDataObject* GetReference() const;
 
-protected:
-	void SetDeletionMark(bool deletionMark = true);
+public:
+	virtual void SetDeletionMark(bool deletionMark = true);
 protected:
 	virtual bool ReadData();
 	virtual bool ReadData(const Guid& srcGuid);
@@ -1259,7 +1279,7 @@ public:
 	virtual IValueModelReturnLine* GetRowAt(const wxDataViewItem& line) {
 		if (!line.IsOk())
 			return nullptr;
-		return new CRecordSetObjectRegisterReturnLine(this, line);
+		return CValue::CreateAndConvertObjectValueRef<CRecordSetObjectRegisterReturnLine>(this, line);
 	}
 
 	class CRecordSetObjectRegisterColumnCollection : public IValueTable::IValueModelColumnCollection {
@@ -1368,7 +1388,7 @@ public:
 		wxDECLARE_DYNAMIC_CLASS(CRecordSetObjectRegisterReturnLine);
 	public:
 		class CRecordSetObjectRegisterKeyDescriptionValue : public CValue {
-			wxDECLARE_DYNAMIC_CLASS(CRecordSetObjectRegisterKeyDesriptionValue);
+			wxDECLARE_DYNAMIC_CLASS(CRecordSetObjectRegisterKeyDescriptionValue);
 		public:
 
 			CRecordSetObjectRegisterKeyDescriptionValue(IRecordSetObject* recordSet = nullptr, const meta_identifier_t& id = wxNOT_FOUND);
@@ -1430,6 +1450,7 @@ public:
 
 	CRecordSetObjectRegisterColumnCollection* m_dataColumnCollection;
 	CRecordSetObjectRegisterKeyValue* m_recordSetKeyValue;
+
 protected:
 	IRecordSetObject(IMetaObjectRegisterData* metaObject, const CUniquePairKey& uniqueKey);
 	IRecordSetObject(const IRecordSetObject& source);

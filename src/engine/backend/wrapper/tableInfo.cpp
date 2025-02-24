@@ -32,9 +32,9 @@ void IValueModel::RowValueStartEdit(const wxDataViewItem& item, unsigned int col
 	m_srcNotifier->StartEditing(item, col);
 }
 
-IValueModel::actionData_t IValueModel::GetActions(const form_identifier_t& formType)
+IValueModel::CActionCollection IValueModel::GetActionCollection(const form_identifier_t& formType)
 {
-	actionData_t action(this);
+	CActionCollection action(this);
 
 	if (UseStandartCommand()) {
 		action.AddAction("add", _("Add"), eAddValue);
@@ -44,7 +44,7 @@ IValueModel::actionData_t IValueModel::GetActions(const form_identifier_t& formT
 	}
 
 	if (UseFilter()) {
-		action.AddSeparator();
+		if (UseStandartCommand()) action.AddSeparator();
 		action.AddAction("filter", _("Filter"), eFilter);
 		action.AddAction("filterByColumn", _("Filter by column"), eFilterByColumn);
 		action.AddSeparator();
@@ -58,38 +58,40 @@ void IValueModel::ExecuteAction(const action_identifier_t& lNumAction, IBackendV
 {
 	switch (lNumAction)
 	{
-	case eAddValue:
-		AddValue();
-		break;
-	case eCopyValue:
-		CopyValue();
-		break;
-	case eEditValue:
-		EditValue();
-		break;
-	case eDeleteValue:
-		DeleteValue();
-		break;
-	case eFilter:
-		if (ShowFilter())
-			RefreshModel(m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
-		break;
-	case eFilterByColumn: {
-		const wxDataViewItem& item = GetSelection();
-		if (!item.IsOk())
-			break;	
-		wxDataViewColumn* dataView = m_srcNotifier != nullptr ? m_srcNotifier->GetCurrentColumn() : nullptr;
-		if (dataView != nullptr) {
-			CValue retValue; GetValueByMetaID(item, dataView->GetModelColumn(), retValue);
-			m_filterRow.SetFilterByID(dataView->GetModelColumn(), retValue);
+		case eAddValue:
+			AddValue();
+			break;
+		case eCopyValue:
+			CopyValue();
+			break;
+		case eEditValue:
+			EditValue();
+			break;
+		case eDeleteValue:
+			DeleteValue();
+			break;
+		case eFilter:
+			if (ShowFilter()) {
+				RefreshModel(wxDataViewItem(nullptr), m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
+			}
+			break;
+		case eFilterByColumn:
+		{
+			const wxDataViewItem& item = GetSelection();
+			if (!item.IsOk())
+				break;
+			wxDataViewColumn* dataView = m_srcNotifier != nullptr ? m_srcNotifier->GetCurrentColumn() : nullptr;
+			if (dataView != nullptr) {
+				CValue retValue; GetValueByMetaID(item, dataView->GetModelColumn(), retValue);
+				m_filterRow.SetFilterByID(dataView->GetModelColumn(), retValue);
+			}
+			RefreshModel(wxDataViewItem(nullptr), m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
+			break;
 		}
-		RefreshModel(m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
-		break;
-	}
-	case eFilterClear:
-		m_filterRow.ResetFilter();
-		RefreshModel(m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
-		break;
+		case eFilterClear:
+			m_filterRow.ResetFilter();
+			RefreshModel(wxDataViewItem(nullptr), m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
+			break;
 	}
 }
 
@@ -135,18 +137,18 @@ bool IValueModel::IValueModelColumnCollection::IValueModelColumnInfo::GetPropVal
 {
 	switch (lPropNum)
 	{
-	case enColumnName:
-		pvarPropVal = GetColumnName();
-		return true;
-	case enColumnTypes:
-		pvarPropVal = CValue::CreateAndConvertObjectValueRef<CValueTypeDescription>(GetColumnType());
-		return true;
-	case enColumnCaption:
-		pvarPropVal = GetColumnCaption();
-		return true;
-	case enColumnWidth:
-		pvarPropVal = GetColumnWidth();
-		return true;
+		case enColumnName:
+			pvarPropVal = GetColumnName();
+			return true;
+		case enColumnTypes:
+			pvarPropVal = CValue::CreateAndConvertObjectValueRef<CValueTypeDescription>(GetColumnType());
+			return true;
+		case enColumnCaption:
+			pvarPropVal = GetColumnCaption();
+			return true;
+		case enColumnWidth:
+			pvarPropVal = GetColumnWidth();
+			return true;
 	}
 
 	return false;

@@ -245,8 +245,8 @@ bool CRecordDataObjectCatalog::DeleteObject()
 
 				db_query->Commit();
 
-				if (valueForm) {
-					valueForm->CloseForm();
+				if (valueForm != nullptr) {
+					valueForm->CloseForm(true);
 				}
 
 				if (backend_mainFrame != nullptr) {

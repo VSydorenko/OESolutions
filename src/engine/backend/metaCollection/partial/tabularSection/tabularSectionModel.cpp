@@ -36,9 +36,9 @@ bool ITabularSectionDataObject::SetValueByRow(const wxVariant& variant,
 		const CValue& selValue = node->GetTableValue(col);
 		const CValue& newValue = metaData->CreateObject(selValue.GetClassType());
 		if (strData.Length() > 0) {
-			std::vector<CValue> foundedObjects;
-			if (newValue.FindValue(strData, foundedObjects)) {
-				SetValueByMetaID(row, col, foundedObjects.at(0));
+			std::vector<CValue> listValue;
+			if (newValue.FindValue(strData, listValue)) {
+				SetValueByMetaID(row, col, listValue.at(0));
 			}
 			else {
 				return false;

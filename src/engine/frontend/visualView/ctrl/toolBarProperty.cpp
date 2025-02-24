@@ -28,8 +28,8 @@ void CValueToolbar::OnPropertyChanged(Property* property, const wxVariant& oldVa
 				FindControlByID(property->GetValueAsInteger()) : nullptr;
 
 			if (sourceElement != nullptr) {
-				actionData_t actionData =
-					sourceElement->GetActions(sourceElement->GetTypeForm());
+				CActionCollection actionData =
+					sourceElement->GetActionCollection(sourceElement->GetTypeForm());
 				for (unsigned int i = 0; i < actionData.GetCount(); i++) {
 					const action_identifier_t &id = actionData.GetID(i);
 					if (id != wxNOT_FOUND) {

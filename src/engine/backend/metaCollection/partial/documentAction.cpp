@@ -14,9 +14,9 @@ enum action {
 	eMarkAsDelete,
 };
 
-CRecordDataObjectDocument::actionData_t CRecordDataObjectDocument::GetActions(const form_identifier_t &formType)
+CRecordDataObjectDocument::CActionCollection CRecordDataObjectDocument::GetActionCollection(const form_identifier_t &formType)
 {
-	actionData_t documentActions(this);
+	CActionCollection documentActions(this);
 	documentActions.AddAction("postAndClose", _("Post and close"), eDefActionAndClose);
 	documentActions.AddAction("post", _("Post"), ePost);
 	documentActions.AddAction("clearPosting", _("Clear posting"), eClearPosting);

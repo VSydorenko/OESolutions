@@ -354,28 +354,28 @@ void CValueTableBox::OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVisualHo
 			tableCtrl->AssociateModel(m_tableModel);
 		}
 
-		if (m_tableModel != nullptr) {
-			IValueFrame* ownerControl = m_formOwner->GetOwnerControl();
-			if (ownerControl != nullptr) {
-				CValue retValue; ownerControl->GetControlValue(retValue);
-				const wxDataViewItem& currLine = m_tableModel->FindRowValue(retValue);
-				if (currLine.IsOk()) {
-					if (m_tableCurrentLine != nullptr)
-						m_tableCurrentLine->DecrRef();
-					m_tableCurrentLine = m_tableModel->GetRowAt(currLine);
-					m_tableCurrentLine->IncrRef();
-				}
-			}
-		}
-
 		if (needRefresh) {
 
 			try {
-				m_tableModel->RefreshModel(tableCtrl->GetCountPerPage());
+				m_tableModel->RefreshModel(tableCtrl->GetTopItem(), tableCtrl->GetCountPerPage());
 			}
 			catch (const CBackendException* err) {
 				tableCtrl->AssociateModel(nullptr);
 				throw(err);
+			}
+
+			if (m_tableModel != nullptr) {
+				IValueFrame* ownerControl = m_formOwner->GetOwnerControl();
+				if (ownerControl != nullptr && m_tableCurrentLine == nullptr) {
+					CValue retValue; ownerControl->GetControlValue(retValue);
+					const wxDataViewItem& currLine = m_tableModel->FindRowValue(retValue);
+					if (currLine.IsOk()) {
+						if (m_tableCurrentLine != nullptr)
+							m_tableCurrentLine->DecrRef();
+						m_tableCurrentLine = m_tableModel->GetRowAt(currLine);
+						m_tableCurrentLine->IncrRef();
+					}
+				}
 			}
 
 			if (m_tableCurrentLine != nullptr && !m_tableModel->ValidateReturnLine(m_tableCurrentLine)) {

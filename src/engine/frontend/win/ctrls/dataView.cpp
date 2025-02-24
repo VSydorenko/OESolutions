@@ -114,10 +114,10 @@ bool wxDataModelViewCtrl::ShowFilter(struct filterRow_t& filter)
 					const CValue& newValue = commonMetaData->CreateObject(selValue.GetClassType());
 					const wxString& strData = variant.GetString();
 					if (strData.Length() > 0) {
-						std::vector<CValue> foundedObjects;
-						if (newValue.FindValue(strData, foundedObjects)) {
+						std::vector<CValue> listValue;
+						if (newValue.FindValue(strData, listValue)) {
 							m_filter.m_filters[row].m_filterValue = CValueTypeDescription::AdjustValue(
-								m_filter.m_filters[row].m_filterTypeDescription, foundedObjects.at(0)
+								m_filter.m_filters[row].m_filterTypeDescription, listValue.at(0)
 							);
 						}
 						else {
@@ -294,6 +294,9 @@ bool wxDataModelViewCtrl::ShowFilter(struct filterRow_t& filter)
 				if (so != nullptr && so->GetObjectTypeCtor() == eCtorObjectType_object_primitive) {
 					return true;
 				}
+				else if (so != nullptr && so->GetObjectTypeCtor() == eCtorObjectType_object_enum) {
+					return true;
+				}
 				else if (so != nullptr && so->GetObjectTypeCtor() == eCtorObjectType_object_meta_value) {
 					IMetaValueTypeCtor* meta_so = dynamic_cast<IMetaValueTypeCtor*>(so);
 					if (meta_so != nullptr) {
@@ -331,7 +334,7 @@ bool wxDataModelViewCtrl::ShowFilter(struct filterRow_t& filter)
 					if (singleValue != nullptr) {
 						IMetaObject* metaObject = singleValue->GetMetaObject();
 						wxASSERT(metaObject);
-						eSelectMode selMode = eSelectMode::eSelectMode_Items; IMetaObjectAttribute* attribute = nullptr; 
+						eSelectMode selMode = eSelectMode::eSelectMode_Items; IMetaObjectAttribute* attribute = nullptr;
 						if (commonMetaData->GetMetaObject(attribute, filterData.m_filterModel, metaObject))
 							selMode = attribute->GetSelectMode();
 						metaObject->ProcessChoice(this, wxNOT_FOUND, selMode);
@@ -476,7 +479,7 @@ void wxDataModelViewCtrl::OnChar(wxKeyEvent& event)
 
 void wxDataModelViewCtrl::OnRightUp(wxMouseEvent& event)
 {
-	wxDataViewColumn* col = nullptr; 
+	wxDataViewColumn* col = nullptr;
 	int xpos = 0;
 	unsigned int cols = GetColumnCount();
 	unsigned int i;
@@ -674,7 +677,7 @@ bool wxTableModelNotifier::NotifyDelete(const wxDataViewItem& item)
 
 wxDataViewColumn* wxTableModelNotifier::GetCurrentColumn() const
 {
-	wxDataViewColumn *col_from_client_data = static_cast<wxDataViewColumn *>(m_mainWindow->GetClientData());
+	wxDataViewColumn* col_from_client_data = static_cast<wxDataViewColumn*>(m_mainWindow->GetClientData());
 	if (col_from_client_data == nullptr) return m_mainWindow->GetCurrentColumn();
 	m_mainWindow->SetClientData(nullptr);
 	return col_from_client_data;

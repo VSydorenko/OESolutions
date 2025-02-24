@@ -20,11 +20,13 @@ void CValueTableBox::OnColumnClick(wxDataViewEvent& event)
 			sort->m_sortAscending = !sort->m_sortAscending;
 			sort->m_sortEnable = true;
 			if (!appData->DesignerMode()) {
+				wxDataViewCtrl* dataView = dataViewColumn->GetOwner();
+				wxASSERT(dataView);
 				try {
-					m_tableModel->RefreshModel(dataViewColumn->GetOwner()->GetCountPerPage());
+					m_tableModel->RefreshModel(dataView->GetTopItem(), dataView->GetCountPerPage());
 				}
 				catch (const CBackendException* err) {
-					dataViewColumn->GetOwner()->AssociateModel(nullptr);
+					dataView->AssociateModel(nullptr);
 					throw(err);
 				}
 			}
@@ -236,8 +238,8 @@ void CValueTableBox::OnCommandMenu(wxCommandEvent& event)
 
 void CValueTableBox::OnContextMenu(wxDataViewEvent& event)
 {
-	const actionData_t& actionData =
-		CValueTableBox::GetActions(m_formOwner->GetTypeForm());
+	const CActionCollection& actionData =
+		CValueTableBox::GetActionCollection(m_formOwner->GetTypeForm());
 
 	wxMenu menu;
 	for (unsigned int idx = 0; idx < actionData.GetCount(); idx++) {
@@ -268,7 +270,7 @@ void CValueTableBox::OnIdle(wxIdleEvent& event)
 	wxDataModelViewCtrl* dataViewCtrl =
 		dynamic_cast<wxDataModelViewCtrl*>(event.GetEventObject());
 	if (m_dataViewSizeChanged) 
-		m_tableModel->RefreshModel(dataViewCtrl->GetCountPerPage());	
+		m_tableModel->RefreshModel(dataViewCtrl->GetTopItem(), dataViewCtrl->GetCountPerPage());
 	m_dataViewSize = dataViewCtrl->GetSize();
 	m_dataViewSizeChanged = false;
 	event.Skip();

@@ -476,7 +476,7 @@ void CFrameCodeRunner::PrepareTABs()
 		const int length = m_codeEditor->GetLineLength(curr_line + 1);
 		if (length > 0) {
 			std::string strBuffer(m_codeEditor->GetLineRaw(curr_line + 1));
-			for (unsigned int i = 0; i < length; i++) {
+			for (int i = 0; i < length; i++) {
 				if (strBuffer[i] == '\t' || strBuffer[i] == ' ') {
 					currFold++; toPos = i + 1;
 				}

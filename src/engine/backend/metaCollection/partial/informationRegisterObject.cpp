@@ -241,7 +241,7 @@ bool CRecordManagerObjectInformationRegister::DeleteRegister()
 
 		if (!CBackendException::IsEvalMode())
 		{
-			IBackendValueForm * const valueForm = GetForm();
+			IBackendValueForm* const valueForm = GetForm();
 			{
 				db_query->BeginTransaction();
 
@@ -253,8 +253,8 @@ bool CRecordManagerObjectInformationRegister::DeleteRegister()
 
 				db_query->Commit();
 
-				if (valueForm) {
-					valueForm->CloseForm();
+				if (valueForm != nullptr) {
+					valueForm->CloseForm(true);
 				}
 
 				if (backend_mainFrame != nullptr) {
@@ -269,7 +269,8 @@ bool CRecordManagerObjectInformationRegister::DeleteRegister()
 	return true;
 }
 
-enum recordManager {
+enum recordManager
+{
 	enCopyRecordManager,
 	enWriteRecordManager,
 	enDeleteRecordManager,
@@ -280,7 +281,8 @@ enum recordManager {
 	enGetMetadataRecordManager
 };
 
-enum recordSet {
+enum recordSet
+{
 	enAdd = 0,
 	enCount,
 	enClear,
@@ -293,7 +295,8 @@ enum recordSet {
 	enGetMetadataRecordSet,
 };
 
-enum prop {
+enum prop
+{
 	eThisObject,
 	eFilter
 };
@@ -315,8 +318,8 @@ void CRecordSetObjectInformationRegister::PrepareNames() const
 	m_methodHelper->AppendFunc("selected", "selected()");
 	m_methodHelper->AppendFunc("getMetadata", "getMetadata()");
 
-	m_methodHelper->AppendProp(wxT("thisObject"), true, false, eThisObject, wxNOT_FOUND);
-	m_methodHelper->AppendProp(wxT("filter"), true, false, eFilter, wxNOT_FOUND);
+	m_methodHelper->AppendProp(wxT("thisObject"), true, false, prop::eThisObject, wxNOT_FOUND);
+	m_methodHelper->AppendProp(wxT("filter"), true, false, prop::eFilter, wxNOT_FOUND);
 }
 
 void CRecordManagerObjectInformationRegister::PrepareNames() const
@@ -367,12 +370,12 @@ bool CRecordSetObjectInformationRegister::GetPropVal(const long lPropNum, CValue
 {
 	switch (lPropNum)
 	{
-	case eThisObject:
-		pvarPropVal = this;
-		return true;
-	case eFilter:
-		pvarPropVal = m_recordSetKeyValue;
-		return true;
+		case prop::eThisObject:
+			pvarPropVal = this;
+			return true;
+		case prop::eFilter:
+			pvarPropVal = m_recordSetKeyValue;
+			return true;
 	}
 
 	return false;
@@ -380,41 +383,44 @@ bool CRecordSetObjectInformationRegister::GetPropVal(const long lPropNum, CValue
 
 bool CRecordSetObjectInformationRegister::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)
 {
+	IMetaData *metaData = m_metaObject->GetMetaData(); 
+	wxASSERT(metaData);
+
 	switch (lMethodNum)
 	{
-	case recordSet::enAdd:
-		pvarRetValue = new CRecordSetObjectRegisterReturnLine(this, GetItem(AppendRow()));
-		return true;
-	case recordSet::enCount:
-		pvarRetValue = (unsigned int)GetRowCount();
-		return true;
-	case recordSet::enClear:
-		IValueTable::Clear();
-		return true;
-	case recordSet::enLoad:
-		LoadDataFromTable(paParams[0]->ConvertToType<IValueTable>());
-		return true;
-	case recordSet::enUnload:
-		pvarRetValue = SaveDataToTable();
-		return true;
-	case recordSet::enWriteRecordSet:
-		WriteRecordSet(
-			lSizeArray > 0 ?
-			paParams[0]->GetBoolean() : true
-		);
-		return true;
-	case recordSet::enModifiedRecordSet:
-		pvarRetValue = m_objModified;
-		return true;
-	case recordSet::enReadRecordSet:
-		Read();
-		return true;
-	case recordSet::enSelectedRecordSet:
-		pvarRetValue = Selected();
-		return true;
-	case recordSet::enGetMetadataRecordSet:
-		pvarRetValue = GetMetaObject();
-		return true;
+		case recordSet::enAdd:
+			pvarRetValue = CValue::CreateAndConvertObjectValueRef<CRecordSetObjectRegisterReturnLine>(this, GetItem(AppendRow()));
+			return true;
+		case recordSet::enCount:
+			pvarRetValue = (unsigned int)GetRowCount();
+			return true;
+		case recordSet::enClear:
+			IValueTable::Clear();
+			return true;
+		case recordSet::enLoad:
+			LoadDataFromTable(paParams[0]->ConvertToType<IValueTable>());
+			return true;
+		case recordSet::enUnload:
+			pvarRetValue = SaveDataToTable();
+			return true;
+		case recordSet::enWriteRecordSet:
+			WriteRecordSet(
+				lSizeArray > 0 ?
+				paParams[0]->GetBoolean() : true
+			);
+			return true;
+		case recordSet::enModifiedRecordSet:
+			pvarRetValue = m_objModified;
+			return true;
+		case recordSet::enReadRecordSet:
+			Read();
+			return true;
+		case recordSet::enSelectedRecordSet:
+			pvarRetValue = Selected();
+			return true;
+		case recordSet::enGetMetadataRecordSet:
+			pvarRetValue = GetMetaObject();
+			return true;
 	}
 
 	return false;
@@ -424,33 +430,33 @@ bool CRecordManagerObjectInformationRegister::CallAsFunc(const long lMethodNum, 
 {
 	switch (lMethodNum)
 	{
-	case recordManager::enCopyRecordManager:
-		pvarRetValue = CopyRegister();
-		return true;
-	case recordManager::enWriteRecordManager:
-		pvarRetValue = WriteRegister(
-			lSizeArray > 0 ?
-			paParams[0]->GetBoolean() : true
-		);
-		return true;
-	case recordManager::enDeleteRecordManager:
-		pvarRetValue = DeleteRegister();
-		return true;
-	case recordManager::enModifiedRecordManager:
-		pvarRetValue = m_recordSet->IsModified();
-		return true;
-	case recordManager::enReadRecordManager:
-		m_recordSet->Read();
-		return true;
-	case recordManager::enSelectedRecordManager:
-		pvarRetValue = m_recordSet->Selected();
-		return true;
-	case recordManager::enGetFormRecord:
-		pvarRetValue = GetFormValue();
-		return true;
-	case recordManager::enGetMetadataRecordManager:
-		pvarRetValue = m_metaObject;
-		return true;
+		case recordManager::enCopyRecordManager:
+			pvarRetValue = CopyRegister();
+			return true;
+		case recordManager::enWriteRecordManager:
+			pvarRetValue = WriteRegister(
+				lSizeArray > 0 ?
+				paParams[0]->GetBoolean() : true
+			);
+			return true;
+		case recordManager::enDeleteRecordManager:
+			pvarRetValue = DeleteRegister();
+			return true;
+		case recordManager::enModifiedRecordManager:
+			pvarRetValue = m_recordSet->IsModified();
+			return true;
+		case recordManager::enReadRecordManager:
+			m_recordSet->Read();
+			return true;
+		case recordManager::enSelectedRecordManager:
+			pvarRetValue = m_recordSet->Selected();
+			return true;
+		case recordManager::enGetFormRecord:
+			pvarRetValue = GetFormValue();
+			return true;
+		case recordManager::enGetMetadataRecordManager:
+			pvarRetValue = m_metaObject;
+			return true;
 	}
 
 	return false;

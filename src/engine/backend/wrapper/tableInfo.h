@@ -488,7 +488,7 @@ public:
 	virtual bool ShowFilter();
 
 	//Update model 
-	virtual void RefreshModel(const int countPerPage = defaultCountPerPage) {};
+	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage) {};
 	virtual void RefreshItemModel(
 		const wxDataViewItem& topItem,
 		const wxDataViewItem& currentItem,
@@ -501,7 +501,7 @@ public:
 	* Override actionData
 	*/
 
-	virtual actionData_t GetActions(const form_identifier_t& formType);
+	virtual CActionCollection GetActionCollection(const form_identifier_t& formType);
 	virtual void ExecuteAction(const action_identifier_t& lNumAction, class IBackendValueForm* srcForm);
 
 protected:
@@ -572,9 +572,9 @@ public:
 		bool SetValue(unsigned int col, const wxVariant& variant, bool notify = false) {
 			try {
 				CValue& cValue = m_nodeValues.at(col);
-				std::vector<CValue> foundedObjects;
-				if (cValue.FindValue(variant.GetString(), foundedObjects)) {
-					const CValue& cFoundedValue = foundedObjects.at(0);
+				std::vector<CValue> listValue;
+				if (cValue.FindValue(variant.GetString(), listValue)) {
+					const CValue& cFoundedValue = listValue.at(0);
 					if (notify && cValue != cFoundedValue)
 						m_valueTable->RowValueChanged(this, col);
 					cValue.SetValue(cFoundedValue);
@@ -1105,9 +1105,9 @@ public:
 		bool SetValue(unsigned int col, const wxVariant& variant, bool notify = false) {
 			try {
 				CValue& cValue = m_nodeValues.at(col);
-				std::vector<CValue> foundedObjects;
-				if (cValue.FindValue(variant.GetString(), foundedObjects)) {
-					const CValue& cFoundedValue = foundedObjects.at(0);
+				std::vector<CValue> listValue;
+				if (cValue.FindValue(variant.GetString(), listValue)) {
+					const CValue& cFoundedValue = listValue.at(0);
 					if (notify && cValue != cFoundedValue)
 						m_valueTree->RowValueChanged(this, col);
 					cValue.SetValue(cFoundedValue);

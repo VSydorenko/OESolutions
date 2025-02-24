@@ -131,7 +131,7 @@ public:
 	//get special filed data
 	static unsigned short GetSQLFieldCount(IMetaObjectAttribute* metaAttr);
 	static wxString GetSQLFieldName(IMetaObjectAttribute* metaAttr, const wxString& aggr = wxEmptyString);
-	static wxString GetCompositeSQLFieldName(IMetaObjectAttribute* metaAttr, const wxString& oper = wxT("="));
+	static wxString GetCompositeSQLFieldName(IMetaObjectAttribute* metaAttr, const wxString& cmp = wxT("="));
 	static wxString GetExcluteSQLFieldName(IMetaObjectAttribute* metaAttr);
 
 	//get data sql
@@ -183,9 +183,6 @@ public:
 	//get sql type for db 
 	virtual wxString GetSQLTypeObject(const class_identifier_t& clsid) const;
 
-	//check if attribute is default 
-	virtual bool DefaultAttribute() const = 0;
-
 	//check if attribute is fill 
 	virtual bool FillCheck() const = 0;
 
@@ -234,19 +231,14 @@ protected:
 	PropertyCategory* m_categoryType = IPropertyObject::CreatePropertyCategory("data");
 	Property* m_propertyType = IPropertyObject::CreateTypeProperty(m_categoryType, "type");
 	PropertyCategory* m_categoryAttribute = IPropertyObject::CreatePropertyCategory("attribute");
-	Property* m_propertyFillCheck = IPropertyObject::CreateProperty(m_categoryAttribute, { "fill_check", "fill check" }, PropertyType::PT_BOOL);
-	PropertyCategory* m_categoryPresentation = IPropertyObject::CreatePropertyCategory({ "presentation", _("presentation") });
-	Property* m_propertySelectMode = IPropertyObject::CreateProperty(m_categoryPresentation, { "select",  "select group and items" }, &CMetaObjectAttribute::GetSelectMode, eSelectMode::eSelectMode_Items);
-	PropertyCategory* m_categoryGroup = IPropertyObject::CreatePropertyCategory({ "group", _("group") });
-	Property* m_propertyItemMode = IPropertyObject::CreateProperty(m_categoryGroup, { "use",  "use" }, &CMetaObjectAttribute::GetItemMode, eItemMode::eItemMode_Item);
+	Property* m_propertyFillCheck = IPropertyObject::CreateProperty(m_categoryAttribute, {"fill_check", "fill check"}, PropertyType::PT_BOOL);
+	PropertyCategory* m_categoryPresentation = IPropertyObject::CreatePropertyCategory({"presentation", _("presentation")});
+	Property* m_propertySelectMode = IPropertyObject::CreateProperty(m_categoryPresentation, {"select",  "select group and items"}, &CMetaObjectAttribute::GetSelectMode, eSelectMode::eSelectMode_Items);
+	PropertyCategory* m_categoryGroup = IPropertyObject::CreatePropertyCategory({"group", _("group")});
+	Property* m_propertyItemMode = IPropertyObject::CreateProperty(m_categoryGroup, {"use",  "use"}, &CMetaObjectAttribute::GetItemMode, eItemMode::eItemMode_Item);
 public:
 
 	CMetaObjectAttribute(const eValueTypes& valType = eValueTypes::TYPE_STRING);
-
-	//check if attribute is default 
-	virtual bool DefaultAttribute() const {
-		return false;
-	}
 
 	//support icons
 	virtual wxIcon GetIcon() const;
@@ -297,7 +289,7 @@ private:
 	{
 		ITypeWrapper::SetDefaultMetatype(eValueTypes::TYPE_DATE);
 		ITypeWrapper::SetDate(qDate.m_dateTime);
-		m_fillCheck = fillCheck; m_defValue = defValue; 
+		m_fillCheck = fillCheck; m_defValue = defValue;
 	}
 	CMetaObjectAttributeDefault(const wxString& name, const wxString& synonym, const wxString& comment, const qualifierString_t& qString, bool fillCheck, const CValue& defValue, eItemMode itemMode, eSelectMode selectMode)
 		: IMetaObjectAttribute(name, synonym, comment), m_itemMode(itemMode), m_selectMode(selectMode)
@@ -337,107 +329,7 @@ public:
 		ITypeWrapper::SetDefaultMetatype(eValueTypes::TYPE_STRING);
 	}
 
-	static CMetaObjectAttributeDefault* CreateBoolean(const wxString& name, const wxString& synonym, const wxString& comment,
-		eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, false, eValueTypes::TYPE_BOOLEAN, useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateBoolean(const wxString& name, const wxString& synonym, const wxString& comment,
-		bool fillCheck, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, fillCheck, eValueTypes::TYPE_BOOLEAN, useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateBoolean(const wxString& name, const wxString& synonym, const wxString& comment,
-		bool fillCheck, const bool& defValue, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, fillCheck, CValue(defValue), useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateNumber(const wxString& name, const wxString& synonym, const wxString& comment,
-		unsigned char precision, unsigned char scale, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, qualifierNumber_t(precision, scale), false, eValueTypes::TYPE_NUMBER, useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateNumber(const wxString& name, const wxString& synonym, const wxString& comment,
-		unsigned char precision, unsigned char scale, bool fillCheck, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, qualifierNumber_t(precision, scale), fillCheck, eValueTypes::TYPE_NUMBER, useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateNumber(const wxString& name, const wxString& synonym, const wxString& comment,
-		unsigned char precision, unsigned char scale, bool fillCheck, const number_t& defValue, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, qualifierNumber_t(precision, scale), fillCheck, CValue(defValue), useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateDate(const wxString& name, const wxString& synonym, const wxString& comment,
-		eDateFractions dateTime, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, qualifierDate_t(dateTime), false, eValueTypes::TYPE_DATE, useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateDate(const wxString& name, const wxString& synonym, const wxString& comment,
-		eDateFractions dateTime, bool fillCheck, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, qualifierDate_t(dateTime), fillCheck, eValueTypes::TYPE_DATE, useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateDate(const wxString& name, const wxString& synonym, const wxString& comment,
-		eDateFractions dateTime, bool fillCheck, const wxDateTime& defValue, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, qualifierDate_t(dateTime), fillCheck, CValue(defValue), useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateString(const wxString& name, const wxString& synonym, const wxString& comment,
-		unsigned short length, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, qualifierString_t(length), false, eValueTypes::TYPE_STRING, useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateString(const wxString& name, const wxString& synonym, const wxString& comment,
-		unsigned short length, bool fillCheck, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, qualifierString_t(length), fillCheck, eValueTypes::TYPE_STRING, useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateString(const wxString& name, const wxString& synonym, const wxString& comment,
-		unsigned short length, bool fillCheck, const wxString& defValue, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, qualifierString_t(length), fillCheck, CValue(defValue), useItem, selectMode);
-	}
-
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	static CMetaObjectAttributeDefault* CreateEmptyType(const wxString& name, const wxString& synonym, const wxString& comment,
-		eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, false, useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateEmptyType(const wxString& name, const wxString& synonym, const wxString& comment,
-		bool fillCheck, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, fillCheck, useItem, selectMode);
-	}
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	static CMetaObjectAttributeDefault* CreateSpecialType(const wxString& name, const wxString& synonym, const wxString& comment,
-		const class_identifier_t& clsid, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, clsid, false, CValue(), useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateSpecialType(const wxString& name, const wxString& synonym, const wxString& comment,
-		const class_identifier_t& clsid, const CValue& defValue, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, clsid, false, defValue, useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateSpecialType(const wxString& name, const wxString& synonym, const wxString& comment,
-		const class_identifier_t& clsid, bool fillCheck, const CValue& defValue, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, clsid, fillCheck, defValue, useItem, selectMode);
-	}
-
-	static CMetaObjectAttributeDefault* CreateSpecialType(const wxString& name, const wxString& synonym, const wxString& comment,
-		const class_identifier_t& clsid, const typeDescription_t::typeData_t& descr,
-		bool fillCheck, const CValue& defValue, eItemMode useItem = eItemMode::eItemMode_Item, eSelectMode selectMode = eSelectMode::eSelectMode_Items) {
-		return CValue::CreateAndConvertObjectValueRef<CMetaObjectAttributeDefault>(name, synonym, comment, clsid, descr, fillCheck, defValue, useItem, selectMode);
-	}
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//check if attribute is default 
-	virtual bool DefaultAttribute() const {
-		return true;
-	}
 
 	//check if attribute is fill 
 	virtual bool FillCheck() const {

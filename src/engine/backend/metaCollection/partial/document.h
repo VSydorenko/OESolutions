@@ -252,11 +252,19 @@ public:
 	virtual bool FillObject(CValue& vFillObject) const {
 		return Filling(vFillObject);
 	}
+
 	virtual IRecordDataObjectRef* CopyObject(bool showValue = false) {
 		IRecordDataObjectRef* objectRef = CopyObjectValue();
 		if (objectRef != nullptr && showValue)
 			objectRef->ShowFormValue();
 		return objectRef;
+	}
+
+	virtual bool WriteObject() {
+		return WriteObject(
+			IsPosted() ? eDocumentWriteMode::eDocumentWriteMode_Posting : eDocumentWriteMode::eDocumentWriteMode_Write,
+			eDocumentPostingMode::eDocumentPostingMode_Regular
+		);
 	}
 	virtual bool WriteObject(eDocumentWriteMode writeMode, eDocumentPostingMode postingMode);
 	virtual bool DeleteObject();
@@ -284,11 +292,11 @@ public:
 	virtual IBackendValueForm* GetFormValue(const wxString& formName = wxEmptyString, IBackendControlFrame* ownerControl = nullptr);
 
 	//support actionData
-	virtual actionData_t GetActions(const form_identifier_t& formType);
+	virtual CActionCollection GetActionCollection(const form_identifier_t& formType);
 	virtual void ExecuteAction(const action_identifier_t& lNumAction, IBackendValueForm* srcForm);
 
-protected:
-	void SetDeletionMark(bool deletionMark = true);
+public:
+	virtual void SetDeletionMark(bool deletionMark = true);
 protected:
 	friend class IMetaData; 
 	friend class CMetaObjectDocument; 

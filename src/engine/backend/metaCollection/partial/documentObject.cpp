@@ -43,6 +43,8 @@ void CRecordDataObjectDocument::CRecorderRegisterDocument::CreateRecordSet()
 
 		m_records.insert_or_assign(meta_id, recordSet);
 	}
+
+	PrepareNames();
 }
 
 bool CRecordDataObjectDocument::CRecorderRegisterDocument::WriteRecordSet()
@@ -138,9 +140,11 @@ bool CRecordDataObjectDocument::IsPosted() const
 
 void CRecordDataObjectDocument::SetDeletionMark(bool deletionMark)
 {
-	CMetaObjectDocument* metaDocRef = nullptr;
-	if (m_metaObject->ConvertToValue(metaDocRef))
-		SetValueByMetaID(*metaDocRef->GetDocumentPosted(), false);
+	WriteObject(
+		eDocumentWriteMode::eDocumentWriteMode_UndoPosting, 
+		eDocumentPostingMode::eDocumentPostingMode_Regular
+	);
+	
 	IRecordDataObjectRef::SetDeletionMark(deletionMark);
 }
 
@@ -242,6 +246,17 @@ bool CRecordDataObjectDocument::WriteObject(eDocumentWriteMode writeMode, eDocum
 
 		if (!CBackendException::IsEvalMode())
 		{
+			if (writeMode == eDocumentWriteMode::eDocumentWriteMode_Posting) {
+				CValue deletionMark = false;
+				CMetaObjectAttributeDefault* attributeDeletionMark = m_metaObject->GetDataDeletionMark();
+				wxASSERT(attributeDeletionMark);
+				IRecordDataObjectRef::GetValueByMetaID(*attributeDeletionMark, deletionMark);
+				if (deletionMark.GetBoolean()) {
+					CSystemFunction::Raise(_("failed to post object in db!"));
+					return false;
+				}
+			}
+
 			IBackendValueForm* const valueForm = GetForm();
 
 			{
@@ -391,8 +406,8 @@ bool CRecordDataObjectDocument::DeleteObject()
 
 				db_query->Commit();
 
-				if (valueForm) {
-					valueForm->CloseForm();
+				if (valueForm != nullptr) {
+					valueForm->CloseForm(true);
 				}
 
 				if (backend_mainFrame != nullptr) {
@@ -451,6 +466,7 @@ void CRecordDataObjectDocument::PrepareNames() const
 			eProperty
 		);
 	}
+	
 	//fill custom tables 
 	for (auto& obj : m_metaObject->GetObjectTables()) {
 		if (obj->IsDeleted())
@@ -463,6 +479,7 @@ void CRecordDataObjectDocument::PrepareNames() const
 			eTable
 		);
 	}
+	
 	if (m_procUnit != nullptr) {
 		CByteCode* byteCode = m_procUnit->GetByteCode();
 		if (byteCode != nullptr) {

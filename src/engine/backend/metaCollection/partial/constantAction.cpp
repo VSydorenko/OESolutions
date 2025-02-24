@@ -7,9 +7,9 @@ enum
 };
 
 
-CRecordDataObjectConstant::actionData_t CRecordDataObjectConstant::GetActions(const form_identifier_t& formType)
+CRecordDataObjectConstant::CActionCollection CRecordDataObjectConstant::GetActionCollection(const form_identifier_t& formType)
 {
-	actionData_t catalogActions(this);
+	CActionCollection catalogActions(this);
 	catalogActions.AddAction("saveAndClose", _("Save and close"), eDefActionAndClose);
 	catalogActions.AddAction("save", _("Save"), eSave);
 	return catalogActions;

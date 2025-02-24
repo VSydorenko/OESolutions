@@ -52,7 +52,7 @@ bool CReferenceDataObject::ReadData(bool createData)
 	return false;
 }
 
-bool CReferenceDataObject::FindValue(const wxString& findData, std::vector<CValue>& foundedObjects) const
+bool CReferenceDataObject::FindValue(const wxString& findData, std::vector<CValue>& listValue) const
 {
 	class CObjectComparatorValue : public IObjectValueInfo {
 		bool ReadValues() {
@@ -121,14 +121,14 @@ bool CReferenceDataObject::FindValue(const wxString& findData, std::vector<CValu
 		while (resultSet->Next()) {
 			const Guid& currentGuid = resultSet->GetResultString(guidName);
 			if (CObjectComparatorValue::CompareValue(findData, m_metaObject, currentGuid)) {
-				foundedObjects.push_back(
+				listValue.push_back(
 					CReferenceDataObject::Create(m_metaObject, currentGuid)
 				);
 			}
 		}
-		std::sort(foundedObjects.begin(), foundedObjects.end(), [](const CValue& a, const CValue& b) { return a.GetString() < b.GetString(); });
+		std::sort(listValue.begin(), listValue.end(), [](const CValue& a, const CValue& b) { return a.GetString() < b.GetString(); });
 		resultSet->Close();
-		return foundedObjects.size() > 0;
+		return listValue.size() > 0;
 	}
 
 	return false;

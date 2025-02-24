@@ -29,7 +29,7 @@ private:
 		m_srcData = { attribute->GetName(), attribute->GetSynonym(), attribute, attribute->GetMetaID(), attribute->GetTypeDescription(), enabled, visible, false };
 	}
 
-	CSourceExplorer(CMetaObjectTable* tableSection) {
+	CSourceExplorer(CMetaObjectTableData* tableSection) {
 		m_srcData = { tableSection->GetName(), tableSection->GetSynonym(), tableSection, tableSection->GetMetaID(), tableSection->GetTypeDescription(), true, true, true };
 		for (auto& obj : tableSection->GetObjectAttributes()) {
 			CSourceExplorer::AppendSource(obj);
@@ -106,7 +106,7 @@ public:
 		);
 	}
 
-	void AppendSource(CMetaObjectTable* tableSection) {
+	void AppendSource(CMetaObjectTableData* tableSection) {
 		if (tableSection->IsDeleted())
 			return;
 		m_aSrcData.emplace_back(

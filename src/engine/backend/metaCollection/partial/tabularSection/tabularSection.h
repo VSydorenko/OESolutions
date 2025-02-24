@@ -106,7 +106,7 @@ public:
 		}
 
 		virtual unsigned int GetColumnCount() const {
-			CMetaObjectTable* metaTable = m_ownerTable->GetMetaObject();
+			CMetaObjectTableData* metaTable = m_ownerTable->GetMetaObject();
 			wxASSERT(metaTable);
 			const auto& obj = metaTable->GetObjectAttributes();
 			return obj.size();
@@ -160,7 +160,7 @@ public:
 		CMethodHelper* m_methodHelper;
 	};
 
-	CMetaObjectTable* GetMetaObject() const {
+	CMetaObjectTableData* GetMetaObject() const {
 		return m_metaTable;
 	}
 
@@ -172,7 +172,7 @@ public:
 		m_objectValue(nullptr), m_metaTable(nullptr), m_dataColumnCollection(nullptr), m_methodHelper(nullptr), m_readOnly(false) {
 	}
 
-	ITabularSectionDataObject(IObjectValueInfo* objectValue, CMetaObjectTable* tableObject, bool readOnly = false) :
+	ITabularSectionDataObject(IObjectValueInfo* objectValue, CMetaObjectTableData* tableObject, bool readOnly = false) :
 		m_objectValue(objectValue), m_metaTable(tableObject), m_dataColumnCollection(nullptr), m_methodHelper(new CMethodHelper()), m_readOnly(readOnly) {
 		m_dataColumnCollection = new CTabularSectionDataObjectColumnCollection(this);
 		m_dataColumnCollection->IncrRef();
@@ -258,7 +258,7 @@ protected:
 	CMethodHelper* m_methodHelper;
 	IObjectValueInfo* m_objectValue;
 	CTabularSectionDataObjectColumnCollection* m_dataColumnCollection;
-	CMetaObjectTable* m_metaTable;
+	CMetaObjectTableData* m_metaTable;
 };
 
 class BACKEND_API CTabularSectionDataObject : public ITabularSectionDataObject {
@@ -266,7 +266,7 @@ class BACKEND_API CTabularSectionDataObject : public ITabularSectionDataObject {
 public:
 
 	CTabularSectionDataObject();
-	CTabularSectionDataObject(class IRecordDataObject* recordObject, CMetaObjectTable* tableObject);
+	CTabularSectionDataObject(class IRecordDataObject* recordObject, CMetaObjectTableData* tableObject);
 	virtual ~CTabularSectionDataObject() {}
 };
 
@@ -279,9 +279,9 @@ public:
 	}
 
 	CTabularSectionDataObjectRef();
-	CTabularSectionDataObjectRef(class CReferenceDataObject* reference, CMetaObjectTable* tableObject, bool readAfter = false);
-	CTabularSectionDataObjectRef(class IRecordDataObjectRef* recordObject, CMetaObjectTable* tableObject);
-	CTabularSectionDataObjectRef(class CSelectorDataObject* selectorObject, CMetaObjectTable* tableObject);
+	CTabularSectionDataObjectRef(class CReferenceDataObject* reference, CMetaObjectTableData* tableObject, bool readAfter = false);
+	CTabularSectionDataObjectRef(class IRecordDataObjectRef* recordObject, CMetaObjectTableData* tableObject);
+	CTabularSectionDataObjectRef(class CSelectorDataObject* selectorObject, CMetaObjectTableData* tableObject);
 
 	virtual ~CTabularSectionDataObjectRef() {}
 

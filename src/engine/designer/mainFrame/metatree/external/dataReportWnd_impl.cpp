@@ -479,7 +479,7 @@ void CDataReportTree::FillData()
 	for (auto metaAttribute : commonMetadata->GetObjectAttributes()) {
 		if (metaAttribute->IsDeleted())
 			continue;
-		if (metaAttribute->DefaultAttribute())
+		if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 			continue;
 		wxTreeItemId hItem = AppendItem(m_treeATTRIBUTES, metaAttribute);
 	}
@@ -492,7 +492,7 @@ void CDataReportTree::FillData()
 		for (auto metaAttribute : metaTable->GetObjectAttributes()) {
 			if (metaAttribute->IsDeleted())
 				continue;
-			if (metaAttribute->DefaultAttribute())
+			if (metaAttribute->GetClassType() == g_metaDefaultAttributeCLSID)
 				continue;
 			wxTreeItemId hItemNew = AppendItem(hItem, metaAttribute);
 		}

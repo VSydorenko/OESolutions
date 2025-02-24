@@ -1,18 +1,10 @@
-#ifndef _TABLES_H__
-#define _TABLES_H__
+#ifndef __META_TABLE_H__
+#define __META_TABLE_H__
 
-#include "backend/metaCollection/metaObject.h"
-#include "backend/metaCollection/attribute/metaAttributeObject.h"
+#include "backend/metaCollection/metaContext.h"
 
-class BACKEND_API IMetaTableData {
-public:
-	//override base objects 
-	virtual std::vector<IMetaObjectAttribute*> GetGenericAttributes() const = 0;
-};
-
-class BACKEND_API CMetaObjectTable : public IMetaObject,
-	public IMetaTableData {
-	wxDECLARE_DYNAMIC_CLASS(CMetaObjectTable);
+class BACKEND_API CMetaObjectTableData : public IMetaObjectContextData {
+	wxDECLARE_DYNAMIC_CLASS(CMetaObjectTableData);
 private:
 	OptionList* GetUseItem(PropertyOption*) {
 		OptionList* opt_list = new OptionList;
@@ -24,7 +16,7 @@ private:
 	CMetaObjectAttributeDefault* m_numberLine;
 protected:
 	PropertyCategory* m_categoryGroup = IPropertyObject::CreatePropertyCategory({ "group", _("group") });
-	Property* m_propertyUse = IPropertyObject::CreateProperty(m_categoryGroup, { "use",  _("use") }, &CMetaObjectTable::GetUseItem, eItemMode::eItemMode_Item);
+	Property* m_propertyUse = IPropertyObject::CreateProperty(m_categoryGroup, { "use",  _("use") }, &CMetaObjectTableData::GetUseItem, eItemMode::eItemMode_Item);
 public:
 
 	eItemMode GetTableUse() const {
@@ -49,8 +41,8 @@ public:
 	}
 
 	//ctor 
-	CMetaObjectTable();
-	virtual ~CMetaObjectTable();
+	CMetaObjectTableData();
+	virtual ~CMetaObjectTableData();
 
 	//support icons
 	virtual wxIcon GetIcon() const;

@@ -48,6 +48,19 @@ void CDesignerApp::OnMouseEvent(wxMouseEvent& event)
 
 void CDesignerApp::OnSetFocus(wxFocusEvent& event)
 {
+	wxWindow* windowFocus = dynamic_cast<wxWindow*>(event.GetEventObject());
+
+	while (windowFocus && !windowFocus->IsKindOf(CLASSINFO(wxAuiMDIChildFrame))) {
+		windowFocus = windowFocus->GetParent();
+	}
+
+	if (windowFocus != nullptr) {
+		wxAuiNotebook* noteBook = mainFrame->GetNotebook();
+		size_t newSelPos = noteBook->FindPage(windowFocus);
+		if (newSelPos != noteBook->GetSelection())
+			noteBook->SetSelection(newSelPos);
+	}
+
 	event.Skip();
 }
 

@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////////////////////////
 
 // array of mathematical operation priorities
-static std::array<int, 256> gs_operPriority = { 0 };
+static std::array<int, 256> gs_operPriority = {0};
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction CCompileCode
@@ -210,20 +210,17 @@ void CCompileCode::SetError(int codeError, const wxString& errorDesc)
 
 	if (m_numCurrentCompile >= 0 && m_numCurrentCompile < m_listLexem.size()) {
 
-		const lexem_t& lex = m_listLexem.at(m_numCurrentCompile);
+		strFileName = m_listLexem[m_numCurrentCompile].m_strFileName;
+		strModuleName = m_listLexem[m_numCurrentCompile].m_strModuleName;
+		strDocPath = m_listLexem[m_numCurrentCompile].m_strDocPath;
 
-		strFileName = lex.m_strFileName;
-		strModuleName = lex.m_strModuleName;
-		strDocPath = lex.m_strDocPath;
-
-		if (lex.m_lexType == ENDPROGRAM) {
-			const lexem_t& prevLex = m_listLexem.at(m_numCurrentCompile - 1);
-			currLine = prevLex.line();
-			currPos = prevLex.back();
+		if (m_listLexem[m_numCurrentCompile].m_lexType != ENDPROGRAM) {
+			currLine = m_listLexem[m_numCurrentCompile].GetLine();
+			currPos = m_listLexem[m_numCurrentCompile].EndPos();
 		}
 		else {
-			currLine = lex.line();
-			currPos = lex.back();
+			currLine = m_listLexem[m_numCurrentCompile - 1].GetLine();
+			currPos = m_listLexem[m_numCurrentCompile - 1].EndPos();
 		}
 	}
 
@@ -296,9 +293,9 @@ void CCompileCode::AddLineInfo(CByteUnit& code)
  * 0 or pointer to token
  */
 
-lexem_t CCompileCode::GetLexem()
+CLexem CCompileCode::GetLexem()
 {
-	lexem_t lex;
+	CLexem lex;
 	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
 		lex = m_listLexem[++m_numCurrentCompile];
 	}
@@ -306,9 +303,9 @@ lexem_t CCompileCode::GetLexem()
 }
 
 // get the next token from a list of bytecodes without incrementing the current position counter
-lexem_t CCompileCode::PreviewGetLexem()
+CLexem CCompileCode::PreviewGetLexem()
 {
-	lexem_t lex;
+	CLexem lex;
 	while (true) {
 		lex = GetLexem();
 		if (!(lex.m_lexType == DELIMITER && lex.m_numData == ';')) break;
@@ -325,12 +322,13 @@ lexem_t CCompileCode::PreviewGetLexem()
  * no (if failure occurs, an exception is thrown)
  */
 
-lexem_t CCompileCode::GETLexem()
+CLexem CCompileCode::GETLexem()
 {
-	lexem_t lex = GetLexem();
+	CLexem lex = GetLexem();
 	if (lex.m_lexType == ERRORTYPE) {
 		m_numCurrentCompile--;
 		SetError(ERROR_CODE_DEFINE);
+		return CLexem();
 	}
 	return lex;
 }
@@ -345,7 +343,7 @@ lexem_t CCompileCode::GETLexem()
 
 void CCompileCode::GETDelimeter(const wxUniChar& c)
 {
-	lexem_t lex = GETLexem();
+	CLexem lex = GETLexem();
 	if (!(lex.m_lexType == DELIMITER && c == lex.m_numData)) {
 		m_numCurrentCompile--;
 		SetError(ERROR_DELIMETER, c);
@@ -363,7 +361,7 @@ void CCompileCode::GETDelimeter(const wxUniChar& c)
 bool CCompileCode::IsKeyWord(int k)
 {
 	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_numCurrentCompile];
+		const CLexem& lex = m_listLexem[m_numCurrentCompile];
 		if (lex.m_lexType == KEYWORD && lex.m_numData == k)
 			return true;
 	}
@@ -381,7 +379,7 @@ bool CCompileCode::IsKeyWord(int k)
 bool CCompileCode::IsNextKeyWord(int k)
 {
 	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_numCurrentCompile + 1];
+		const CLexem& lex = m_listLexem[m_numCurrentCompile + 1];
 		if (lex.m_lexType == KEYWORD && k == lex.m_numData)
 			return true;
 	}
@@ -399,7 +397,7 @@ bool CCompileCode::IsNextKeyWord(int k)
 bool CCompileCode::IsDelimeter(const wxUniChar& c)
 {
 	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_numCurrentCompile];
+		const CLexem& lex = m_listLexem[m_numCurrentCompile];
 		if (lex.m_lexType == DELIMITER && c == lex.m_numData)
 			return true;
 	}
@@ -417,7 +415,7 @@ bool CCompileCode::IsDelimeter(const wxUniChar& c)
 bool CCompileCode::IsNextDelimeter(const wxUniChar& c)
 {
 	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_numCurrentCompile + 1];
+		const CLexem& lex = m_listLexem[m_numCurrentCompile + 1];
 		if (lex.m_lexType == DELIMITER && c == lex.m_numData)
 			return true;
 	}
@@ -433,7 +431,7 @@ bool CCompileCode::IsNextDelimeter(const wxUniChar& c)
 
 void CCompileCode::GETKeyWord(int nKey)
 {
-	const lexem_t& lex = GETLexem();
+	const CLexem& lex = GETLexem();
 	if (!(lex.m_lexType == KEYWORD && lex.m_numData == nKey)) {
 		m_numCurrentCompile--;
 		SetError(ERROR_KEYWORD,
@@ -451,7 +449,7 @@ void CCompileCode::GETKeyWord(int nKey)
 
 wxString CCompileCode::GETIdentifier(bool strRealName)
 {
-	const lexem_t& lex = GETLexem();
+	const CLexem& lex = GETLexem();
 	if (lex.m_lexType != IDENTIFIER) {
 		m_numCurrentCompile--;
 		SetError(ERROR_IDENTIFIER_DEFINE);
@@ -474,7 +472,7 @@ wxString CCompileCode::GETIdentifier(bool strRealName)
 
 CValue CCompileCode::GETConstant()
 {
-	lexem_t lex;
+	CLexem lex;
 	int iNumRequire = 0;
 	if (IsNextDelimeter('-') || IsNextDelimeter('+')) {
 		iNumRequire = 1;
@@ -508,9 +506,10 @@ CValue CCompileCode::GETConstant()
 const int CCompileCode::GetConstString(const wxString& strConstName)
 {
 	auto& it = std::find_if(m_listHashConst.begin(), m_listHashConst.end(),
-		[strConstName](std::pair <const wxString, unsigned int>& pair) {
-			return stringUtils::CompareString(strConstName, pair.first);
-		}
+		[strConstName](std::pair <const wxString, unsigned int>& pair)
+	{
+		return stringUtils::CompareString(strConstName, pair.first);
+	}
 	);
 
 	if (it != m_listHashConst.end())
@@ -711,7 +710,7 @@ bool CCompileCode::IsTypeVar(const wxString& strType)
 		if (CValue::IsRegisterCtor(strType, eCtorObjectType::eCtorObjectType_object_primitive))
 			return true;
 	}
-	const lexem_t& lex = PreviewGetLexem();
+	const CLexem& lex = PreviewGetLexem();
 	if (CValue::IsRegisterCtor(lex.m_strData, eCtorObjectType::eCtorObjectType_object_primitive))
 		return true;
 	return false;
@@ -726,7 +725,7 @@ wxString CCompileCode::GetTypeVar(const wxString& strType)
 		}
 		return strType.Upper();
 	}
-	const lexem_t& lex = GETLexem();
+	const CLexem& lex = GETLexem();
 	if (!CValue::IsRegisterCtor(lex.m_strData, eCtorObjectType::eCtorObjectType_object_primitive)) {
 		SetError(ERROR_TYPE_DEF);
 		return wxEmptyString;
@@ -744,7 +743,7 @@ wxString CCompileCode::GetTypeVar(const wxString& strType)
 
 bool CCompileCode::CompileDeclaration(CCompileContext* context)
 {
-	const lexem_t& lex = PreviewGetLexem(); wxString strType;
+	const CLexem& lex = PreviewGetLexem(); wxString strType;
 	if (lex.m_lexType == IDENTIFIER) {
 		strType = GetTypeVar(); // typed setting of variables
 	}
@@ -770,6 +769,7 @@ bool CCompileCode::CompileDeclaration(CCompileContext* context)
 				if (currentVariable->m_bExport ||
 					pCurContext->m_compileModule == this) {
 					SetError(ERROR_DEF_VARIABLE, strRealName);
+					return false;
 				}
 			}
 			pCurContext = pCurContext->m_parentContext;
@@ -779,12 +779,12 @@ bool CCompileCode::CompileDeclaration(CCompileContext* context)
 		if (IsNextDelimeter('[')) { // this is an array declaration
 			nArrayCount = 0;
 			GETDelimeter('[');
-			if (!IsNextDelimeter(']'))
-			{
+			if (!IsNextDelimeter(']')) {
 				CValue vConst = GETConstant();
 				if (vConst.GetType() != eValueTypes::TYPE_NUMBER ||
 					vConst.GetNumber() < 0) {
 					SetError(ERROR_ARRAY_SIZE_CONST);
+					return false;
 				}
 				nArrayCount = vConst.GetInteger();
 			}
@@ -848,7 +848,7 @@ bool CCompileCode::CompileDeclaration(CCompileContext* context)
 
 bool CCompileCode::CompileModule()
 {
-	lexem_t lex;
+	CLexem lex;
 
 	// set the cursor to the beginning of the token array
 	m_numCurrentCompile = -1;
@@ -1077,7 +1077,7 @@ bool CCompileCode::CompileFunction(CCompileContext* context)
 	}
 
 	// pull out the text of the function declaration
-	lexem_t lex = PreviewGetLexem();
+	CLexem lex = PreviewGetLexem();
 
 	wxString strShortDescription;
 	const int numLine = lex.m_numLine;
@@ -1133,9 +1133,9 @@ bool CCompileCode::CompileFunction(CCompileContext* context)
 		// register this variable as local
 		if (functionContext->FindVariable(strRealName, foundedVar)) { // there was an announcement + repeated announcement = error
 			SetError(ERROR_IDENTIFIER_DUPLICATE, strRealName);
-			return false; 
+			return false;
 		}
-	
+
 		if (IsNextDelimeter('[')) { // this is an array
 			GETDelimeter('[');
 			GETDelimeter(']');
@@ -1315,7 +1315,7 @@ if(!sKey.m_strType.IsEmpty())\
 
 bool CCompileCode::CompileBlock(CCompileContext* context)
 {
-	lexem_t lex;
+	CLexem lex;
 	while ((lex = PreviewGetLexem()).m_lexType != ERRORTYPE)
 	{
 		/*if (IDENTIFIER == lex.m_lexType && IsTypeVar(lex.m_strData))
@@ -1327,144 +1327,145 @@ bool CCompileCode::CompileBlock(CCompileContext* context)
 		{
 			switch (lex.m_numData)
 			{
-			case KEY_VAR: // setting variables and arrays
-			CompileDeclaration(context);
-			break;
-			case KEY_NEW:
-			CompileNewObject(context);
-			break;
-			case KEY_IF:
-			CompileIf(context);
-			break;
-			case KEY_WHILE:
-			CompileWhile(context);
-			break;
-			case KEY_FOREACH:
-			CompileForeach(context);
-			break;
-			case KEY_FOR:
-			CompileFor(context);
-			break;
-			case KEY_GOTO:
-			CompileGoto(context);
-			break;
-			case KEY_RETURN:
-			{
-				GETKeyWord(KEY_RETURN);
+				case KEY_VAR: // setting variables and arrays
+					CompileDeclaration(context);
+					break;
+				case KEY_NEW:
+					CompileNewObject(context);
+					break;
+				case KEY_IF:
+					CompileIf(context);
+					break;
+				case KEY_WHILE:
+					CompileWhile(context);
+					break;
+				case KEY_FOREACH:
+					CompileForeach(context);
+					break;
+				case KEY_FOR:
+					CompileFor(context);
+					break;
+				case KEY_GOTO:
+					CompileGoto(context);
+					break;
+				case KEY_RETURN:
+				{
+					GETKeyWord(KEY_RETURN);
 
-				if (context->m_numReturn == RETURN_NONE) {
-					SetError(ERROR_USE_RETURN); // return operator cannot be used outside a procedure or function
-					return false;
-				}
-
-				CByteUnit code;
-				AddLineInfo(code);
-				code.m_numOper = OPER_RET;
-
-				if (context->m_numReturn == RETURN_FUNCTION) { // some value is returned
-
-					if (IsNextDelimeter(';')) {
-						SetError(ERROR_EXPRESSION_REQUIRE);
+					if (context->m_numReturn == RETURN_NONE) {
+						SetError(ERROR_USE_RETURN); // return operator cannot be used outside a procedure or function
 						return false;
 					}
 
-					code.m_param1 = GetExpression(context);
-				}
-				else {
-					code.m_param1.m_numArray = DEF_VAR_NORET;
-					code.m_param1.m_numIndex = DEF_VAR_NORET;
-				}
-
-				m_cByteCode.m_listCode.push_back(code);
-				break;
-			}
-			case KEY_TRY:
-			{
-				GETKeyWord(KEY_TRY);
-				CByteUnit code;
-				AddLineInfo(code);
-				code.m_numOper = OPER_TRY;
-				m_cByteCode.m_listCode.push_back(code);
-				
-				const int lineTry = m_cByteCode.m_listCode.size() - 1;
-
-				CompileBlock(context);
-				code.m_numOper = OPER_ENDTRY;
-				m_cByteCode.m_listCode.push_back(code);
-			
-				const int addrLine = m_cByteCode.m_listCode.size() - 1;
-
-				m_cByteCode.m_listCode[lineTry].m_param1.m_numIndex = m_cByteCode.m_listCode.size();
-
-				GETKeyWord(KEY_EXCEPT);
-				CompileBlock(context);
-				GETKeyWord(KEY_ENDTRY);
-
-				m_cByteCode.m_listCode[addrLine].m_param1.m_numIndex = m_cByteCode.m_listCode.size();
-				break;
-			}
-			case KEY_RAISE:
-			{
-				GETKeyWord(KEY_RAISE);
-				CByteUnit code;
-				AddLineInfo(code);
-				if (IsNextDelimeter('(')) {
-					code.m_numOper = OPER_RAISE_T;
-					GETDelimeter('(');
-					code.m_param1 = GetExpression(context);
-					GETDelimeter(')');
-				}
-				else {
-					code.m_numOper = OPER_RAISE;
-				}
-				m_cByteCode.m_listCode.push_back(code);
-				break;
-			}
-			case KEY_CONTINUE:
-			{
-				GETKeyWord(KEY_CONTINUE);
-				if (context->m_listContinue[context->m_numDoNumber]) {
 					CByteUnit code;
 					AddLineInfo(code);
-					code.m_numOper = OPER_GOTO;
+					code.m_numOper = OPER_RET;
+
+					if (context->m_numReturn == RETURN_FUNCTION) { // some value is returned
+
+						if (IsNextDelimeter(';')) {
+							SetError(ERROR_EXPRESSION_REQUIRE);
+							return false;
+						}
+
+						code.m_param1 = GetExpression(context);
+					}
+					else {
+						code.m_param1.m_numArray = DEF_VAR_NORET;
+						code.m_param1.m_numIndex = DEF_VAR_NORET;
+					}
+
 					m_cByteCode.m_listCode.push_back(code);
-					const int addrLine = m_cByteCode.m_listCode.size() - 1;
-					std::vector<int>* pList = context->m_listContinue[context->m_numDoNumber];
-					pList->push_back(addrLine);
+					break;
 				}
-				else {
-					SetError(ERROR_USE_CONTINUE); // continue statement can only be used inside a loop
-				}
-				break;
-			}
-			case KEY_BREAK:
-			{
-				GETKeyWord(KEY_BREAK);
-				if (context->m_listBreak[context->m_numDoNumber] != nullptr) {
+				case KEY_TRY:
+				{
+					GETKeyWord(KEY_TRY);
 					CByteUnit code;
 					AddLineInfo(code);
-					code.m_numOper = OPER_GOTO;
+					code.m_numOper = OPER_TRY;
 					m_cByteCode.m_listCode.push_back(code);
+
+					const int lineTry = m_cByteCode.m_listCode.size() - 1;
+
+					CompileBlock(context);
+					code.m_numOper = OPER_ENDTRY;
+					m_cByteCode.m_listCode.push_back(code);
+
 					const int addrLine = m_cByteCode.m_listCode.size() - 1;
-					std::vector<int>* pList = context->m_listBreak[context->m_numDoNumber];
-					pList->push_back(addrLine);
+
+					m_cByteCode.m_listCode[lineTry].m_param1.m_numIndex = m_cByteCode.m_listCode.size();
+
+					GETKeyWord(KEY_EXCEPT);
+					CompileBlock(context);
+					GETKeyWord(KEY_ENDTRY);
+
+					m_cByteCode.m_listCode[addrLine].m_param1.m_numIndex = m_cByteCode.m_listCode.size();
+					break;
 				}
-				else {
-					SetError(ERROR_USE_BREAK); // break operator can only be used inside a loop
+				case KEY_RAISE:
+				{
+					GETKeyWord(KEY_RAISE);
+					CByteUnit code;
+					AddLineInfo(code);
+					if (IsNextDelimeter('(')) {
+						code.m_numOper = OPER_RAISE_T;
+						GETDelimeter('(');
+						code.m_param1 = GetExpression(context);
+						GETDelimeter(')');
+					}
+					else {
+						code.m_numOper = OPER_RAISE;
+					}
+					m_cByteCode.m_listCode.push_back(code);
+					break;
+				}
+				case KEY_CONTINUE:
+				{
+					GETKeyWord(KEY_CONTINUE);
+					if (context->m_listContinue[context->m_numDoNumber]) {
+						CByteUnit code;
+						AddLineInfo(code);
+						code.m_numOper = OPER_GOTO;
+						m_cByteCode.m_listCode.push_back(code);
+						const int addrLine = m_cByteCode.m_listCode.size() - 1;
+						std::vector<int>* pList = context->m_listContinue[context->m_numDoNumber];
+						pList->push_back(addrLine);
+					}
+					else {
+						SetError(ERROR_USE_CONTINUE); // continue statement can only be used inside a loop
+						return false;
+					}
+					break;
+				}
+				case KEY_BREAK:
+				{
+					GETKeyWord(KEY_BREAK);
+					if (context->m_listBreak[context->m_numDoNumber] != nullptr) {
+						CByteUnit code;
+						AddLineInfo(code);
+						code.m_numOper = OPER_GOTO;
+						m_cByteCode.m_listCode.push_back(code);
+						const int addrLine = m_cByteCode.m_listCode.size() - 1;
+						std::vector<int>* pList = context->m_listBreak[context->m_numDoNumber];
+						pList->push_back(addrLine);
+					}
+					else {
+						SetError(ERROR_USE_BREAK); // break operator can only be used inside a loop
+						return false;
+					}
+					break;
+				}
+				case KEY_FUNCTION:
+				case KEY_PROCEDURE:
+				{
+					GetLexem();
+					SetError(ERROR_USE_BLOCK);
 					return false;
+					break;
 				}
-				break;
-			}
-			case KEY_FUNCTION:
-			case KEY_PROCEDURE:
-			{
-				GetLexem();
-				SetError(ERROR_USE_BLOCK);
-				return false;
-				break;
-			}
-			default: 
-			return true;	// means the operator bracket ending this block has been encountered (for example, ENDIF, ENDDO, ENDFUNCTION, etc.)
+				default:
+					return true;	// means the operator bracket ending this block has been encountered (for example, ENDIF, ENDDO, ENDFUNCTION, etc.)
 			}
 		}
 		else
@@ -1484,9 +1485,15 @@ bool CCompileCode::CompileBlock(CCompileContext* context)
 					GETDelimeter(':');
 				}
 				else { //function and method calls, expression assignments are processed here
+
 					m_numCurrentCompile--;// step back
+
 					int numSet = 1;
-					if (m_onlyFunction && context == GetContext()) SetError(ERROR_ONLY_FUNCTION);
+					if (m_onlyFunction && context == GetContext()) {
+						SetError(ERROR_ONLY_FUNCTION);
+						return false;
+					}
+
 					CParamUnit variable = GetCurrentIdentifier(context, numSet);//get the left side of the expression (before the '=' sign)
 					if (numSet) { //if there is a right side, i.e. the '=' sign
 						GETDelimeter('=');//this is an assignment of some expression to a variable
@@ -1544,6 +1551,7 @@ bool CCompileCode::CompileBlock(CCompileContext* context)
 				}
 				else {
 					SetError(ERROR_CODE);
+					return false;
 				}
 			}
 		}
@@ -1555,8 +1563,8 @@ bool CCompileCode::CompileNewObject(CCompileContext* context)
 {
 	GETKeyWord(KEY_NEW);
 
-	wxString sObjectName = GETIdentifier(true);
-	int num = GetConstString(sObjectName);
+	wxString strClassName = GETIdentifier(true);
+	const int numConst = GetConstString(strClassName);
 
 	std::vector <CParamUnit> listParam;
 
@@ -1579,14 +1587,16 @@ bool CCompileCode::CompileNewObject(CCompileContext* context)
 		GETDelimeter(')');
 	}
 
-	if (!CValue::IsRegisterCtor(sObjectName, eCtorObjectType::eCtorObjectType_object_value))
-		SetError(ERROR_CALL_CONSTRUCTOR, sObjectName);
+	if (!CValue::IsRegisterCtor(strClassName, eCtorObjectType::eCtorObjectType_object_value)) {
+		SetError(ERROR_CALL_CONSTRUCTOR, strClassName);
+		return false;
+	}
 
 	CByteUnit code;
 	AddLineInfo(code);
 
 	code.m_numOper = OPER_NEW;
-	code.m_param2.m_numIndex = num;//number of the called method from the list of encountered methods
+	code.m_param2.m_numIndex = numConst;//number of the called method from the list of encountered methods
 	code.m_param2.m_numArray = listParam.size();// number of parameters
 
 	CParamUnit variable = context->CreateVariable();
@@ -1594,12 +1604,12 @@ bool CCompileCode::CompileNewObject(CCompileContext* context)
 	m_cByteCode.m_listCode.push_back(code);
 
 	for (unsigned int arg = 0; arg < listParam.size(); arg++) {
-		
+
 		CByteUnit code;
 		AddLineInfo(code);
 		code.m_numOper = OPER_SET;
 		code.m_param1 = listParam[arg];
-		
+
 		m_cByteCode.m_listCode.push_back(code);
 	}
 
@@ -1623,7 +1633,7 @@ bool CCompileCode::CompileGoto(CCompileContext* context)
 	data.m_strName = GETIdentifier();
 	data.m_numLine = m_cByteCode.m_listCode.size();//запоминаем те переходы, которые потом надо будет обработать
 	data.m_numError = m_numCurrentCompile;
-	
+
 	context->m_listLabel.push_back(data);
 
 	CByteUnit code;
@@ -1675,9 +1685,11 @@ CParamUnit CCompileCode::GetCurrentIdentifier(CCompileContext* context, int& num
 			if (!numIsSet && foundedFunc != nullptr &&
 				foundedFunc->m_compileContext && foundedFunc->m_compileContext->m_numReturn != RETURN_FUNCTION) {
 				SetError(ERROR_USE_PROCEDURE_AS_FUNCTION, foundedFunc->m_strRealName);
+				return CParamUnit();
 			}
 			if (listParam.size() > foundedFunc->m_listParam.size()) {
 				SetError(ERROR_MANY_PARAMS); // too many parameters
+				return CParamUnit();
 			}
 			CByteUnit code;
 			AddLineInfo(code);
@@ -1707,12 +1719,12 @@ CParamUnit CCompileCode::GetCurrentIdentifier(CCompileContext* context, int& num
 		}
 		numIsSet = 0;
 	}
-	else { //это вызов переменной
+	else { //this is a variable call
 		CVariable* foundedVar = nullptr; numIsSet = 1;
 		if (m_rootContext->FindVariable(strRealName, foundedVar, true)) {
 			CByteUnit code;
 			AddLineInfo(code);
-			int numConst = GetConstString(strRealName);
+			const int numConst = GetConstString(strRealName);
 			if (IsNextDelimeter('=') && numPrevSet == 1) {
 				GETDelimeter('='); numIsSet = 0;
 				code.m_numOper = OPER_SET_A;
@@ -1733,7 +1745,7 @@ CParamUnit CCompileCode::GetCurrentIdentifier(CCompileContext* context, int& num
 		}
 		else {
 			bool bCheckError = !numPrevSet;
-			if (IsNextDelimeter('.'))//this variable contains a method call
+			if (IsNextDelimeter('.') || IsNextDelimeter('[')) //this variable contains a method call or array
 				bCheckError = true;
 			variable = context->GetVariable(strRealName, true, bCheckError);
 		}
@@ -1857,6 +1869,7 @@ loopLabel:
 		}
 		goto loopLabel;
 	}
+
 	return variable;
 }
 
@@ -1866,14 +1879,13 @@ bool CCompileCode::CompileIf(CCompileContext* context)
 
 	GETKeyWord(KEY_IF);
 
-	CParamUnit sParam;
 	CByteUnit code;
 	AddLineInfo(code);
 	code.m_numOper = OPER_IF;
 
-	sParam = GetExpression(context);
-	code.m_param1 = sParam;
-	CorrectTypeDef(sParam);// check value type
+	CParamUnit variable = GetExpression(context);
+	code.m_param1 = variable;
+	CorrectTypeDef(variable);// check value type
 
 	m_cByteCode.m_listCode.push_back(code);
 
@@ -1883,6 +1895,7 @@ bool CCompileCode::CompileIf(CCompileContext* context)
 	CompileBlock(context);
 
 	while (IsNextKeyWord(KEY_ELSEIF)) {
+
 		// write the output from all checks for the previous block
 		code.m_numOper = OPER_GOTO;
 		m_cByteCode.m_listCode.push_back(code);
@@ -1895,9 +1908,9 @@ bool CCompileCode::CompileIf(CCompileContext* context)
 		AddLineInfo(code);
 		code.m_numOper = OPER_IF;
 
-		sParam = GetExpression(context);
-		code.m_param1 = sParam;
-		CorrectTypeDef(sParam);// check value type
+		variable = GetExpression(context);
+		code.m_param1 = variable;
+		CorrectTypeDef(variable);// check value type
 
 		m_cByteCode.m_listCode.push_back(code);
 		nLastIFLine = m_cByteCode.m_listCode.size() - 1;
@@ -1940,16 +1953,16 @@ bool CCompileCode::CompileWhile(CCompileContext* context)
 {
 	context->StartDoList();
 
-	int nStartWhile = m_cByteCode.m_listCode.size();
+	const int nStartWhile = m_cByteCode.m_listCode.size();
 
 	GETKeyWord(KEY_WHILE);
 	CByteUnit code;
 	AddLineInfo(code);
 	code.m_numOper = OPER_IF;
 
-	CParamUnit sParam = GetExpression(context);
-	code.m_param1 = sParam;
-	CorrectTypeDef(sParam);// check value type
+	CParamUnit variable = GetExpression(context);
+	code.m_param1 = variable;
+	CorrectTypeDef(variable);// check value type
 
 	const int numEndWhile = m_cByteCode.m_listCode.size();
 
@@ -1979,8 +1992,8 @@ bool CCompileCode::CompileFor(CCompileContext* context)
 
 	GETKeyWord(KEY_FOR);
 
-	wxString strRealName = GETIdentifier(true);
-	wxString strName = stringUtils::MakeUpper(strRealName);
+	const wxString& strRealName = GETIdentifier(true);
+	const wxString& strName = stringUtils::MakeUpper(strRealName);
 
 	CParamUnit variable = context->GetVariable(strRealName);
 
@@ -1988,35 +2001,37 @@ bool CCompileCode::CompileFor(CCompileContext* context)
 	if (!variable.m_strType.IsEmpty()) {
 		if (!CValue::CompareObjectName(variable.m_strType, eValueTypes::TYPE_NUMBER)) {
 			SetError(ERROR_NUMBER_TYPE);
+			return false;
 		}
 	}
 
 	GETDelimeter('=');
-	CParamUnit Variable2 = GetExpression(context);
+	CParamUnit variable2 = GetExpression(context);
 
 	CByteUnit code0;
 	AddLineInfo(code0);
 	code0.m_numOper = OPER_LET;
 	code0.m_param1 = variable;
-	code0.m_param2 = Variable2;
+	code0.m_param2 = variable2;
 	m_cByteCode.m_listCode.push_back(code0);
 
 	// check value type
-	if (!variable.m_strType.IsEmpty())
-	{
-		if (!CValue::CompareObjectName(Variable2.m_strType, eValueTypes::TYPE_NUMBER)) {
+	if (!variable.m_strType.IsEmpty()) {
+		if (!CValue::CompareObjectName(variable2.m_strType, eValueTypes::TYPE_NUMBER)) {
 			SetError(ERROR_BAD_TYPE_EXPRESSION);
+			return false;
 		}
 	}
 
 	GETKeyWord(KEY_TO);
-	CParamUnit VariableTo =
+
+	CParamUnit variableTo =
 		context->GetVariable(strName + wxT("@to"), true, false, false, true); //loop variable
 
 	CByteUnit code1;
 	AddLineInfo(code1);
 	code1.m_numOper = OPER_LET;
-	code1.m_param1 = VariableTo;
+	code1.m_param1 = variableTo;
 	code1.m_param2 = GetExpression(context);
 	m_cByteCode.m_listCode.push_back(code1);
 
@@ -2024,7 +2039,7 @@ bool CCompileCode::CompileFor(CCompileContext* context)
 	AddLineInfo(code);
 	code.m_numOper = OPER_FOR;
 	code.m_param1 = variable;
-	code.m_param2 = VariableTo;
+	code.m_param2 = variableTo;
 	m_cByteCode.m_listCode.push_back(code);
 
 	const int nStartFOR = m_cByteCode.m_listCode.size() - 1;
@@ -2061,25 +2076,26 @@ bool CCompileCode::CompileForeach(CCompileContext* context)
 
 	GETKeyWord(KEY_IN);
 
-	CParamUnit VariableIn =
+	CParamUnit variableIn =
 		context->GetVariable(strName + wxT("@in_"), true, false, false, true); //loop variable
 
 	CByteUnit code1;
 	AddLineInfo(code1);
 	code1.m_numOper = OPER_LET;
-	code1.m_param1 = VariableIn;
+	code1.m_param1 = variableIn;
 	code1.m_param2 = GetExpression(context);
 	m_cByteCode.m_listCode.push_back(code1);
 
-	CParamUnit VariableIt =
+	CParamUnit variableIt =
 		context->GetVariable(strName + wxT("@it_"), true, false, false, true);  //storage iterpos;
 
 	CByteUnit code;
 	AddLineInfo(code);
 	code.m_numOper = OPER_FOREACH;
 	code.m_param1 = variable;
-	code.m_param2 = VariableIn;
-	code.m_param3 = VariableIt; // for storage iterpos;
+	code.m_param2 = variableIn;
+	code.m_param3 = variableIt; // for storage iterpos;
+
 	m_cByteCode.m_listCode.push_back(code);
 
 	const int numStartFOREACH = m_cByteCode.m_listCode.size() - 1;
@@ -2091,7 +2107,7 @@ bool CCompileCode::CompileForeach(CCompileContext* context)
 	CByteUnit code2;
 	AddLineInfo(code2);
 	code2.m_numOper = OPER_NEXT_ITER;
-	code2.m_param1 = VariableIt; // for storage iterpos;
+	code2.m_param1 = variableIt; // for storage iterpos;
 	code2.m_param2.m_numIndex = numStartFOREACH;
 	m_cByteCode.m_listCode.push_back(code2);
 
@@ -2200,7 +2216,7 @@ CParamUnit CCompileCode::FindConst(const CValue& constData)
 CParamUnit CCompileCode::GetExpression(CCompileContext* context, int nPriority)
 {
 	CParamUnit variable;
-	lexem_t lex = GETLexem();
+	CLexem lex = GETLexem();
 
 	// first we process Left operators
 	if ((lex.m_lexType == KEYWORD && lex.m_numData == KEY_NOT) || (lex.m_lexType == DELIMITER && lex.m_numData == '!')) {

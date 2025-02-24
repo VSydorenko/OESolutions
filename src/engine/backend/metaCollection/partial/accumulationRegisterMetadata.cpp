@@ -17,27 +17,16 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectAccumulationRegister, IMetaObjectRegisterDa
 CMetaObjectAccumulationRegister::CMetaObjectAccumulationRegister() : IMetaObjectRegisterData()
 {
 	//create default attributes
-	m_attributeRecordType = CMetaObjectAttributeDefault::CreateSpecialType(wxT("recordType"), _("Record type"), wxEmptyString, g_enumRecordTypeCLSID, false, CValueEnumAccumulationRegisterRecordType::CreateDefEnumValue());
-	//set child/parent
-	m_attributeRecordType->SetParent(this);
-	AddChild(m_attributeRecordType);
+	m_attributeRecordType = IMetaObjectContextData::CreateSpecialType(wxT("recordType"), _("Record type"), wxEmptyString, g_enumRecordTypeCLSID, false, CValueEnumAccumulationRegisterRecordType::CreateDefEnumValue());
 
 	//create module
-	m_moduleObject = new CMetaObjectModule(objectModule);
-
-	//set child/parent
-	m_moduleObject->SetParent(this);
-	AddChild(m_moduleObject);
+	m_moduleObject = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectModule>(objectModule);
 
 	//set default proc
 	m_moduleObject->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, { "cancel" });
 	m_moduleObject->SetDefaultProcedure("onWrite", eContentHelper::eProcedureHelper, { "cancel" });
 
-	m_moduleManager = new CMetaObjectManagerModule(managerModule);
-
-	//set child/parent
-	m_moduleManager->SetParent(this);
-	AddChild(m_moduleManager);
+	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
 }
 
 CMetaObjectAccumulationRegister::~CMetaObjectAccumulationRegister()

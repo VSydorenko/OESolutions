@@ -129,6 +129,7 @@
     <ClInclude Include="metaCollection\attribute\metaAttributeObject.h" />
     <ClInclude Include="metaCollection\dimension\metaDimensionObject.h" />
     <ClInclude Include="metaCollection\enumeration\metaEnumObject.h" />
+    <ClInclude Include="metaCollection\metaContext.h" />
     <ClInclude Include="metaCollection\metaFormObject.h" />
     <ClInclude Include="metaCollection\metaGridObject.h" />
     <ClInclude Include="metaCollection\metaInterfaceObject.h" />
@@ -188,6 +189,7 @@
     <ClInclude Include="uniqueKey.h" />
     <ClInclude Include="utils\wxmd5.hpp" />
     <ClInclude Include="value_cast.h" />
+    <ClInclude Include="value_ptr.h" />
     <ClInclude Include="wrapper\actionInfo.h" />
     <ClInclude Include="wrapper\managerInfo.h" />
     <ClInclude Include="wrapper\moduleInfo.h" />

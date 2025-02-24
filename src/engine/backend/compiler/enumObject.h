@@ -37,6 +37,25 @@ protected:
 			m_value = val;
 		}
 
+		virtual bool FindValue(const wxString& findData, std::vector<CValue>& listValue) const {
+			value_ptr<IEnumeration<valType>> enumOwner = CValue::CreateAndConvertObjectRef<IEnumeration<valType>>(m_clsid);
+			for (auto& e : enumOwner->m_listEnumValue) {
+				if (e.second.Contains(findData)) {
+					CEnumerationVariant<valType>* enumValue = new CEnumerationVariant<valType>(e.first, m_clsid);
+					if (enumValue != nullptr) {
+						enumValue->CreateEnumeration(
+							enumOwner->GetEnumName(e.first),
+							enumOwner->GetEnumDescription(e.first),
+							e.first
+						);
+						listValue.push_back(enumValue);
+					}
+				}
+			}
+			std::sort(listValue.begin(), listValue.end(), [](const CValue& a, const CValue& b) { return a.GetString() < b.GetString(); });
+			return listValue.size() > 0;
+		}
+
 		//operator '=='
 		virtual inline bool CompareValueEQ(const CValue& cParam) const override {
 			CEnumerationVariant<valType>* compareEnumeration = dynamic_cast<CEnumerationVariant<valType> *>(cParam.GetRef());
@@ -189,6 +208,24 @@ public:
 			return false;
 		}
 		return false;
+	}
+
+	virtual bool FindValue(const wxString& findData, std::vector<CValue>& listValue) const {
+		for (auto& e : m_listEnumValue) {
+			if (e.second.Contains(findData)) {
+				CEnumerationVariant<valT>* enumValue = new CEnumerationVariant<valT>(e.first, CValue::GetClassType());
+				if (enumValue != nullptr) {
+					enumValue->CreateEnumeration(
+						GetEnumName(e.first),
+						GetEnumDescription(e.first),
+						e.first
+					);
+					listValue.push_back(enumValue);
+				}
+			}
+		}
+		std::sort(listValue.begin(), listValue.end(), [](const CValue& a, const CValue& b) { return a.GetString() < b.GetString(); });
+		return listValue.size() > 0;
 	}
 
 	//operator '=='

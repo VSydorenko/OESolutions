@@ -93,7 +93,7 @@ public:
 		return false;
 	}
 
-	virtual bool FindValue(const wxString& findData, std::vector<CValue>& foundedObjects) const;
+	virtual bool FindValue(const wxString& findData, std::vector<CValue>& listValue) const;
 
 	//support source set/get data 
 	virtual bool SetValueByMetaID(const meta_identifier_t& id, const CValue& varMetaVal);

@@ -55,12 +55,12 @@ void CDebuggerClient::ConnectToDebugger(const wxString& hostName, unsigned short
 
 CDebuggerClient::CDebuggerThreadClient* CDebuggerClient::FindConnection(const wxString& hostName, unsigned short port)
 {
-	auto foundedConnection = std::find_if(m_connections.begin(), m_connections.end(), [hostName, port](CDebuggerThreadClient* client) {
+	auto foundedConnection = std::find_if(m_listConnection.begin(), m_listConnection.end(), [hostName, port](CDebuggerThreadClient* client) {
 		return client->m_hostName == hostName && client->m_port == port;
 		}
 	);
 
-	if (foundedConnection != m_connections.end()) {
+	if (foundedConnection != m_listConnection.end()) {
 		return *foundedConnection;
 	}
 
@@ -69,11 +69,11 @@ CDebuggerClient::CDebuggerThreadClient* CDebuggerClient::FindConnection(const wx
 
 CDebuggerClient::CDebuggerThreadClient* CDebuggerClient::FindDebugger(const wxString& hostName, unsigned short port)
 {
-	auto foundedConnection = std::find_if(m_connections.begin(), m_connections.end(), [hostName, port](CDebuggerThreadClient* client) {
+	auto foundedConnection = std::find_if(m_listConnection.begin(), m_listConnection.end(), [hostName, port](CDebuggerThreadClient* client) {
 		return client->m_hostName == hostName && client->m_port == port && client->GetConnectionType() == ConnectionType::ConnectionType_Debugger;
 		});
 
-	if (foundedConnection != m_connections.end()) {
+	if (foundedConnection != m_listConnection.end()) {
 		return *foundedConnection;
 	}
 
@@ -119,7 +119,7 @@ void CDebuggerClient::Pause()
 
 void CDebuggerClient::Stop(bool kill)
 {
-	for (auto connection : m_connections) {
+	for (auto connection : m_listConnection) {
 		if (connection->IsConnected()) {
 			connection->DetachConnection(kill);
 		}
@@ -128,7 +128,7 @@ void CDebuggerClient::Stop(bool kill)
 
 void CDebuggerClient::InitializeBreakpoints(const wxString& strModuleName, unsigned int from, unsigned int to)
 {
-	std::map<unsigned int, int>& moduleOffsets = m_offsetPoints[strModuleName];
+	std::map<unsigned int, int>& moduleOffsets = m_listOffsetBreakpoint[strModuleName];
 	moduleOffsets.clear(); for (unsigned int i = from; i < to; i++) moduleOffsets[i] = 0;
 }
 
@@ -141,7 +141,7 @@ void CDebuggerClient::PatchBreakpointCollection(const wxString& strModuleName, u
 		if (((it->first + it->second) >= line)) it->second += offsetLine;
 	}
 
-	std::map<unsigned int, int>& moduleOffsets = m_offsetPoints[strModuleName];
+	std::map<unsigned int, int>& moduleOffsets = m_listOffsetBreakpoint[strModuleName];
 	for (auto it = moduleOffsets.begin(); it != moduleOffsets.end(); it++) {
 		if (((it->first + it->second) >= line)) it->second += offsetLine;
 	}
@@ -177,9 +177,9 @@ bool CDebuggerClient::SaveBreakpoints(const wxString& strModuleName)
 	}
 
 	//initialize offsets 
-	auto itOffsetpoint = m_offsetPoints.find(strModuleName);
+	auto itOffsetpoint = m_listOffsetBreakpoint.find(strModuleName);
 
-	if (itOffsetpoint != m_offsetPoints.end()) {
+	if (itOffsetpoint != m_listOffsetBreakpoint.end()) {
 		std::map<unsigned int, int>& moduleOffsets = itOffsetpoint->second;
 		std::map<unsigned int, int> ::iterator it = moduleOffsets.begin(); std::advance(it, moduleOffsets.size() - 1);
 		if (it != moduleOffsets.end()) {
@@ -219,7 +219,7 @@ bool CDebuggerClient::SaveAllBreakpoints()
 	}
 
 	//initialize offsets 
-	for (auto itOffsetpoint = m_offsetPoints.begin(); itOffsetpoint != m_offsetPoints.end(); itOffsetpoint++) {
+	for (auto itOffsetpoint = m_listOffsetBreakpoint.begin(); itOffsetpoint != m_listOffsetBreakpoint.end(); itOffsetpoint++) {
 		std::map<unsigned int, int>& moduleOffsets = itOffsetpoint->second;
 		std::map<unsigned int, int> ::iterator it = moduleOffsets.begin(); std::advance(it, moduleOffsets.size() - 1);
 		if (it != moduleOffsets.end()) {
@@ -243,7 +243,7 @@ bool CDebuggerClient::SaveAllBreakpoints()
 bool CDebuggerClient::ToggleBreakpoint(const wxString& strModuleName, unsigned int line)
 {
 	unsigned int startLine = line; int locOffsetPrev = 0, locOffsetCurr = 0;
-	std::map<unsigned int, int>& moduleOffsets = m_offsetPoints[strModuleName];
+	std::map<unsigned int, int>& moduleOffsets = m_listOffsetBreakpoint[strModuleName];
 
 	for (auto it = moduleOffsets.begin(); it != moduleOffsets.end(); it++) {
 		if (it->second < 0 && (int)it->first < -it->second) { locOffsetPrev = it->second; continue; }
@@ -285,7 +285,7 @@ bool CDebuggerClient::ToggleBreakpoint(const wxString& strModuleName, unsigned i
 bool CDebuggerClient::RemoveBreakpoint(const wxString& strModuleName, unsigned int line)
 {
 	unsigned int startLine = line; int locOffsetPrev = 0, locOffsetCurr = 0;
-	std::map<unsigned int, int>& moduleOffsets = m_offsetPoints[strModuleName];
+	std::map<unsigned int, int>& moduleOffsets = m_listOffsetBreakpoint[strModuleName];
 	for (auto it = moduleOffsets.begin(); it != moduleOffsets.end(); it++) {
 		if (it->second < 0 && (int)it->first < -it->second) {
 			locOffsetPrev = it->second; continue;
@@ -353,7 +353,7 @@ void CDebuggerClient::AddExpression(const wxString& strExpression, unsigned int 
 	SendCommand(commandChannel.pointer(), commandChannel.size());
 
 	//set expression in map 
-	m_expressions.insert_or_assign(id, strExpression);
+	m_listExpression.insert_or_assign(id, strExpression);
 }
 
 #if _USE_64_BIT_POINT_IN_DEBUGGER == 1
@@ -393,7 +393,7 @@ void CDebuggerClient::RemoveExpression(unsigned int id)
 	SendCommand(commandChannel.pointer(), commandChannel.size());
 
 	//delete expression from map
-	m_expressions.erase(id);
+	m_listExpression.erase(id);
 }
 
 void CDebuggerClient::SetLevelStack(unsigned int level)
@@ -648,7 +648,7 @@ void CDebuggerClient::CDebuggerThreadClient::RecvCommand(void* pointer, unsigned
 	}
 	else if (commandFromServer == CommandId_GetArrayBreakpoint) {
 		//send expression 
-		for (auto& expression : debugClient->m_expressions) {
+		for (auto& expression : debugClient->m_listExpression) {
 			CMemoryWriter commandChannel;
 			commandChannel.w_u16(CommandId_AddExpression);
 			commandChannel.w_stringZ(expression.second);
@@ -672,9 +672,9 @@ void CDebuggerClient::CDebuggerThreadClient::RecvCommand(void* pointer, unsigned
 				commandChannel.w_s32(line.second);
 			}
 		}
-		commandChannel.w_u32(debugClient->m_offsetPoints.size());
+		commandChannel.w_u32(debugClient->m_listOffsetBreakpoint.size());
 		//send line offsets 
-		for (auto offset : debugClient->m_offsetPoints) {
+		for (auto offset : debugClient->m_listOffsetBreakpoint) {
 			commandChannel.w_u32(offset.second.size());
 			commandChannel.w_stringZ(offset.first);
 			for (auto line : offset.second) {

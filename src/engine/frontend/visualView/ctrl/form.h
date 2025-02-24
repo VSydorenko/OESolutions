@@ -375,7 +375,7 @@ public:
 
 	virtual void ActivateForm();
 	virtual void UpdateForm();
-	virtual bool CloseForm();
+	virtual bool CloseForm(bool force = false);
 	virtual void HelpForm();
 
 	virtual bool GenerateForm(IRecordDataObjectRef* obj) const;
@@ -411,7 +411,7 @@ public:
 	virtual void OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVisualHost* visualHost);
 
 	//actionData
-	virtual actionData_t GetActions(const form_identifier_t& formType);
+	virtual CActionCollection GetActionCollection(const form_identifier_t& formType);
 	virtual void ExecuteAction(const action_identifier_t& lNumAction, IBackendValueForm* srcForm);
 
 	//support icons

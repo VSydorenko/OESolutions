@@ -13,13 +13,13 @@ class BACKEND_API CDebuggerClient {
 
 	static CDebuggerClient* ms_debugClient;
 
-	std::map <wxString, std::map<unsigned int, int>> m_listBreakpoint; //список точек 
-	std::map <wxString, std::map<unsigned int, int>> m_offsetPoints; //список измененных переходов
+	std::map <wxString, std::map<unsigned int, int>> m_listBreakpoint; //list of points 
+	std::map <wxString, std::map<unsigned int, int>> m_listOffsetBreakpoint; //list of changed transitions
 
 #if _USE_64_BIT_POINT_IN_DEBUGGER == 1
-	std::map <unsigned long long, wxString> m_expressions;
+	std::map <unsigned long long, wxString> m_listExpression;
 #else 
-	std::map <unsigned int, wxString> m_expressions;
+	std::map <unsigned int, wxString> m_listExpression;
 #endif  
 
 	bool	m_enterLoop;
@@ -149,7 +149,7 @@ protected:
 
 	CDebuggerThreadClient* m_activeSocket = nullptr;
 	CDebuggerAdaptourClient* m_adaptour = nullptr;
-	std::vector<CDebuggerThreadClient*>	m_connections;
+	std::vector<CDebuggerThreadClient*>	m_listConnection;
 
 public:
 
@@ -158,8 +158,8 @@ public:
 	}
 
 	virtual ~CDebuggerClient() {
-		while (m_connections.size()) {
-			m_connections[m_connections.size() - 1]->Kill();
+		while (m_listConnection.size()) {
+			m_listConnection[m_listConnection.size() - 1]->Kill();
 		}
 		wxDELETE(m_adaptour);
 	}
@@ -179,7 +179,7 @@ public:
 	CDebuggerThreadClient* FindDebugger(const wxString& hostName, unsigned short port);
 	void SearchDebugger(const wxString& hostName = defaultHost, unsigned short startPort = defaultDebuggerPort);
 	std::vector<CDebuggerThreadClient*>& GetConnections() {
-		return m_connections;
+		return m_listConnection;
 	}
 
 	//special public function:
@@ -223,7 +223,7 @@ public:
 	void RemoveAllBreakpoint();
 
 	bool HasConnections() const {
-		for (auto connection : m_connections) {
+		for (auto connection : m_listConnection) {
 			if (connection->GetConnectionType() == ConnectionType::ConnectionType_Debugger) return connection->IsConnected();
 		}
 		return false;
@@ -278,21 +278,21 @@ protected:
 
 	//commands:
 	void AppendConnection(CDebuggerThreadClient* client) {
-		m_connections.push_back(client);
+		m_listConnection.push_back(client);
 	}
 
 	void DeleteConnection(CDebuggerThreadClient* client) {
 		if (m_activeSocket == client) {
 			m_activeSocket = nullptr;
 		}
-		if (m_connections.size() == 0) {
+		if (m_listConnection.size() == 0) {
 			m_enterLoop = false;
 		}
 		auto& it = std::find(
-			m_connections.begin(), m_connections.end(), client
+			m_listConnection.begin(), m_listConnection.end(), client
 		);
-		if (it != m_connections.end()) {
-			m_connections.erase(it);
+		if (it != m_listConnection.end()) {
+			m_listConnection.erase(it);
 		}
 	}
 
@@ -302,7 +302,7 @@ protected:
 			m_activeSocket->SendCommand(pointer, length);
 		}
 		else {
-			for (auto connection : m_connections) {
+			for (auto connection : m_listConnection) {
 				connection->SendCommand(pointer, length);
 			}
 		}

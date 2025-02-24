@@ -174,33 +174,33 @@ struct localWindowData_t {
 		}
 	};
 
-	std::vector<localWindowItem_t> m_expressions;
+	std::vector<localWindowItem_t> m_listExpression;
 
 public:
 
 	localWindowData_t() {}
 
 	void AddLocalVar(const wxString& name, const wxString& value, const wxString& type, bool hasAttributes) {
-		m_expressions.emplace_back(name, value, type, hasAttributes);
+		m_listExpression.emplace_back(name, value, type, hasAttributes);
 	}
 
 	wxString GetName(unsigned int idx) const {
-		return m_expressions[idx].m_name;
+		return m_listExpression[idx].m_name;
 	}
 
 	wxString GetValue(unsigned int idx) const {
-		return m_expressions[idx].m_value;
+		return m_listExpression[idx].m_value;
 	}
 	wxString GetType(unsigned int idx) const {
-		return m_expressions[idx].m_type;
+		return m_listExpression[idx].m_type;
 	}
 
 	bool HasAttributes(unsigned int idx) const {
-		return m_expressions[idx].m_hasAttributes;
+		return m_listExpression[idx].m_hasAttributes;
 	}
 
 	unsigned int GetVarCount() const {
-		return m_expressions.size();
+		return m_listExpression.size();
 	}
 };
 
@@ -221,7 +221,7 @@ struct watchWindowData_t {
 		}
 	};
 
-	std::vector<watchWindowItem_t> m_expressions;
+	std::vector<watchWindowItem_t> m_listExpression;
 
 public:
 
@@ -232,34 +232,34 @@ public:
 	}
 
 	void AddWatch(const wxString& name, const wxString& value, const wxString& type, bool hasAttributes) {
-		m_expressions.emplace_back(name, value, type, hasAttributes, m_item);
+		m_listExpression.emplace_back(name, value, type, hasAttributes, m_item);
 	}
 
 	void AddWatch(const wxString& name, const wxString& value, const wxString& type, bool hasAttributes, const wxTreeItemId& item) {
-		m_expressions.emplace_back(name, value, type, hasAttributes, item);
+		m_listExpression.emplace_back(name, value, type, hasAttributes, item);
 	}
 
 	wxTreeItemId GetItem(unsigned int idx) const {
-		return m_expressions[idx].m_item;
+		return m_listExpression[idx].m_item;
 	}
 
 	wxString GetName(unsigned int idx) const {
-		return m_expressions[idx].m_name;
+		return m_listExpression[idx].m_name;
 	}
 
 	wxString GetValue(unsigned int idx) const {
-		return m_expressions[idx].m_value;
+		return m_listExpression[idx].m_value;
 	}
 	wxString GetType(unsigned int idx) const {
-		return m_expressions[idx].m_type;
+		return m_listExpression[idx].m_type;
 	}
 
 	bool HasAttributes(unsigned int idx) const {
-		return m_expressions[idx].m_hasAttributes;
+		return m_listExpression[idx].m_hasAttributes;
 	}
 
 	unsigned int GetWatchCount() const {
-		return m_expressions.size();
+		return m_listExpression.size();
 	}
 };
 

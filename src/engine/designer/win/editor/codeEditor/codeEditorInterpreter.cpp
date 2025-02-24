@@ -322,7 +322,7 @@ bool CPrecompileModule::PrepareLexem()
 	m_listLexem.clear();
 
 	while (!IsEnd()) {
-		lexem_t bytecode;
+		CLexem bytecode;
 		bytecode.m_numLine = m_currentLine;
 		bytecode.m_numString = m_currentPos;//если в дальнейшем произойдет ошибка, то именно эту строку нужно выдать пользователю
 		bytecode.m_strModuleName = m_strModuleName;
@@ -420,7 +420,7 @@ bool CPrecompileModule::PrepareLexem()
 		m_listLexem.push_back(bytecode);
 	}
 
-	lexem_t bytecode;
+	CLexem bytecode;
 	bytecode.m_lexType = ENDPROGRAM;
 	bytecode.m_numData = 0;
 	bytecode.m_numString = m_currentPos;
@@ -457,7 +457,7 @@ void CPrecompileModule::PatchLexem(unsigned int line, int offsetLine, unsigned i
 		if ((modFlags & wxSTC_MOD_BEFOREINSERT) != 0 && m_currentLine > (line + offsetLine)) break;
 		else if ((modFlags & wxSTC_MOD_BEFOREDELETE) != 0 && (m_currentLine > line)) break;
 
-		lexem_t bytecode;
+		CLexem bytecode;
 		bytecode.m_numLine = m_currentLine;
 		bytecode.m_numString = m_currentPos; //если в дальнейшем произойдет ошибка, то именно эту строку нужно выдать пользователю
 		bytecode.m_strModuleName = m_strModuleName;
@@ -617,7 +617,7 @@ bool CPrecompileModule::CompileModule()
 {
 	m_pContext = GetContext();// context of the module itself
 
-	lexem_t lex;
+	CLexem lex;
 
 	while ((lex = PreviewGetLexem()).m_lexType != ERRORTYPE)
 	{
@@ -656,7 +656,7 @@ bool CPrecompileModule::CompileModule()
 bool CPrecompileModule::CompileFunction()
 {
 	// we are now at the token level, where the FUNCTION or PROCEDURE keyword is specified
-	lexem_t lex;
+	CLexem lex;
 	if (IsNextKeyWord(KEY_FUNCTION))
 	{
 		GETKeyWord(KEY_FUNCTION);
@@ -798,7 +798,7 @@ bool CPrecompileModule::CompileFunction()
 bool CPrecompileModule::CompileDeclaration()
 {
 	wxString strType;
-	const lexem_t& lex = PreviewGetLexem();
+	const CLexem& lex = PreviewGetLexem();
 
 	if (IDENTIFIER == lex.m_lexType) strType = GetTypeVar(); // typed setting of variables
 	else GETKeyWord(KEY_VAR);
@@ -849,7 +849,7 @@ bool CPrecompileModule::CompileDeclaration()
 
 bool CPrecompileModule::CompileBlock()
 {
-	lexem_t lex;
+	CLexem lex;
 
 	while ((lex = PreviewGetLexem()).m_lexType != ERRORTYPE)
 	{
@@ -1118,9 +1118,9 @@ bool CPrecompileModule::CompileForeach()
  * Возвращаемое значение:
  * 0 или указатель на лексему
  */
-lexem_t CPrecompileModule::GetLexem()
+CLexem CPrecompileModule::GetLexem()
 {
-	lexem_t lex;
+	CLexem lex;
 	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
 		lex = m_listLexem[++m_numCurrentCompile];
 	}
@@ -1128,9 +1128,9 @@ lexem_t CPrecompileModule::GetLexem()
 }
 
 //Получить следующую лексему из списка байт кода без увеличения счетчика текущей позиции
-lexem_t CPrecompileModule::PreviewGetLexem()
+CLexem CPrecompileModule::PreviewGetLexem()
 {
-	lexem_t lex;
+	CLexem lex;
 	while (true) {
 		lex = GetLexem();
 		if (!(lex.m_lexType == DELIMITER && (lex.m_numData == ';' || lex.m_numData == '\n')))
@@ -1147,9 +1147,9 @@ lexem_t CPrecompileModule::PreviewGetLexem()
  * Возвращаемое значение:
  * нет (в случае неудачи генерится исключение)
  */
-lexem_t CPrecompileModule::GETLexem()
+CLexem CPrecompileModule::GETLexem()
 {
-	const lexem_t& lex = GetLexem();
+	const CLexem& lex = GetLexem();
 	if (lex.m_lexType == ERRORTYPE) {}
 	return lex;
 }
@@ -1162,7 +1162,7 @@ lexem_t CPrecompileModule::GETLexem()
  */
 void CPrecompileModule::GETDelimeter(const wxUniChar& c)
 {
-	lexem_t lex = GETLexem();
+	CLexem lex = GETLexem();
 
 	if (lex.m_lexType == DELIMITER && c == lex.m_numData)
 		sLastExpression += c;
@@ -1182,7 +1182,7 @@ void CPrecompileModule::GETDelimeter(const wxUniChar& c)
 bool CPrecompileModule::IsNextDelimeter(const wxUniChar& c)
 {
 	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
-		lexem_t lex = m_listLexem[m_numCurrentCompile + 1];
+		CLexem lex = m_listLexem[m_numCurrentCompile + 1];
 		if (lex.m_lexType == DELIMITER && c == lex.m_numData)
 			return true;
 	}
@@ -1200,7 +1200,7 @@ bool CPrecompileModule::IsNextDelimeter(const wxUniChar& c)
 bool CPrecompileModule::IsNextKeyWord(int nKey)
 {
 	if (m_numCurrentCompile + 1 < m_listLexem.size()) {
-		const lexem_t& lex = m_listLexem[m_numCurrentCompile + 1];
+		const CLexem& lex = m_listLexem[m_numCurrentCompile + 1];
 		if (lex.m_lexType == KEYWORD && lex.m_numData == nKey)
 			return true;
 
@@ -1216,7 +1216,7 @@ bool CPrecompileModule::IsNextKeyWord(int nKey)
  */
 void CPrecompileModule::GETKeyWord(int nKey)
 {
-	lexem_t lex = GETLexem();
+	CLexem lex = GETLexem();
 	while (!(lex.m_lexType == KEYWORD && lex.m_numData == nKey)) {
 		if (m_numCurrentCompile + 1 >= m_listLexem.size())
 			break;
@@ -1232,7 +1232,7 @@ void CPrecompileModule::GETKeyWord(int nKey)
  */
 wxString CPrecompileModule::GETIdentifier(bool strRealName)
 {
-	const lexem_t& lex = GETLexem();
+	const CLexem& lex = GETLexem();
 	if (lex.m_lexType != IDENTIFIER) {
 		if (strRealName && lex.m_lexType == KEYWORD)
 			return lex.m_strData;
@@ -1251,7 +1251,7 @@ wxString CPrecompileModule::GETIdentifier(bool strRealName)
  */
 CValue CPrecompileModule::GETConstant()
 {
-	lexem_t lex;
+	CLexem lex;
 	int iNumRequire = 0;
 	if (IsNextDelimeter('-') || IsNextDelimeter('+')) {
 		iNumRequire = 1;
@@ -1289,7 +1289,7 @@ int CPrecompileModule::IsTypeVar(const wxString& strType)
 			return true;
 	}
 	else {
-		const lexem_t& lex = PreviewGetLexem();
+		const CLexem& lex = PreviewGetLexem();
 		if (CValue::IsRegisterCtor(lex.m_strData, eCtorObjectType::eCtorObjectType_object_primitive))
 			return true;
 	}
@@ -1304,7 +1304,7 @@ wxString CPrecompileModule::GetTypeVar(const wxString& strType)
 			return strType.Upper();
 	}
 	else {
-		const lexem_t& lex = GETLexem();
+		const CLexem& lex = GETLexem();
 		if (CValue::IsRegisterCtor(lex.m_strData, eCtorObjectType::eCtorObjectType_object_primitive))
 			return lex.m_strData.Upper();
 	}
@@ -1320,7 +1320,7 @@ wxString CPrecompileModule::GetTypeVar(const wxString& strType)
 CParamValue CPrecompileModule::GetExpression(int nPriority)
 {
 	CParamValue sVariable;
-	lexem_t lex = GETLexem();
+	CLexem lex = GETLexem();
 
 	// first we process Left operators
 	if ((lex.m_lexType == KEYWORD && lex.m_numData == KEY_NOT) ||

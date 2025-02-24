@@ -182,7 +182,7 @@ bool ITabularSectionDataObject::CallAsFunc(const long lMethodNum, CValue& pvarRe
 
 CTabularSectionDataObject::CTabularSectionDataObject() {}
 
-CTabularSectionDataObject::CTabularSectionDataObject(IRecordDataObject* recordObject, CMetaObjectTable* tableObject) :
+CTabularSectionDataObject::CTabularSectionDataObject(IRecordDataObject* recordObject, CMetaObjectTableData* tableObject) :
 	ITabularSectionDataObject(recordObject, tableObject)
 {
 }
@@ -193,17 +193,17 @@ CTabularSectionDataObject::CTabularSectionDataObject(IRecordDataObject* recordOb
 
 CTabularSectionDataObjectRef::CTabularSectionDataObjectRef() : m_readAfter(false) {}
 
-CTabularSectionDataObjectRef::CTabularSectionDataObjectRef(CReferenceDataObject* reference, CMetaObjectTable* tableObject, bool readAfter) :
+CTabularSectionDataObjectRef::CTabularSectionDataObjectRef(CReferenceDataObject* reference, CMetaObjectTableData* tableObject, bool readAfter) :
 	ITabularSectionDataObject(reference, tableObject, true), m_readAfter(readAfter)
 {
 }
 
-CTabularSectionDataObjectRef::CTabularSectionDataObjectRef(IRecordDataObjectRef* recordObject, CMetaObjectTable* tableObject) :
+CTabularSectionDataObjectRef::CTabularSectionDataObjectRef(IRecordDataObjectRef* recordObject, CMetaObjectTableData* tableObject) :
 	ITabularSectionDataObject(recordObject, tableObject), m_readAfter(false)
 {
 }
 
-CTabularSectionDataObjectRef::CTabularSectionDataObjectRef(CSelectorDataObject* selectorObject, CMetaObjectTable* tableObject) :
+CTabularSectionDataObjectRef::CTabularSectionDataObjectRef(CSelectorDataObject* selectorObject, CMetaObjectTableData* tableObject) :
 	ITabularSectionDataObject((IObjectValueInfo*)selectorObject, tableObject), m_readAfter(false)
 {
 }
@@ -378,7 +378,7 @@ ITabularSectionDataObject::CTabularSectionDataObjectColumnCollection::CTabularSe
 
 ITabularSectionDataObject::CTabularSectionDataObjectColumnCollection::CTabularSectionDataObjectColumnCollection(ITabularSectionDataObject* ownerTable) : IValueModelColumnCollection(), m_methodHelper(new CMethodHelper()), m_ownerTable(ownerTable)
 {
-	CMetaObjectTable* metaTable = m_ownerTable->GetMetaObject();
+	CMetaObjectTableData* metaTable = m_ownerTable->GetMetaObject();
 	wxASSERT(metaTable);
 	for (auto& obj : metaTable->GetObjectAttributes()) {
 		if (metaTable->IsNumberLine(obj->GetMetaID()))

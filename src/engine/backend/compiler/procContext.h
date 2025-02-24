@@ -25,12 +25,7 @@ public:
 		}
 	};
 
-	~CRunContextSmall() {
-		if (m_lVarCount > MAX_STATIC_VAR) {
-			delete[]m_pLocVars;
-			delete[]m_pRefLocVars;
-		}
-	}
+	~CRunContextSmall();
 
 	void SetLocalCount(const long varCount) {
 		m_lVarCount = varCount;

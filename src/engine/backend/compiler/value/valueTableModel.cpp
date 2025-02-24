@@ -29,10 +29,10 @@ bool CValueTable::SetValueByRow(const wxVariant& variant,
 		m_dataColumnCollection->GetColumnType(col);
 	CValue cValue; node->GetValue(col, cValue);
 	if (strData.Length() > 0) {
-		std::vector<CValue> foundedObjects;
-		if (cValue.FindValue(strData, foundedObjects)) {
+		std::vector<CValue> listValue;
+		if (cValue.FindValue(strData, listValue)) {
 			node->SetValue(
-				col, CValueTypeDescription::AdjustValue(typeDescription, foundedObjects.at(0))
+				col, CValueTypeDescription::AdjustValue(typeDescription, listValue.at(0))
 			);
 		}
 		else {

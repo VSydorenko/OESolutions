@@ -7,7 +7,8 @@
 #include "backend/appData.h"
 #include "backend/databaseLayer/databaseLayer.h"
 
-void CListDataObjectEnumRef::RefreshModel(const int countPerPage) {
+void CListDataObjectEnumRef::RefreshModel(const wxDataViewItem& topItem, const int countPerPage)
+{
 
 	if (db_query != nullptr && !db_query->IsOpen())
 		CBackendException::Error(_("database is not open!"));
@@ -303,7 +304,7 @@ void CListDataObjectEnumRef::RefreshItemModel(const wxDataViewItem& topItem, con
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CListDataObjectRef::RefreshModel(const int countPerPage)
+void CListDataObjectRef::RefreshModel(const wxDataViewItem& topItem, const int countPerPage)
 {
 	if (db_query != nullptr && !db_query->IsOpen())
 		CBackendException::Error(_("database is not open!"));
@@ -606,7 +607,6 @@ void CListDataObjectRef::RefreshItemModel(const wxDataViewItem& topItem, const w
 						if (field.m_type == IMetaObjectAttribute::eFieldTypes_Reference) {
 							orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldRefName.m_fieldRefName, operation_sort);
 							if (firstOrder) firstOrder = false;
-
 						}
 						else {
 							orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldName, operation_sort);
@@ -708,7 +708,7 @@ void CListDataObjectRef::RefreshItemModel(const wxDataViewItem& topItem, const w
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CListRegisterObject::RefreshModel(const int countPerPage)
+void CListRegisterObject::RefreshModel(const wxDataViewItem& topItem, const int countPerPage)
 {
 	if (db_query != nullptr && !db_query->IsOpen())
 		CBackendException::Error(_("database is not open!"));
@@ -733,7 +733,6 @@ void CListRegisterObject::RefreshModel(const int countPerPage)
 	/////////////////////////////////////////////////////////
 	wxString orderText; bool firstOrder = true;
 	/////////////////////////////////////////////////////////
-
 	for (auto& sort : m_sortOrder.m_sorts) {
 		if (sort.m_sortEnable) {
 			const wxString& operation = sort.m_sortAscending ? "ASC" : "DESC";
@@ -746,6 +745,10 @@ void CListRegisterObject::RefreshModel(const int countPerPage)
 					orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldRefName.m_fieldRefName, operation);
 					if (firstOrder) firstOrder = false;
 				}
+				else if (field.m_type == IMetaObjectAttribute::eFieldTypes_String) {
+					orderText += (firstOrder ? " " : ", ") + wxString::Format("LPAD(%s, %i, ' ') %s", field.m_field.m_fieldName, attribute->GetStringQualifier().m_length, operation);
+					if (firstOrder) firstOrder = false;
+				}
 				else {
 					orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldName, operation);
 					if (firstOrder) firstOrder = false;
@@ -753,27 +756,11 @@ void CListRegisterObject::RefreshModel(const int countPerPage)
 			}
 		}
 	};
-	for (auto& dim : vec_dim) {
-		const wxString& operation_sort = "ASC";
-		const wxString& operation_compare = ">=";
-		if (firstOrder) orderText += " ORDER BY ";
-		for (auto& field : IMetaObjectAttribute::GetSQLFieldData(dim)) {
-			if (field.m_type == IMetaObjectAttribute::eFieldTypes_Reference) {
-				orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldRefName.m_fieldRefName, operation_sort);
-				if (firstOrder) firstOrder = false;
-
-			}
-			else {
-				orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldName, operation_sort);
-				if (firstOrder) firstOrder = false;
-			}
-		}
-	}
 	/////////////////////////////////////////////////////////
 	queryText = queryText + whereText + orderText + " LIMIT " + stringUtils::IntToStr(countPerPage + 1);
 	IValueTable::Clear();
 	IPreparedStatement* statement = db_query->PrepareStatement(queryText); int position = 1;
-	for (auto filter : m_filterRow.m_filters) {
+	for (auto& filter : m_filterRow.m_filters) {
 		if (filter.m_filterUse) {
 			IMetaObjectAttribute* attribute = dynamic_cast<IMetaObjectAttribute*>(m_metaObject->FindMetaObjectByID(filter.m_filterModel));
 			wxASSERT(attribute);
@@ -834,12 +821,11 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 					firstWhere = false;
 			}
 		}
-		wxString orderText; bool firstOrder = true; wxString sortText; wxString dimText;
-		int compare_func = 0;
+		wxString orderText; bool firstOrder = true; wxString dimText;
 		for (auto& sort : m_sortOrder.m_sorts) {
 			if (sort.m_sortEnable) {
-				const wxString& operation_sort = !sort.m_sortAscending ? "ASC" : "DESC";
-				const wxString& operation_compare = !sort.m_sortAscending ? ">=" : "<=";
+				const wxString& operation_sort = (!sort.m_sortAscending) ? "ASC" : "DESC";
+				const wxString& operation_compare = (!sort.m_sortAscending) ? ">=" : "<=";
 				IMetaObjectAttribute* attribute = dynamic_cast<IMetaObjectAttribute*>(m_metaObject->FindMetaObjectByID(sort.m_sortModel));
 				wxASSERT(attribute);
 				if (firstOrder)
@@ -849,31 +835,39 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 						orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldRefName.m_fieldRefName, operation_sort);
 						if (firstOrder)
 							firstOrder = false;
-
+					}
+					else if (field.m_type == IMetaObjectAttribute::eFieldTypes_String) {
+						orderText += (firstOrder ? " " : ", ") + wxString::Format("LPAD(%s, %i, ' ') %s", field.m_field.m_fieldName, attribute->GetStringQualifier().m_length, operation_sort);
+						if (firstOrder) firstOrder = false;
 					}
 					else {
 						orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldName, operation_sort);
-						if (firstOrder)
-							firstOrder = false;
+						if (firstOrder) firstOrder = false;
 					}
-
-					if (firstWhere) whereText += " WHERE ";
-					whereText += (firstWhere ? " " : " AND ") + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, operation_compare);
-					dimText += firstWhere ? "(" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ")" : " OR (" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ")";
-					sortText += (sortText.IsEmpty() ? " " : " AND ") + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, '=');
-					if (firstWhere) firstWhere = false;
 				}
-				if (compare_func == 0) {
-					compare_func = sort.m_sortAscending ? 1 : -1;
+				dimText += firstWhere ? " (" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ") " : " OR (" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ") ";
+				if (firstWhere) whereText += " WHERE ";
+				whereText += (firstWhere ? " " : " AND ") + attribute->GetFieldNameDB() + "_TYPE = ? ";
+				if (firstWhere) firstWhere = false;
+				for (auto& field : IMetaObjectAttribute::GetSQLFieldData(attribute)) {
+					if (field.m_type == IMetaObjectAttribute::eFieldTypes_Reference) {
+						whereText += (firstWhere ? " " : " AND ") + wxString::Format("%s %s ?", field.m_field.m_fieldRefName.m_fieldRefName, operation_compare);
+					}
+					else if (field.m_type == IMetaObjectAttribute::eFieldTypes_String) {
+						whereText += (firstWhere ? " " : " AND ") + wxString::Format("LPAD(%s, %i, ' ') %s LPAD(?, %i, ' ')", field.m_field.m_fieldName, attribute->GetStringQualifier().m_length, operation_compare, attribute->GetStringQualifier().m_length);
+					}
+					else {
+						whereText += (firstWhere ? " " : " AND ") + wxString::Format("%s %s ?", field.m_field.m_fieldName, operation_compare);
+					}
 				}
 			}
 		};
 		const std::vector<IMetaObjectAttribute*>& vec_attr = m_metaObject->GetGenericAttributes(), & vec_dim = m_metaObject->GetGenericDimensions();
 		/////////////////////////////////////////////////////////
-		queryText = queryText + whereText + "AND (" + dimText + ") " + orderText + " LIMIT " + stringUtils::IntToStr(1);
+		queryText = queryText + whereText + " AND (" + dimText + ") " + orderText + " LIMIT " + stringUtils::IntToStr(1);
 		/////////////////////////////////////////////////////////
 		IPreparedStatement* statement = db_query->PrepareStatement(queryText); int position = 1;
-		for (auto filter : m_filterRow.m_filters) {
+		for (auto& filter : m_filterRow.m_filters) {
 			if (filter.m_filterUse) {
 				IMetaObjectAttribute* attribute = dynamic_cast<IMetaObjectAttribute*>(m_metaObject->FindMetaObjectByID(filter.m_filterModel));
 				wxASSERT(attribute);
@@ -948,40 +942,50 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 					firstWhere = false;
 			}
 		}
-		wxString orderText; bool firstOrder = true; wxString sortText; wxString dimText;
-		int compare_func = 0;
+		wxString orderText; bool firstOrder = true; wxString dimText;
 		for (auto& sort : m_sortOrder.m_sorts) {
 			if (sort.m_sortEnable) {
-				const wxString& operation_sort = sort.m_sortAscending ? "ASC" : "DESC";
-				const wxString& operation_compare = sort.m_sortAscending ? ">=" : "<=";
+				const wxString& operation_sort = (sort.m_sortAscending) ? "ASC" : "DESC";
+				const wxString& operation_compare = (sort.m_sortAscending) ? ">=" : "<=";
 				IMetaObjectAttribute* attribute = dynamic_cast<IMetaObjectAttribute*>(m_metaObject->FindMetaObjectByID(sort.m_sortModel));
 				wxASSERT(attribute);
-				if (firstOrder) orderText += " ORDER BY ";
+				if (firstOrder)
+					orderText += " ORDER BY ";
 				for (auto& field : IMetaObjectAttribute::GetSQLFieldData(attribute)) {
 					if (field.m_type == IMetaObjectAttribute::eFieldTypes_Reference) {
 						orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldRefName.m_fieldRefName, operation_sort);
+						if (firstOrder)
+							firstOrder = false;
+					}
+					else if (field.m_type == IMetaObjectAttribute::eFieldTypes_String) {
+						orderText += (firstOrder ? " " : ", ") + wxString::Format("LPAD(%s, %i, ' ') %s", field.m_field.m_fieldName, attribute->GetStringQualifier().m_length, operation_sort);
 						if (firstOrder) firstOrder = false;
-
 					}
 					else {
 						orderText += (firstOrder ? " " : ", ") + wxString::Format("%s %s", field.m_field.m_fieldName, operation_sort);
 						if (firstOrder) firstOrder = false;
 					}
-					if (firstWhere) whereText += " WHERE ";
-					whereText += (firstWhere ? " " : " AND ") + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, operation_compare);
-					dimText += firstWhere ? "(" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ")" : " OR (" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ")";
-					sortText += (sortText.IsEmpty() ? " " : " AND ") + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, '=');
-					if (firstWhere) firstWhere = false;
 				}
-
-				if (compare_func == 0) {
-					compare_func = sort.m_sortAscending ? 1 : -1;
+				dimText += firstWhere ? " (" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ") " : " OR (" + IMetaObjectAttribute::GetCompositeSQLFieldName(attribute, "<>") + ") ";
+				if (firstWhere) whereText += " WHERE ";
+				whereText += (firstWhere ? " " : " AND ") + attribute->GetFieldNameDB() + "_TYPE = ? ";
+				if (firstWhere) firstWhere = false;
+				for (auto& field : IMetaObjectAttribute::GetSQLFieldData(attribute)) {
+					if (field.m_type == IMetaObjectAttribute::eFieldTypes_Reference) {
+						whereText += (firstWhere ? " " : " AND ") + wxString::Format("%s %s ?", field.m_field.m_fieldRefName.m_fieldRefName, operation_compare);
+					}
+					else if (field.m_type == IMetaObjectAttribute::eFieldTypes_String) {
+						whereText += (firstWhere ? " " : " AND ") + wxString::Format("LPAD(%s, %i, ' ') %s LPAD(?, %i, ' ')", field.m_field.m_fieldName, attribute->GetStringQualifier().m_length, operation_compare, attribute->GetStringQualifier().m_length);
+					}
+					else {
+						whereText += (firstWhere ? " " : " AND ") + wxString::Format("%s %s ?", field.m_field.m_fieldName, operation_compare);
+					}
 				}
 			}
 		};
 		const std::vector<IMetaObjectAttribute*>& vec_attr = m_metaObject->GetGenericAttributes(), & vec_dim = m_metaObject->GetGenericDimensions();
 		/////////////////////////////////////////////////////////
-		queryText = queryText + whereText + "AND (" + dimText + ") " + orderText + " LIMIT " + stringUtils::IntToStr(1);
+		queryText = queryText + whereText + " AND (" + dimText + ") " + orderText + " LIMIT " + stringUtils::IntToStr(1);
 		/////////////////////////////////////////////////////////
 		IPreparedStatement* statement = db_query->PrepareStatement(queryText); int position = 1;
 		for (auto filter : m_filterRow.m_filters) {
@@ -1045,7 +1049,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CTreeDataObjectFolderRef::RefreshModel(const int countPerPage)
+void CTreeDataObjectFolderRef::RefreshModel(const wxDataViewItem& topItem, const int countPerPage)
 {
 	if (db_query != nullptr && !db_query->IsOpen())
 		CBackendException::Error(_("database is not open!"));
@@ -1056,7 +1060,7 @@ void CTreeDataObjectFolderRef::RefreshModel(const int countPerPage)
 	const wxString& tableName = m_metaObject->GetTableNameDB();
 	wxString queryText = "SELECT * FROM " + tableName;
 	wxString whereText; bool firstWhere = true;
-	for (auto filter : m_filterRow.m_filters) {
+	for (auto &filter : m_filterRow.m_filters) {
 		const wxString& operation = filter.m_filterComparison == eComparisonType::eComparisonType_Equal ? "=" : "<>";
 		if (filter.m_filterUse) {
 			IMetaObjectAttribute* attribute = dynamic_cast<IMetaObjectAttribute*>(m_metaObject->FindMetaObjectByID(filter.m_filterModel));
@@ -1129,8 +1133,10 @@ void CTreeDataObjectFolderRef::RefreshModel(const int countPerPage)
 		CReferenceDataObject* reference = NULL;
 		if (node->GetValue(*m_metaObject->GetDataParent(), cReference)) {
 			if (cReference.ConvertToValue(reference)) {
-				auto it = std::find_if(arrTree.begin(), arrTree.end(), [reference](wxValueTreeListNode* node) {
-					return reference->GetGuid() == node->GetGuid(); }
+				auto it = std::find_if(arrTree.begin(), arrTree.end(), [reference](wxValueTreeListNode* node)
+				{
+					return reference->GetGuid() == node->GetGuid();
+				}
 				);
 				if (it != arrTree.end()) node->SetParent(*it);
 				else node->SetParent(GetRoot());

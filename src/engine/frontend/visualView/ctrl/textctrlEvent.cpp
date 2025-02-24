@@ -15,9 +15,9 @@ bool CValueTextCtrl::TextProcessing(wxTextCtrl* textCtrl, const wxString& strDat
 		return false;
 	}
 	if (strData.Length() > 0) {
-		std::vector<CValue> foundedObjects;
-		if (newValue.FindValue(strData, foundedObjects)) {
-			SetControlValue(foundedObjects.at(0));
+		std::vector<CValue> listValue;
+		if (newValue.FindValue(strData, listValue)) {
+			SetControlValue(listValue.at(0));
 		}
 		else {
 			textCtrl->SetValue(selValue.GetString());

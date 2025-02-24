@@ -20,18 +20,16 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObject, IMetaObject);
 
 CMetaObject::CMetaObject() : IMetaObject(configurationDefaultName)
 {
-	m_metaId = defaultMetaID;
-	m_commonModule = new CMetaObjectModule(initModuleName);
-
-	//set child/parent
-	m_commonModule->SetParent(this);
-	AddChild(m_commonModule);
+	m_commonModule = IMetaObject::CreateMetaObjectAndSetParent<CMetaObjectModule>(initModuleName);
 
 	//set default proc
 	m_commonModule->SetDefaultProcedure("beforeStart", eContentHelper::eProcedureHelper, { "cancel" });
 	m_commonModule->SetDefaultProcedure("onStart", eContentHelper::eProcedureHelper);
 	m_commonModule->SetDefaultProcedure("beforeExit", eContentHelper::eProcedureHelper, { "cancel" });
 	m_commonModule->SetDefaultProcedure("onExit", eContentHelper::eProcedureHelper);
+
+	//set def metaid
+	m_metaId = defaultMetaID;
 }
 
 CMetaObject::~CMetaObject()

@@ -11,7 +11,7 @@ OptionList* CValueToolBarItem::GetToolAction(EventAction* action)
 	IValueFrame* sourceElement = toolbar->GetActionSrc() != wxNOT_FOUND ?
 		FindControlByID(toolbar->GetActionSrc()) : nullptr;
 	if (sourceElement != nullptr) {
-		const actionData_t& data = sourceElement->GetActions(sourceElement->GetTypeForm());
+		const CActionCollection& data = sourceElement->GetActionCollection(sourceElement->GetTypeForm());
 		for (unsigned int i = 0; i < data.GetCount(); i++) {
 			const action_identifier_t& id = data.GetID(i);
 			optionlist->AddOption(

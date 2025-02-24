@@ -16,7 +16,8 @@
 //*								 metaData                               * 
 //***********************************************************************
 
-wxIMPLEMENT_ABSTRACT_CLASS(IMetaObjectGenericData, IMetaObject);
+wxIMPLEMENT_ABSTRACT_CLASS(IMetaObjectContextData, IMetaObject);
+wxIMPLEMENT_ABSTRACT_CLASS(IMetaObjectGenericData, IMetaObjectContextData);
 wxIMPLEMENT_ABSTRACT_CLASS(IMetaObjectRegisterData, IMetaObjectGenericData);
 
 wxIMPLEMENT_ABSTRACT_CLASS(IMetaObjectRecordData, IMetaObjectGenericData);
@@ -194,9 +195,9 @@ std::vector<CMetaObjectGrid*> IMetaObjectRecordData::GetObjectTemplates() const
 	return CMetaVector<CMetaObjectGrid>(this, g_metaTemplateCLSID);
 }
 
-std::vector<CMetaObjectTable*> IMetaObjectRecordData::GetObjectTables() const
+std::vector<CMetaObjectTableData*> IMetaObjectRecordData::GetObjectTables() const
 {
-	return CMetaVector<CMetaObjectTable>(this, g_metaTableCLSID);
+	return CMetaVector<CMetaObjectTableData>(this, g_metaTableCLSID);
 }
 
 //***********************************************************************
@@ -243,10 +244,7 @@ IRecordDataObject* IMetaObjectRecordDataExt::CreateRecordDataObject()
 
 IMetaObjectRecordDataRef::IMetaObjectRecordDataRef() : IMetaObjectRecordData()
 {
-	m_attributeReference = CMetaObjectAttributeDefault::CreateSpecialType("reference", _("Reference"), wxEmptyString, CValue::GetIDByVT(eValueTypes::TYPE_EMPTY));
-	//set child/parent
-	m_attributeReference->SetParent(this);
-	AddChild(m_attributeReference);
+	m_attributeReference = IMetaObjectContextData::CreateSpecialType("reference", _("Reference"), wxEmptyString, CValue::GetIDByVT(eValueTypes::TYPE_EMPTY));
 }
 
 IMetaObjectRecordDataRef::~IMetaObjectRecordDataRef()
@@ -445,10 +443,7 @@ std::vector<CMetaObjectEnum*> IMetaObjectRecordDataRef::GetObjectEnums() const
 
 IMetaObjectRecordDataEnumRef::IMetaObjectRecordDataEnumRef() : IMetaObjectRecordDataRef()
 {
-	m_attributeOrder = CMetaObjectAttributeDefault::CreateNumber(wxT("order"), _("Order"), wxEmptyString, 6, true);
-	//set child/parent
-	m_attributeOrder->SetParent(this);
-	AddChild(m_attributeOrder);
+	m_attributeOrder = IMetaObjectContextData::CreateNumber(wxT("order"), _("Order"), wxEmptyString, 6, true);
 }
 
 IMetaObjectRecordDataEnumRef::~IMetaObjectRecordDataEnumRef()
@@ -592,14 +587,13 @@ void IMetaObjectRecordDataMutableRef::genData_t::SaveToVariant(wxVariant& varian
 
 IMetaObjectRecordDataMutableRef::IMetaObjectRecordDataMutableRef() : IMetaObjectRecordDataRef()
 {
-	m_attributeDeletionMark = CMetaObjectAttributeDefault::CreateBoolean("deletionMark", _("DeletionMark"), wxEmptyString);
-	//set child/parent
-	m_attributeDeletionMark->SetParent(this);
-	AddChild(m_attributeDeletionMark);
+	m_attributeDataVersion = IMetaObjectContextData::CreateString("dataVersion", _("Data version"), wxEmptyString, 12, eItemMode_Folder_Item);
+	m_attributeDeletionMark = IMetaObjectContextData::CreateBoolean("deletionMark", _("Deletion mark"), wxEmptyString);
 }
 
 IMetaObjectRecordDataMutableRef::~IMetaObjectRecordDataMutableRef()
 {
+	wxDELETE(m_attributeDataVersion);
 	wxDELETE(m_attributeDeletionMark);
 }
 
@@ -610,6 +604,7 @@ IMetaObjectRecordDataMutableRef::~IMetaObjectRecordDataMutableRef()
 bool IMetaObjectRecordDataMutableRef::LoadData(CMemoryReader& dataReader)
 {
 	//load default attributes:
+	m_attributeDataVersion->LoadMeta(dataReader);
 	m_attributeDeletionMark->LoadMeta(dataReader);
 
 	if (!IMetaObjectRecordDataRef::LoadData(dataReader))
@@ -621,6 +616,7 @@ bool IMetaObjectRecordDataMutableRef::LoadData(CMemoryReader& dataReader)
 bool IMetaObjectRecordDataMutableRef::SaveData(CMemoryWriter& dataWritter)
 {
 	//save default attributes:
+	m_attributeDataVersion->SaveMeta(dataWritter);
 	m_attributeDeletionMark->SaveMeta(dataWritter);
 
 	//create or update table:
@@ -639,11 +635,15 @@ bool IMetaObjectRecordDataMutableRef::OnCreateMetaObject(IMetaData* metaData)
 	if (!IMetaObjectRecordDataRef::OnCreateMetaObject(metaData))
 		return false;
 
-	return m_attributeDeletionMark->OnCreateMetaObject(metaData);
+	return m_attributeDataVersion->OnCreateMetaObject(metaData)
+		&& m_attributeDeletionMark->OnCreateMetaObject(metaData);
 }
 
 bool IMetaObjectRecordDataMutableRef::OnLoadMetaObject(IMetaData* metaData)
 {
+	if (!m_attributeDataVersion->OnLoadMetaObject(metaData))
+		return false;
+
 	if (!m_attributeDeletionMark->OnLoadMetaObject(metaData))
 		return false;
 
@@ -652,6 +652,9 @@ bool IMetaObjectRecordDataMutableRef::OnLoadMetaObject(IMetaData* metaData)
 
 bool IMetaObjectRecordDataMutableRef::OnSaveMetaObject()
 {
+	if (!m_attributeDataVersion->OnSaveMetaObject())
+		return false;
+
 	if (!m_attributeDeletionMark->OnSaveMetaObject())
 		return false;
 
@@ -660,6 +663,9 @@ bool IMetaObjectRecordDataMutableRef::OnSaveMetaObject()
 
 bool IMetaObjectRecordDataMutableRef::OnDeleteMetaObject()
 {
+	if (!m_attributeDataVersion->OnDeleteMetaObject())
+		return false;
+
 	if (!m_attributeDeletionMark->OnDeleteMetaObject())
 		return false;
 
@@ -668,6 +674,9 @@ bool IMetaObjectRecordDataMutableRef::OnDeleteMetaObject()
 
 bool IMetaObjectRecordDataMutableRef::OnBeforeRunMetaObject(int flags)
 {
+	if (!m_attributeDataVersion->OnBeforeRunMetaObject(flags))
+		return false;
+
 	if (!m_attributeDeletionMark->OnBeforeRunMetaObject(flags))
 		return false;
 
@@ -676,16 +685,31 @@ bool IMetaObjectRecordDataMutableRef::OnBeforeRunMetaObject(int flags)
 
 bool IMetaObjectRecordDataMutableRef::OnAfterRunMetaObject(int flags)
 {
+	if (!m_attributeDataVersion->OnAfterRunMetaObject(flags))
+		return false;
+
+	if (!m_attributeDeletionMark->OnAfterRunMetaObject(flags))
+		return false;
+
 	return IMetaObjectRecordDataRef::OnAfterRunMetaObject(flags);
 }
 
 bool IMetaObjectRecordDataMutableRef::OnBeforeCloseMetaObject()
 {
+	if (!m_attributeDataVersion->OnBeforeCloseMetaObject())
+		return false;
+
+	if (!m_attributeDeletionMark->OnBeforeCloseMetaObject())
+		return false;
+
 	return IMetaObjectRecordDataRef::OnBeforeCloseMetaObject();
 }
 
 bool IMetaObjectRecordDataMutableRef::OnAfterCloseMetaObject()
 {
+	if (!m_attributeDataVersion->OnAfterCloseMetaObject())
+		return false;
+
 	if (!m_attributeDeletionMark->OnAfterCloseMetaObject())
 		return false;
 
@@ -750,25 +774,10 @@ IMetaObjectRecordDataFolderMutableRef::IMetaObjectRecordDataFolderMutableRef()
 	: IMetaObjectRecordDataMutableRef()
 {
 	//create default attributes
-	m_attributeCode = CMetaObjectAttributeDefault::CreateString(wxT("code"), _("Code"), wxEmptyString, 8, true, eItemMode::eItemMode_Folder_Item);
-	//set child/parent
-	m_attributeCode->SetParent(this);
-	AddChild(m_attributeCode);
-
-	m_attributeDescription = CMetaObjectAttributeDefault::CreateString(wxT("description"), _("Description"), wxEmptyString, 150, true, eItemMode::eItemMode_Folder_Item);
-	//set child/parent
-	m_attributeDescription->SetParent(this);
-	AddChild(m_attributeDescription);
-
-	m_attributeParent = CMetaObjectAttributeDefault::CreateEmptyType(wxT("parent"), _("Parent"), wxEmptyString, false, eItemMode::eItemMode_Folder_Item, eSelectMode::eSelectMode_Folders);
-	//set child/parent
-	m_attributeParent->SetParent(this);
-	AddChild(m_attributeParent);
-
-	m_attributeIsFolder = CMetaObjectAttributeDefault::CreateBoolean(wxT("isFolder"), _("Is folder"), wxEmptyString, eItemMode::eItemMode_Folder_Item);
-	//set child/parent
-	m_attributeIsFolder->SetParent(this);
-	AddChild(m_attributeIsFolder);
+	m_attributeCode = IMetaObjectContextData::CreateString(wxT("code"), _("Code"), wxEmptyString, 8, true, eItemMode::eItemMode_Folder_Item);
+	m_attributeDescription = IMetaObjectContextData::CreateString(wxT("description"), _("Description"), wxEmptyString, 150, true, eItemMode::eItemMode_Folder_Item);
+	m_attributeParent = IMetaObjectContextData::CreateEmptyType(wxT("parent"), _("Parent"), wxEmptyString, false, eItemMode::eItemMode_Folder_Item, eSelectMode::eSelectMode_Folders);
+	m_attributeIsFolder = IMetaObjectContextData::CreateBoolean(wxT("isFolder"), _("Is folder"), wxEmptyString, eItemMode::eItemMode_Folder_Item);
 }
 
 IMetaObjectRecordDataFolderMutableRef::~IMetaObjectRecordDataFolderMutableRef()
@@ -936,11 +945,35 @@ bool IMetaObjectRecordDataFolderMutableRef::OnBeforeRunMetaObject(int flags)
 
 bool IMetaObjectRecordDataFolderMutableRef::OnAfterRunMetaObject(int flags)
 {
+	if (!m_attributeCode->OnAfterRunMetaObject(flags))
+		return false;
+
+	if (!m_attributeDescription->OnAfterRunMetaObject(flags))
+		return false;
+
+	if (!m_attributeParent->OnAfterRunMetaObject(flags))
+		return false;
+
+	if (!m_attributeIsFolder->OnAfterRunMetaObject(flags))
+		return false;
+
 	return IMetaObjectRecordDataMutableRef::OnAfterRunMetaObject(flags);
 }
 
 bool IMetaObjectRecordDataFolderMutableRef::OnBeforeCloseMetaObject()
 {
+	if (!m_attributeCode->OnBeforeCloseMetaObject())
+		return false;
+
+	if (!m_attributeDescription->OnBeforeCloseMetaObject())
+		return false;
+
+	if (!m_attributeParent->OnBeforeCloseMetaObject())
+		return false;
+
+	if (!m_attributeIsFolder->OnBeforeCloseMetaObject())
+		return false;
+
 	return IMetaObjectRecordDataMutableRef::OnBeforeCloseMetaObject();
 }
 
@@ -1024,20 +1057,10 @@ IRecordDataObjectRef* IMetaObjectRecordDataFolderMutableRef::CreateObjectRefValu
 IMetaObjectRegisterData::IMetaObjectRegisterData() : IMetaObjectGenericData()
 {
 	//create default attributes
-	m_attributeLineActive = CMetaObjectAttributeDefault::CreateBoolean(wxT("active"), _("Active"), wxEmptyString, false, true);
-	m_attributePeriod = CMetaObjectAttributeDefault::CreateDate(wxT("period"), _("Period"), wxEmptyString, eDateFractions::eDateFractions_DateTime, true);
-	m_attributeRecorder = CMetaObjectAttributeDefault::CreateEmptyType(wxT("recorder"), _("Recorder"), wxEmptyString);
-	m_attributeLineNumber = CMetaObjectAttributeDefault::CreateNumber(wxT("lineNumber"), _("Line number"), wxEmptyString, 15, 0);
-
-	//set child/parent
-	m_attributeLineActive->SetParent(this);
-	AddChild(m_attributeLineActive);
-	m_attributePeriod->SetParent(this);
-	AddChild(m_attributePeriod);
-	m_attributeRecorder->SetParent(this);
-	AddChild(m_attributeRecorder);
-	m_attributeLineNumber->SetParent(this);
-	AddChild(m_attributeLineNumber);
+	m_attributeLineActive = IMetaObjectContextData::CreateBoolean(wxT("active"), _("Active"), wxEmptyString, false, true);
+	m_attributePeriod = IMetaObjectContextData::CreateDate(wxT("period"), _("Period"), wxEmptyString, eDateFractions::eDateFractions_DateTime, true);
+	m_attributeRecorder = IMetaObjectContextData::CreateEmptyType(wxT("recorder"), _("Recorder"), wxEmptyString);
+	m_attributeLineNumber = IMetaObjectContextData::CreateNumber(wxT("lineNumber"), _("Line number"), wxEmptyString, 15, 0);
 }
 
 IMetaObjectRegisterData::~IMetaObjectRegisterData()
@@ -1229,9 +1252,9 @@ std::vector<IMetaObjectAttribute*> IMetaObjectRegisterData::GetGenericAttributes
 	return attributes;
 }
 
+#include "backend/metaCollection/attribute/metaAttributeObject.h"
 #include "backend/metaCollection/dimension/metaDimensionObject.h"
 #include "backend/metaCollection/resource/metaResourceObject.h"
-#include "backend/metaCollection/attribute/metaAttributeObject.h"
 
 std::vector<IMetaObjectAttribute*> IMetaObjectRegisterData::GetObjectDimensions() const
 {
@@ -1277,6 +1300,11 @@ IMetaObjectAttribute* IMetaObjectRegisterData::FindProp(const meta_identifier_t&
 	return nullptr;
 }
 
+CRecordKeyObject* IMetaObjectRegisterData::CreateRecordKeyObjectValue()
+{
+	return m_metaData->CreateAndConvertObjectValueRef<CRecordKeyObject>(this);
+}
+
 IRecordSetObject* IMetaObjectRegisterData::CreateRecordSetObjectValue(bool needInitialize)
 {
 	IRecordSetObject* createdValue = CreateRecordSetObjectRegValue();
@@ -1307,6 +1335,16 @@ IRecordSetObject* IMetaObjectRegisterData::CreateRecordSetObjectValue(IRecordSet
 	if (!needInitialize)
 		return createdValue;
 	if (createdValue && !createdValue->InitializeObject(source, true)) {
+		wxDELETE(createdValue);
+		return nullptr;
+	}
+	return createdValue;
+}
+
+IRecordSetObject* IMetaObjectRegisterData::CopyRecordSetObjectValue(const CUniquePairKey& uniqueKey)
+{
+	IRecordSetObject* createdValue = CreateRecordSetObjectRegValue(uniqueKey);
+	if (createdValue && !createdValue->InitializeObject(nullptr, true)) {
 		wxDELETE(createdValue);
 		return nullptr;
 	}
@@ -1365,15 +1403,18 @@ wxIMPLEMENT_ABSTRACT_CLASS(IRecordDataObject, CValue);
 
 IRecordDataObject::IRecordDataObject(const Guid& objGuid, bool newObject) :
 	CValue(eValueTypes::TYPE_VALUE), IObjectValueInfo(objGuid, newObject),
-	m_methodHelper(new CMethodHelper()) {
+	m_methodHelper(new CMethodHelper())
+{
 }
 
 IRecordDataObject::IRecordDataObject(const IRecordDataObject& source) :
 	CValue(eValueTypes::TYPE_VALUE), IObjectValueInfo(wxNewUniqueGuid, true),
-	m_methodHelper(new CMethodHelper()) {
+	m_methodHelper(new CMethodHelper())
+{
 }
 
-IRecordDataObject::~IRecordDataObject() {
+IRecordDataObject::~IRecordDataObject()
+{
 	wxDELETE(m_methodHelper);
 }
 
@@ -1611,9 +1652,9 @@ bool IRecordDataObject::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 	else if (lPropAlias == eSystem) {
 		switch (m_methodHelper->GetPropData(lPropNum))
 		{
-		case eThisObject:
-			pvarPropVal = GetValue();
-			return true;
+			case eThisObject:
+				pvarPropVal = GetValue();
+				return true;
 		}
 	}
 	return false;
@@ -1642,15 +1683,15 @@ bool IRecordDataObject::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, 
 
 	switch (lMethodNum)
 	{
-	case eGetFormObject:
-		pvarRetValue = GetFormValue(
-			lSizeArray > 0 ? paParams[0]->GetString() : wxEmptyString,
-			lSizeArray > 1 ? paParams[1]->ConvertToType<IBackendControlFrame>() : nullptr
-		);
-		return true;
-	case eGetMetadata:
-		pvarRetValue = GetMetaObject();
-		return true;
+		case eGetFormObject:
+			pvarRetValue = GetFormValue(
+				lSizeArray > 0 ? paParams[0]->GetString() : wxEmptyString,
+				lSizeArray > 1 ? paParams[1]->ConvertToType<IBackendControlFrame>() : nullptr
+			);
+			return true;
+		case eGetMetadata:
+			pvarRetValue = GetMetaObject();
+			return true;
 	}
 
 	return false;
@@ -2291,7 +2332,7 @@ void IRecordDataObjectFolderRef::PrepareEmptyObject(const IRecordDataObjectRef* 
 	for (auto& obj : m_metaObject->GetObjectTables()) {
 		if (obj->IsDeleted())
 			continue;
-		CMetaObjectTable* metaTable = nullptr; eItemMode tableUse = eItemMode::eItemMode_Folder_Item;
+		CMetaObjectTableData* metaTable = nullptr; eItemMode tableUse = eItemMode::eItemMode_Folder_Item;
 		if (obj->ConvertToValue(metaTable))
 			tableUse = metaTable->GetTableUse();
 		CTabularSectionDataObjectRef* tableSection = m_metaObject->GetMetaData()->CreateAndConvertObjectValueRef <CTabularSectionDataObjectRef>(this, obj);
@@ -2412,20 +2453,22 @@ IRecordManagerObject::IRecordManagerObject(IMetaObjectRegisterData* metaObject, 
 m_metaObject(metaObject), m_methodHelper(new CMethodHelper()), m_recordSet(m_metaObject->CreateRecordSetObjectValue(uniqueKey, false)), m_recordLine(nullptr),
 m_objGuid(uniqueKey)
 {
+	m_recordSet->IncrRef();
 }
 
 IRecordManagerObject::IRecordManagerObject(const IRecordManagerObject& source) : CValue(eValueTypes::TYPE_VALUE),
 m_metaObject(source.m_metaObject), m_methodHelper(new CMethodHelper()), m_recordSet(m_metaObject->CreateRecordSetObjectValue(source.m_recordSet, false)), m_recordLine(nullptr),
 m_objGuid(source.m_metaObject)
 {
+	m_recordSet->IncrRef();
 }
 
 IRecordManagerObject::~IRecordManagerObject()
 {
 	wxDELETE(m_methodHelper);
-
-	wxDELETE(m_recordSet);
-	wxDELETE(m_recordLine);
+	
+	if (m_recordLine != nullptr) m_recordLine->DecrRef();
+	if (m_recordSet != nullptr) m_recordSet->DecrRef();
 }
 
 IBackendValueForm* IRecordManagerObject::GetForm() const
@@ -2445,8 +2488,7 @@ bool IRecordManagerObject::IsEmpty() const
 CSourceExplorer IRecordManagerObject::GetSourceExplorer() const
 {
 	CSourceExplorer srcHelper(
-		m_metaObject, GetClassType(),
-		false
+		m_metaObject, GetClassType(), false
 	);
 
 	for (auto& obj : m_metaObject->GetGenericAttributes()) {
@@ -2524,11 +2566,13 @@ void IRecordManagerObject::PrepareEmptyObject(const IRecordManagerObject* source
 				m_recordSet->AppendRow()
 			)
 		);
+		m_recordLine->IncrRef();
 	}
 	else if (source != nullptr) {
 		m_recordLine = m_recordSet->GetRowAt(
 			m_recordSet->GetItem(0)
 		);
+		m_recordLine->IncrRef();
 	}
 
 	m_recordSet->Modify(true);
@@ -2634,9 +2678,9 @@ IRecordSetObject::IRecordSetObject(IMetaObjectRegisterData* metaObject, const CU
 m_methodHelper(new CMethodHelper()),
 m_metaObject(metaObject), m_keyValues(uniqueKey.IsOk() ? uniqueKey : metaObject), m_objModified(false), m_selected(false)
 {
-	m_dataColumnCollection = new CRecordSetObjectRegisterColumnCollection(this);
+	m_dataColumnCollection = CValue::CreateAndConvertObjectValueRef<CRecordSetObjectRegisterColumnCollection>(this);
 	m_dataColumnCollection->IncrRef();
-	m_recordSetKeyValue = new CRecordSetObjectRegisterKeyValue(this);
+	m_recordSetKeyValue = CValue::CreateAndConvertObjectValueRef<CRecordSetObjectRegisterKeyValue>(this);
 	m_recordSetKeyValue->IncrRef();
 }
 
@@ -2644,9 +2688,9 @@ IRecordSetObject::IRecordSetObject(const IRecordSetObject& source) : IValueTable
 m_methodHelper(new CMethodHelper()),
 m_metaObject(source.m_metaObject), m_keyValues(source.m_keyValues), m_objModified(true), m_selected(false)
 {
-	m_dataColumnCollection = new CRecordSetObjectRegisterColumnCollection(this);
+	m_dataColumnCollection = CValue::CreateAndConvertObjectValueRef<CRecordSetObjectRegisterColumnCollection>(this);
 	m_dataColumnCollection->IncrRef();
-	m_recordSetKeyValue = new CRecordSetObjectRegisterKeyValue(this);
+	m_recordSetKeyValue = CValue::CreateAndConvertObjectValueRef<CRecordSetObjectRegisterKeyValue>(this);
 	m_recordSetKeyValue->IncrRef();
 
 	for (long row = 0; row < source.GetRowCount(); row++) {
@@ -2676,7 +2720,7 @@ bool IRecordSetObject::GetAt(const CValue& varKeyValue, CValue& pvarValue)
 		CBackendException::Error("Array index out of bounds");
 		return false;
 	}
-	pvarValue = new CRecordSetObjectRegisterReturnLine(this, GetItem(index));
+	pvarValue = CValue::CreateAndConvertObjectValueRef<CRecordSetObjectRegisterReturnLine>(this, GetItem(index));
 	return true;
 }
 
@@ -2962,7 +3006,8 @@ long IRecordSetObject::AppendRow(unsigned int before)
 	return IValueTable::Append(rowData, !CBackendException::IsEvalMode());
 }
 
-enum Func {
+enum Func
+{
 	enAdd = 0,
 	enCount,
 	enClear,
@@ -2975,12 +3020,14 @@ enum Func {
 	enGetMetadata,
 };
 
-enum {
+enum
+{
 	enEmpty,
 	enMetadata,
 };
 
-enum {
+enum
+{
 	enSet,
 };
 
@@ -3028,7 +3075,7 @@ bool IRecordSetObject::CRecordSetObjectRegisterKeyValue::GetPropVal(const long l
 {
 	const meta_identifier_t& id = m_methodHelper->GetPropData(lPropNum);
 	if (id != wxNOT_FOUND) {
-		pvarPropVal = new CRecordSetObjectRegisterKeyDescriptionValue(m_recordSet, id);
+		pvarPropVal = CValue::CreateAndConvertObjectValueRef<CRecordSetObjectRegisterKeyDescriptionValue>(m_recordSet, id);
 		return true;
 	}
 	return false;
@@ -3081,7 +3128,8 @@ void IRecordSetObject::CRecordSetObjectRegisterKeyValue::CRecordSetObjectRegiste
 	m_methodHelper->AppendProp(wxT("use"));
 }
 
-enum Prop {
+enum Prop
+{
 	eValue,
 	eUse
 };
@@ -3094,15 +3142,15 @@ bool IRecordSetObject::CRecordSetObjectRegisterKeyValue::CRecordSetObjectRegiste
 	wxASSERT(metaAttribute);
 
 	switch (lPropNum) {
-	case eValue:
-		m_recordSet->SetKeyValue(m_metaId, varPropVal);
-		return true;
-	case eUse:
-		if (varPropVal.GetBoolean())
-			m_recordSet->SetKeyValue(m_metaId, metaAttribute->CreateValue());
-		else
-			m_recordSet->EraseKeyValue(m_metaId);
-		return true;
+		case eValue:
+			m_recordSet->SetKeyValue(m_metaId, varPropVal);
+			return true;
+		case eUse:
+			if (varPropVal.GetBoolean())
+				m_recordSet->SetKeyValue(m_metaId, metaAttribute->CreateValue());
+			else
+				m_recordSet->EraseKeyValue(m_metaId);
+			return true;
 	}
 
 	return false;
@@ -3116,14 +3164,15 @@ bool IRecordSetObject::CRecordSetObjectRegisterKeyValue::CRecordSetObjectRegiste
 	wxASSERT(metaAttribute);
 
 	switch (lPropNum) {
-	case eValue:
-		if (m_recordSet->FindKeyValue(m_metaId))
-			pvarPropVal = m_recordSet->GetKeyValue(m_metaId);
-		pvarPropVal = metaAttribute->CreateValue();
-		return true;
-	case eUse:
-		pvarPropVal = m_recordSet->FindKeyValue(m_metaId);
-		return true;
+		case eValue:
+			if (m_recordSet->FindKeyValue(m_metaId))
+				pvarPropVal = m_recordSet->GetKeyValue(m_metaId);
+			else
+				pvarPropVal = metaAttribute->CreateValue();
+			return true;
+		case eUse:
+			pvarPropVal = m_recordSet->FindKeyValue(m_metaId);
+			return true;
 	}
 
 	return false;
@@ -3135,12 +3184,12 @@ bool CRecordKeyObject::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, C
 {
 	switch (lMethodNum)
 	{
-	case enEmpty:
-		pvarRetValue = IsEmpty();
-		return true;
-	case enMetadata:
-		pvarRetValue = m_metaObject;
-		return true;
+		case enEmpty:
+			pvarRetValue = IsEmpty();
+			return true;
+		case enMetadata:
+			pvarRetValue = m_metaObject;
+			return true;
 	}
 	return false;
 }
@@ -3158,9 +3207,9 @@ bool IRecordSetObject::CRecordSetObjectRegisterKeyValue::CRecordSetObjectRegiste
 {
 	switch (lMethodNum)
 	{
-	case enSet:
-		m_recordSet->SetKeyValue(m_metaId, paParams[0]);
-		return true;
+		case enSet:
+			m_recordSet->SetKeyValue(m_metaId, paParams[0]);
+			return true;
 	}
 	return false;
 }

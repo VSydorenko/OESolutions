@@ -7,7 +7,7 @@
 class BACKEND_API CValueArray : public CValue {
 	wxDECLARE_DYNAMIC_CLASS(CValueArray);
 private:
-	std::vector <CValue> m_arrValues;
+	std::vector <CValue> m_listValue;
 private:
 
 	enum Func {
@@ -30,7 +30,7 @@ public:
 	}
 
 	CValueArray(const std::vector <CValue>& arr) :
-		CValue(eValueTypes::TYPE_VALUE, true), m_arrValues(arr) {
+		CValue(eValueTypes::TYPE_VALUE, true), m_listValue(arr) {
 	}
 
 	virtual ~CValueArray() {
@@ -42,7 +42,7 @@ public:
 
 	//check is empty
 	virtual inline bool IsEmpty() const {
-		return m_arrValues.empty();
+		return m_listValue.empty();
 	}
 
 public:
@@ -59,34 +59,34 @@ public:
 
 	//Расширенные методы
 	void Add(const CValue& varValue) {
-		m_arrValues.push_back(varValue);
+		m_listValue.push_back(varValue);
 	}
 
 	void Insert(unsigned int index, const CValue& varValue) {
 		CheckIndex(index);
-		m_arrValues.insert(m_arrValues.begin() + index, varValue);
+		m_listValue.insert(m_listValue.begin() + index, varValue);
 	}
 
 	unsigned int Count() const {
-		return m_arrValues.size();
+		return m_listValue.size();
 	}
 
 	CValue Find(const CValue& varValue) {
-		auto& it = std::find(m_arrValues.begin(), m_arrValues.end(), varValue);
-		if (it != m_arrValues.end())
-			return std::distance(m_arrValues.begin(), it);
+		auto& it = std::find(m_listValue.begin(), m_listValue.end(), varValue);
+		if (it != m_listValue.end())
+			return std::distance(m_listValue.begin(), it);
 		return CValue();
 	}
 
 	void Remove(unsigned int index) {
 		CheckIndex(index);
-		auto& it = std::find(m_arrValues.begin(), m_arrValues.end(), index);
-		if (it != m_arrValues.end())
-			m_arrValues.erase(it);
+		auto& it = std::find(m_listValue.begin(), m_listValue.end(), index);
+		if (it != m_listValue.end())
+			m_listValue.erase(it);
 	}
 
 	void Clear() {
-		m_arrValues.clear();
+		m_listValue.clear();
 	}
 
 	//array support 
@@ -98,7 +98,7 @@ public:
 		return true;
 	}
 	virtual CValue GetIteratorAt(unsigned int idx) {
-		return m_arrValues[idx];
+		return m_listValue[idx];
 	}
 	virtual unsigned int GetIteratorCount() const {
 		return Count();
