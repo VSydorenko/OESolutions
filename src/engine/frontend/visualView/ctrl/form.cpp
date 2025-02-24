@@ -262,8 +262,8 @@ bool CValueForm::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 			pvarPropVal = IsModified();
 			return true;
 		case eFormOwner:
-			pvarPropVal = m_controlOwner ? m_controlOwner : CValue();
-			return m_controlOwner != nullptr;
+			pvarPropVal = m_controlOwner != nullptr ? m_controlOwner : CValue();
+			return true;
 		case eUniqueKey:
 			pvarPropVal = CValue::CreateAndConvertObjectValueRef<CValueGuid>(m_formKey);
 			return true;
