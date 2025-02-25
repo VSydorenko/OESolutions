@@ -121,8 +121,8 @@ void CDocDesignerMDIFrame::InitializeDefaultMenu()
 	m_menuAdministration = new wxMenu;
 	m_menuAdministration->Append(wxID_APPLICATION_USERS, _("Users"));
 	m_menuAdministration->Append(wxID_APPLICATION_ACTIVE_USERS, _("Active users"));
-	m_menuAdministration->AppendSeparator();
-	m_menuAdministration->Append(wxID_APPLICATION_CONNECTION, _("Connection DB"));
+	//m_menuAdministration->AppendSeparator();
+	//m_menuAdministration->Append(wxID_APPLICATION_CONNECTION, _("Connection DB"));
 
 	m_menuBar->Append(m_menuAdministration, _("Administration"));
 
