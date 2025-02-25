@@ -50,7 +50,9 @@ bool ITabularSectionDataObject::GetAt(const CValue& varKeyValue, CValue& pvarVal
 		CBackendException::Error("Array index out of bounds");
 		return false;
 	}
-	pvarValue = new CTabularSectionDataObjectReturnLine(this, GetItem(index));
+	IMetaData *metaData = m_metaTable->GetMetaData(); 
+	wxASSERT(metaData);
+	pvarValue = metaData->CreateAndConvertObjectValueRef<CTabularSectionDataObjectReturnLine>(this, GetItem(index));
 	return true;
 }
 
@@ -127,14 +129,16 @@ bool ITabularSectionDataObject::GetValueByMetaID(const wxDataViewItem& item, con
 
 bool ITabularSectionDataObject::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)
 {
-	long lMethodAlias = m_methodHelper->GetMethodAlias(lMethodNum);
+	const long lMethodAlias = m_methodHelper->GetMethodAlias(lMethodNum);
 	if (lMethodAlias != eTabularSection)
 		return false;
-	long lMethodData = m_methodHelper->GetMethodData(lMethodNum);
+	IMetaData* metaData = m_metaTable->GetMetaData();
+	wxASSERT(metaData);
+	const long lMethodData = m_methodHelper->GetMethodData(lMethodNum);
 	switch (lMethodData)
 	{
 	case enAddValue:
-		pvarRetValue = m_metaTable->GetMetaData()->CreateAndConvertObjectValueRef<CTabularSectionDataObjectReturnLine>(this, GetItem(AppendRow()));
+		pvarRetValue = metaData->CreateAndConvertObjectValueRef<CTabularSectionDataObjectReturnLine>(this, GetItem(AppendRow()));
 		return true;
 	case enFind: {
 		const wxDataViewItem& item = FindRowValue(*paParams[0], paParams[1]->GetString());
@@ -248,7 +252,7 @@ bool ITabularSectionDataObject::LoadDataFromTable(IValueTable* srcTable)
 
 IValueTable* ITabularSectionDataObject::SaveDataToTable() const
 {
-	CValueTable* valueTable = new CValueTable;
+	CValueTable* valueTable = CValue::CreateAndConvertObjectValueRef<CValueTable>();
 	IValueModelColumnCollection* colData = valueTable->GetColumnCollection();
 	for (unsigned int idx = 0; idx < m_dataColumnCollection->GetColumnCount() - 1; idx++) {
 		IValueModelColumnCollection::IValueModelColumnInfo* colInfo = m_dataColumnCollection->GetColumnInfo(idx);
@@ -383,7 +387,7 @@ ITabularSectionDataObject::CTabularSectionDataObjectColumnCollection::CTabularSe
 	for (auto& obj : metaTable->GetObjectAttributes()) {
 		if (metaTable->IsNumberLine(obj->GetMetaID()))
 			continue;
-		CValueTabularSectionColumnInfo* columnInfo = new CValueTabularSectionColumnInfo(obj);
+		CValueTabularSectionColumnInfo* columnInfo = CValue::CreateAndConvertObjectValueRef<CValueTabularSectionColumnInfo>(obj);
 		m_columnInfo.insert_or_assign(obj->GetMetaID(), columnInfo);
 		columnInfo->IncrRef();
 	}
