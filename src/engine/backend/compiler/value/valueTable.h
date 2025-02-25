@@ -105,7 +105,7 @@ public:
 			const wxString& caption,
 			int width = wxDVC_DEFAULT_WIDTH) override {
 			unsigned int max_id = 0;
-			for (auto& col : m_columnInfo) {
+			for (auto& col : m_listColumnInfo) {
 				if (max_id < col->GetColumnID()) {
 					max_id = col->GetColumnID();
 				}
@@ -117,12 +117,12 @@ public:
 				node->SetValue(max_id + 1, CValueTypeDescription::AdjustValue(typeData));
 			}
 			columnInfo->IncrRef();
-			m_columnInfo.push_back(columnInfo);
+			m_listColumnInfo.push_back(columnInfo);
 			return columnInfo;
 		}
 
 		typeDescription_t GetColumnType(unsigned int col) const {
-			for (auto& colInfo : m_columnInfo) {
+			for (auto& colInfo : m_listColumnInfo) {
 				if (col == colInfo->GetColumnID()) {
 					return colInfo->GetColumnType();
 				}
@@ -136,26 +136,26 @@ public:
 				wxASSERT(node);
 				node->EraseValue(col);
 			}
-			auto& it = std::find_if(m_columnInfo.begin(), m_columnInfo.end(), [col](CValueTableColumnInfo* colInfo) {
+			auto& it = std::find_if(m_listColumnInfo.begin(), m_listColumnInfo.end(), [col](CValueTableColumnInfo* colInfo) {
 				return col == colInfo->GetColumnID();
 				}
 			);
 			CValueTableColumnInfo* columnInfo = *it;
 			wxASSERT(columnInfo);
 			columnInfo->DecrRef();
-			m_columnInfo.erase(it);
+			m_listColumnInfo.erase(it);
 		}
 
 		virtual IValueModelColumnInfo* GetColumnInfo(unsigned int idx) const {
-			if (m_columnInfo.size() < idx)
+			if (m_listColumnInfo.size() < idx)
 				return nullptr;
-			auto& it = m_columnInfo.begin();
+			auto& it = m_listColumnInfo.begin();
 			std::advance(it, idx);
 			return *it;
 		}
 
 		virtual unsigned int GetColumnCount() const {
-			return m_columnInfo.size();
+			return m_listColumnInfo.size();
 		}
 
 		virtual CMethodHelper* GetPMethods() const {
@@ -179,7 +179,7 @@ public:
 	protected:
 
 		CValueTable* m_ownerTable;
-		std::vector<CValueTableColumnInfo*> m_columnInfo;
+		std::vector<CValueTableColumnInfo*> m_listColumnInfo;
 		CMethodHelper* m_methodHelper;
 
 	} *m_dataColumnCollection;

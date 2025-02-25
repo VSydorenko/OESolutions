@@ -154,7 +154,7 @@ m_methodHelper(new CMethodHelper()), m_ownerTable(ownerTable) {
 }
 
 CValueTable::CValueTableColumnCollection::~CValueTableColumnCollection() {
-	for (auto& colInfo : m_columnInfo) {
+	for (auto& colInfo : m_listColumnInfo) {
 		wxASSERT(colInfo);
 		colInfo->DecrRef();
 	}
@@ -180,11 +180,11 @@ bool CValueTable::CValueTableColumnCollection::CallAsProc(const long lMethodNum,
 	case enRemoveColumn:
 	{
 		wxString columnName = paParams[0]->GetString();
-		auto it = std::find_if(m_columnInfo.begin(), m_columnInfo.end(),
+		auto it = std::find_if(m_listColumnInfo.begin(), m_listColumnInfo.end(),
 			[columnName](CValueTableColumnInfo* colData) {
 				return stringUtils::CompareString(columnName, colData->GetColumnName());
 			});
-		if (it != m_columnInfo.end()) {
+		if (it != m_listColumnInfo.end()) {
 			RemoveColumn((*it)->GetColumnID());
 		}
 		return true;
@@ -224,10 +224,10 @@ bool CValueTable::CValueTableColumnCollection::SetAt(const CValue& varKeyValue, 
 bool CValueTable::CValueTableColumnCollection::GetAt(const CValue& varKeyValue, CValue& pvarValue) //индекс массива должен начинаться с 0
 {
 	unsigned int index = varKeyValue.GetUInteger();
-	if ((index < 0 || index >= m_columnInfo.size() && !appData->DesignerMode())) {
+	if ((index < 0 || index >= m_listColumnInfo.size() && !appData->DesignerMode())) {
 		CBackendException::Error("Index goes beyond array"); return false;
 	}
-	auto it = m_columnInfo.begin();
+	auto it = m_listColumnInfo.begin();
 	std::advance(it, index);
 	pvarValue = *it;
 	return true;
@@ -267,7 +267,7 @@ CValueTable::CValueTableReturnLine::~CValueTableReturnLine() {
 void CValueTable::CValueTableReturnLine::PrepareNames() const
 {
 	m_methodHelper->ClearHelper();
-	for (auto& colInfo : m_ownerTable->m_dataColumnCollection->m_columnInfo) {
+	for (auto& colInfo : m_ownerTable->m_dataColumnCollection->m_listColumnInfo) {
 		wxASSERT(colInfo);
 		m_methodHelper->AppendProp(
 			colInfo->GetColumnName(),
@@ -301,7 +301,7 @@ bool CValueTable::CValueTableReturnLine::GetPropVal(const long lPropNum, CValue&
 long CValueTable::AppendRow(unsigned int before)
 {
 	wxValueTableRow* rowData = new wxValueTableRow();
-	for (auto& colData : m_dataColumnCollection->m_columnInfo) {
+	for (auto& colData : m_dataColumnCollection->m_listColumnInfo) {
 		rowData->AppendTableValue(colData->GetColumnID(),
 			CValueTypeDescription::AdjustValue(m_dataColumnCollection->GetColumnType(colData->GetColumnID()))
 		);
@@ -324,7 +324,7 @@ void CValueTable::CopyRow()
 	if (node == nullptr)
 		return;
 	wxValueTableRow* rowData = new wxValueTableRow();
-	for (auto& colData : m_dataColumnCollection->m_columnInfo) {
+	for (auto& colData : m_dataColumnCollection->m_listColumnInfo) {
 		rowData->AppendTableValue(
 			colData->GetColumnID(), node->GetTableValue(colData->GetColumnID())
 		);

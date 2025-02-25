@@ -1322,15 +1322,15 @@ public:
 		virtual ~CRecordSetObjectRegisterColumnCollection();
 
 		virtual typeDescription_t GetColumnType(unsigned int col) const {
-			CValueRecordSetRegisterColumnInfo* columnInfo = m_columnInfo.at(col);
+			CValueRecordSetRegisterColumnInfo* columnInfo = m_listColumnInfo.at(col);
 			wxASSERT(columnInfo);
 			return columnInfo->GetColumnType();
 		}
 
 		virtual IValueModelColumnInfo* GetColumnInfo(unsigned int idx) const {
-			if (m_columnInfo.size() < idx)
+			if (m_listColumnInfo.size() < idx)
 				return nullptr;
-			auto& it = m_columnInfo.begin();
+			auto& it = m_listColumnInfo.begin();
 			std::advance(it, idx);
 			return it->second;
 		}
@@ -1353,7 +1353,7 @@ public:
 		IRecordSetObject* m_ownerTable;
 		CMethodHelper* m_methodHelper;
 
-		std::map<meta_identifier_t, CValueRecordSetRegisterColumnInfo*> m_columnInfo;
+		std::map<meta_identifier_t, CValueRecordSetRegisterColumnInfo*> m_listColumnInfo;
 	};
 
 	class CRecordSetObjectRegisterReturnLine : public IValueModelReturnLine {

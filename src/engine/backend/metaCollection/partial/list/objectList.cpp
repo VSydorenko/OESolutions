@@ -89,14 +89,14 @@ IListDataObject::CDataObjectListColumnCollection::CDataObjectListColumnCollectio
 
 	for (auto& obj : metaTable->GetGenericAttributes()) {
 		CDataObjectListColumnInfo* columnInfo = new CDataObjectListColumnInfo(obj);
-		m_columnInfo.insert_or_assign(obj->GetMetaID(), columnInfo);
+		m_listColumnInfo.insert_or_assign(obj->GetMetaID(), columnInfo);
 		columnInfo->IncrRef();
 	}
 }
 
 IListDataObject::CDataObjectListColumnCollection::~CDataObjectListColumnCollection()
 {
-	for (auto& colInfo : m_columnInfo) {
+	for (auto& colInfo : m_listColumnInfo) {
 		CDataObjectListColumnInfo* columnInfo = colInfo.second;
 		wxASSERT(columnInfo);
 		columnInfo->DecrRef();
@@ -114,12 +114,12 @@ bool IListDataObject::CDataObjectListColumnCollection::GetAt(const CValue& varKe
 {
 	unsigned int index = varKeyValue.GetUInteger();
 
-	if ((index < 0 || index >= m_columnInfo.size() && !appData->DesignerMode())) {
+	if ((index < 0 || index >= m_listColumnInfo.size() && !appData->DesignerMode())) {
 		CBackendException::Error("Index goes beyond array");
 		return false;
 	}
 
-	auto it = m_columnInfo.begin();
+	auto it = m_listColumnInfo.begin();
 	std::advance(it, index);
 	pvarValue = it->second;
 
@@ -140,14 +140,14 @@ ITreeDataObject::CDataObjectTreeColumnCollection::CDataObjectTreeColumnCollectio
 
 	for (auto& obj : metaTable->GetGenericAttributes()) {
 		CDataObjectTreeColumnInfo* columnInfo = new CDataObjectTreeColumnInfo(obj);
-		m_columnInfo.insert_or_assign(obj->GetMetaID(), columnInfo);
+		m_listColumnInfo.insert_or_assign(obj->GetMetaID(), columnInfo);
 		columnInfo->IncrRef();
 	}
 }
 
 ITreeDataObject::CDataObjectTreeColumnCollection::~CDataObjectTreeColumnCollection()
 {
-	for (auto& colInfo : m_columnInfo) {
+	for (auto& colInfo : m_listColumnInfo) {
 		CDataObjectTreeColumnInfo* columnInfo = colInfo.second;
 		wxASSERT(columnInfo);
 		columnInfo->DecrRef();
@@ -164,11 +164,11 @@ bool ITreeDataObject::CDataObjectTreeColumnCollection::SetAt(const CValue& varKe
 bool ITreeDataObject::CDataObjectTreeColumnCollection::GetAt(const CValue& varKeyValue, CValue& pvarValue) //индекс массива должен начинаться с 0
 {
 	unsigned int index = varKeyValue.GetUInteger();
-	if ((index < 0 || index >= m_columnInfo.size() && !appData->DesignerMode())) {
+	if ((index < 0 || index >= m_listColumnInfo.size() && !appData->DesignerMode())) {
 		CBackendException::Error("Index goes beyond array");
 		return false;
 	}
-	auto it = m_columnInfo.begin();
+	auto it = m_listColumnInfo.begin();
 	std::advance(it, index);
 	pvarValue = it->second;
 	return true;

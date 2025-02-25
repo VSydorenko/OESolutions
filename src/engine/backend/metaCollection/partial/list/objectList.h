@@ -77,15 +77,15 @@ public:
 		virtual ~CDataObjectListColumnCollection();
 
 		virtual typeDescription_t GetColumnType(unsigned int col) const {
-			CDataObjectListColumnInfo* columnInfo = m_columnInfo.at(col);
+			CDataObjectListColumnInfo* columnInfo = m_listColumnInfo.at(col);
 			wxASSERT(columnInfo);
 			return columnInfo->GetColumnType();
 		}
 
 		virtual IValueModelColumnInfo* GetColumnInfo(unsigned int idx) const {
-			if (m_columnInfo.size() < idx)
+			if (m_listColumnInfo.size() < idx)
 				return nullptr;
-			auto& it = m_columnInfo.begin();
+			auto& it = m_listColumnInfo.begin();
 			std::advance(it, idx);
 			return it->second;
 		}
@@ -108,7 +108,7 @@ public:
 		IListDataObject* m_ownerTable;
 		CMethodHelper* m_methodHelper;
 
-		std::map<meta_identifier_t, CDataObjectListColumnInfo*> m_columnInfo;
+		std::map<meta_identifier_t, CDataObjectListColumnInfo*> m_listColumnInfo;
 	};
 
 	class CDataObjectListReturnLine : public IValueModelReturnLine {
@@ -584,15 +584,15 @@ public:
 		virtual ~CDataObjectTreeColumnCollection();
 
 		virtual typeDescription_t GetColumnType(unsigned int col) const {
-			CDataObjectTreeColumnInfo* columnInfo = m_columnInfo.at(col);
+			CDataObjectTreeColumnInfo* columnInfo = m_listColumnInfo.at(col);
 			wxASSERT(columnInfo);
 			return columnInfo->GetColumnType();
 		}
 
 		virtual IValueModelColumnInfo* GetColumnInfo(unsigned int idx) const {
-			if (m_columnInfo.size() < idx)
+			if (m_listColumnInfo.size() < idx)
 				return nullptr;
-			auto& it = m_columnInfo.begin();
+			auto& it = m_listColumnInfo.begin();
 			std::advance(it, idx);
 			return it->second;
 		}
@@ -615,7 +615,7 @@ public:
 		ITreeDataObject* m_ownerTable;
 		CMethodHelper* m_methodHelper;
 
-		std::map<meta_identifier_t, CDataObjectTreeColumnInfo*> m_columnInfo;
+		std::map<meta_identifier_t, CDataObjectTreeColumnInfo*> m_listColumnInfo;
 
 	};
 
