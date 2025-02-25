@@ -14,7 +14,7 @@ wxIMPLEMENT_ABSTRACT_CLASS(IValueTable, IValueModel);
 wxIMPLEMENT_ABSTRACT_CLASS(IValueTree, IValueModel);
 
 IValueModel::IValueModel()
-	: CValue(eValueTypes::TYPE_VALUE), m_srcNotifier(nullptr)
+	: CValue(eValueTypes::TYPE_VALUE), m_srcNotifier(nullptr), m_refreshModel(false)
 {
 }
 
@@ -72,7 +72,7 @@ void IValueModel::ExecuteAction(const action_identifier_t& lNumAction, IBackendV
 			break;
 		case eFilter:
 			if (ShowFilter()) {
-				RefreshModel(wxDataViewItem(nullptr), m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
+				CallRefreshModel(wxDataViewItem(nullptr), m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
 			}
 			break;
 		case eFilterByColumn:
@@ -85,12 +85,12 @@ void IValueModel::ExecuteAction(const action_identifier_t& lNumAction, IBackendV
 				CValue retValue; GetValueByMetaID(item, dataView->GetModelColumn(), retValue);
 				m_filterRow.SetFilterByID(dataView->GetModelColumn(), retValue);
 			}
-			RefreshModel(wxDataViewItem(nullptr), m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
+			CallRefreshModel(wxDataViewItem(nullptr), m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
 			break;
 		}
 		case eFilterClear:
 			m_filterRow.ResetFilter();
-			RefreshModel(wxDataViewItem(nullptr), m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
+			CallRefreshModel(wxDataViewItem(nullptr), m_srcNotifier != nullptr ? m_srcNotifier->GetCountPerPage() : defaultCountPerPage);
 			break;
 	}
 }

@@ -24,7 +24,7 @@ void CValueTableBox::OnColumnClick(wxDataViewEvent& event)
 				wxDataViewCtrl* dataView = dataViewColumn->GetOwner();
 				wxASSERT(dataView);
 				try {
-					m_tableModel->RefreshModel(dataView->GetTopItem(), dataView->GetCountPerPage());
+					m_tableModel->CallRefreshModel(dataView->GetTopItem(), dataView->GetCountPerPage());
 				}
 				catch (const CBackendException* err) {
 					dataView->AssociateModel(nullptr);
@@ -170,7 +170,8 @@ void CValueTableBox::OnItemValueChanged(wxDataViewEvent& event)
 
 void CValueTableBox::OnItemStartInserting(wxDataViewEvent& event)
 {
-	if (m_dataViewRefresh) m_formOwner->RefreshForm();
+	if (m_tableModel != nullptr && !m_tableModel->IsCallRefreshModel()) m_formOwner->RefreshForm();
+	else if (m_tableModel == nullptr) m_formOwner->RefreshForm();
 	
 	event.Skip();
 }
@@ -187,7 +188,8 @@ void CValueTableBox::OnItemStartDeleting(wxDataViewEvent& event)
 		cancel //cancel
 	);
 
-	if (m_dataViewRefresh) m_formOwner->RefreshForm();
+	if (m_tableModel != nullptr && !m_tableModel->IsCallRefreshModel()) m_formOwner->RefreshForm();
+	else if (m_tableModel == nullptr) m_formOwner->RefreshForm();
 
 	if (cancel.GetBoolean())
 		event.Veto();
@@ -280,7 +282,7 @@ void CValueTableBox::OnIdle(wxIdleEvent& event)
 	wxDataModelViewCtrl* dataViewCtrl =
 		dynamic_cast<wxDataModelViewCtrl*>(event.GetEventObject());
 	if (m_dataViewSizeChanged) 
-		m_tableModel->RefreshModel(dataViewCtrl->GetTopItem(), dataViewCtrl->GetCountPerPage());
+		m_tableModel->CallRefreshModel(dataViewCtrl->GetTopItem(), dataViewCtrl->GetCountPerPage());
 	m_dataViewSize = dataViewCtrl->GetSize();
 	m_dataViewSizeChanged = false;
 	event.Skip();
@@ -304,7 +306,7 @@ void CValueTableBox::HandleOnScroll(wxScrollWinEvent& event)
 			const wxDataViewItem& focused_item = m_tableCurrentLine != nullptr ?
 				m_tableCurrentLine->GetLineItem() : wxDataViewItem(nullptr);
 
-			m_tableModel->RefreshItemModel(top_item, focused_item, countPerPage, scroll);
+			m_tableModel->CallRefreshItemModel(top_item, focused_item, countPerPage, scroll);
 
 			if (m_tableCurrentLine != nullptr && !m_tableModel->ValidateReturnLine(m_tableCurrentLine)) {
 				const wxDataViewItem& currLine = m_tableModel->FindRowValue(m_tableCurrentLine);

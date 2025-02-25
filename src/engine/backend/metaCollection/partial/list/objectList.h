@@ -153,10 +153,6 @@ public:
 		return false;
 	}
 
-	virtual bool DynamicRefresh() const {
-		return true;
-	}
-
 	virtual bool EditableLine(const wxDataViewItem& item, unsigned int col) const {
 		return false;
 	}
@@ -261,18 +257,6 @@ public:
 	virtual bool SetValueByRow(const wxVariant& variant,
 		const wxDataViewItem& row, unsigned int col) override;
 
-	//****************************************************************************
-	//*                               Support model                              *
-	//****************************************************************************
-
-	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
-	virtual void RefreshItemModel(
-		const wxDataViewItem& topItem,
-		const wxDataViewItem& currentItem,
-		const int countPerPage,
-		const short scroll = 0
-	);
-
 	//support source data 
 	virtual CSourceExplorer GetSourceExplorer() const;
 	virtual bool GetModel(IValueModel*& tableValue, const meta_identifier_t& id);
@@ -320,6 +304,20 @@ public:
 
 private:
 
+	//****************************************************************************
+	//*                               Support model                              *
+	//****************************************************************************
+
+	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
+	virtual void RefreshItemModel(
+		const wxDataViewItem& topItem,
+		const wxDataViewItem& currentItem,
+		const int countPerPage,
+		const short scroll = 0
+	);
+
+private:
+
 	bool m_choiceMode;
 	IMetaObjectRecordDataEnumRef* m_metaObject;
 };
@@ -350,18 +348,6 @@ public:
 		const wxDataViewItem& row, unsigned int col) const;
 	virtual bool SetValueByRow(const wxVariant& variant,
 		const wxDataViewItem& row, unsigned int col) override;
-
-	//****************************************************************************
-	//*                               Support model                              *
-	//****************************************************************************
-
-	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
-	virtual void RefreshItemModel(
-		const wxDataViewItem& topItem,
-		const wxDataViewItem& currentItem,
-		const int countPerPage,
-		const short scroll = 0
-	);
 
 	//support source data 
 	virtual CSourceExplorer GetSourceExplorer() const;
@@ -420,6 +406,20 @@ public:
 
 private:
 
+	//****************************************************************************
+	//*                               Support model                              *
+	//****************************************************************************
+
+	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
+	virtual void RefreshItemModel(
+		const wxDataViewItem& topItem,
+		const wxDataViewItem& currentItem,
+		const int countPerPage,
+		const short scroll = 0
+	);
+
+private:
+
 	bool m_choiceMode;
 
 	IMetaObjectRecordDataMutableRef* m_metaObject;
@@ -460,18 +460,6 @@ public:
 		const wxDataViewItem& row, unsigned int col) const;
 	virtual bool SetValueByRow(const wxVariant& variant,
 		const wxDataViewItem& row, unsigned int col) override;
-
-	//****************************************************************************
-	//*                               Support model                              *
-	//****************************************************************************
-
-	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
-	virtual void RefreshItemModel(
-		const wxDataViewItem& topItem,
-		const wxDataViewItem& currentItem,
-		const int countPerPage,
-		const short scroll = 0
-	);
 
 	//support source data 
 	virtual CSourceExplorer GetSourceExplorer() const;
@@ -518,6 +506,20 @@ public:
 	virtual void CopyValue() override;
 	virtual void EditValue() override;
 	virtual void DeleteValue() override;
+
+private:
+
+	//****************************************************************************
+	//*                               Support model                              *
+	//****************************************************************************
+
+	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
+	virtual void RefreshItemModel(
+		const wxDataViewItem& topItem,
+		const wxDataViewItem& currentItem,
+		const int countPerPage,
+		const short scroll = 0
+	);
 
 private:
 	IMetaObjectRegisterData* m_metaObject;
@@ -768,12 +770,6 @@ public:
 	virtual bool GetAttrByRow(const wxDataViewItem& WXUNUSED(row), unsigned int WXUNUSED(col),
 		wxDataViewItemAttr& WXUNUSED(attr)) const override;
 
-	//****************************************************************************
-	//*                               Support model                              *
-	//****************************************************************************
-
-	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
-
 	//support source data 
 	virtual CSourceExplorer GetSourceExplorer() const;
 	virtual bool GetModel(IValueModel*& tableValue, const meta_identifier_t& id);
@@ -829,6 +825,14 @@ public:
 
 	virtual void MarkAsDeleteValue();
 	virtual void ChooseValue(IBackendValueForm* srcForm);
+
+private:
+
+	//****************************************************************************
+	//*                               Support model                              *
+	//****************************************************************************
+
+	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage);
 
 private:
 

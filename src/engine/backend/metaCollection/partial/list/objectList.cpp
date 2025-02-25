@@ -971,7 +971,7 @@ bool CListDataObjectEnumRef::CallAsProc(const long lMethodNum, CValue** paParams
 	switch (lMethodNum)
 	{
 		case enRefresh:
-			RefreshModel();
+			CallRefreshModel();
 			return true;
 	}
 	return false;
@@ -991,7 +991,7 @@ bool CListDataObjectRef::CallAsProc(const long lMethodNum, CValue** paParams, co
 	switch (lMethodNum)
 	{
 		case enRefresh:
-			RefreshModel();
+			CallRefreshModel();
 			return true;
 	}
 	return false;
@@ -1011,7 +1011,7 @@ bool CTreeDataObjectFolderRef::CallAsProc(const long lMethodNum, CValue** paPara
 	switch (lMethodNum)
 	{
 		case enRefresh:
-			RefreshModel();
+			CallRefreshModel();
 			return true;
 	}
 	return false;
@@ -1030,7 +1030,7 @@ bool CListRegisterObject::CallAsProc(const long lMethodNum, CValue** paParams, c
 	switch (lMethodNum)
 	{
 		case enRefresh:
-			RefreshModel();
+			CallRefreshModel();
 			return true;
 	}
 	return false;

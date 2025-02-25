@@ -83,8 +83,10 @@ public:
 	}
 
 	filterData_t* GetFilterByID(unsigned int filterModel) {
-		auto& it = std::find_if(m_filters.begin(), m_filters.end(), [filterModel](const filterData_t& data) {
-			return filterModel == data.m_filterModel; }
+		auto& it = std::find_if(m_filters.begin(), m_filters.end(), [filterModel](const filterData_t& data)
+		{
+			return filterModel == data.m_filterModel;
+		}
 		);
 		if (it != m_filters.end())
 			return &*it;
@@ -92,8 +94,10 @@ public:
 	}
 
 	filterData_t* GetFilterByName(const wxString& filterName) {
-		auto& it = std::find_if(m_filters.begin(), m_filters.end(), [filterName](const filterData_t& data) {
-			return filterName == data.m_filterName; }
+		auto& it = std::find_if(m_filters.begin(), m_filters.end(), [filterName](const filterData_t& data)
+		{
+			return filterName == data.m_filterName;
+		}
 		);
 		if (it != m_filters.end())
 			return &*it;
@@ -159,8 +163,10 @@ public:
 
 	sortData_t* GetSortByID(unsigned int col_id) const {
 		auto& it = std::find_if(m_sorts.begin(), m_sorts.end(),
-			[col_id](const sortData_t& data) {
-				return col_id == data.m_sortModel; }
+			[col_id](const sortData_t& data)
+		{
+			return col_id == data.m_sortModel;
+		}
 		);
 		if (it != m_sorts.end()) return const_cast<sortData_t*>(&*it);
 		return nullptr;
@@ -383,6 +389,27 @@ public:
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////
+
+	bool IsCallRefreshModel() const { return m_refreshModel; }
+
+	//Update model 
+	void CallRefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage) { 
+		m_refreshModel = true;
+		RefreshModel(topItem, countPerPage);
+		m_refreshModel = false; 
+	};
+	
+	void CallRefreshItemModel(
+		const wxDataViewItem& topItem,
+		const wxDataViewItem& currentItem,
+		const int countPerPage,
+		const short scroll = 0
+	) {
+		RefreshItemModel(topItem, currentItem, countPerPage, scroll);
+	};
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	virtual unsigned int GetColumnCount() const override {
 		IValueModelColumnCollection* colCollection = GetColumnCollection();
 		if (colCollection != nullptr)
@@ -394,6 +421,7 @@ public:
 	virtual wxString GetColumnType(unsigned int col) const override {
 		return wxT("string");
 	};
+
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
 	virtual wxDataViewItem GetSelection() const;
@@ -418,13 +446,8 @@ public:
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
 	virtual bool AutoCreateColumn() const {
-		return true;
-	}
-
-	virtual bool DynamicRefresh() const {
 		return false;
 	}
-
 	virtual bool UseFilter() const {
 		return m_filterRow.UseFilter();
 	}
@@ -487,6 +510,15 @@ public:
 	//show filter 
 	virtual bool ShowFilter();
 
+	/**
+	* Override actionData
+	*/
+
+	virtual CActionCollection GetActionCollection(const form_identifier_t& formType);
+	virtual void ExecuteAction(const action_identifier_t& lNumAction, class IBackendValueForm* srcForm);
+
+protected:
+
 	//Update model 
 	virtual void RefreshModel(const wxDataViewItem& topItem = wxDataViewItem(nullptr), const int countPerPage = defaultCountPerPage) {};
 	virtual void RefreshItemModel(
@@ -497,19 +529,14 @@ public:
 	) {
 	};
 
-	/**
-	* Override actionData
-	*/
-
-	virtual CActionCollection GetActionCollection(const form_identifier_t& formType);
-	virtual void ExecuteAction(const action_identifier_t& lNumAction, class IBackendValueForm* srcForm);
-
 protected:
 
 	wxTableNotifier* m_srcNotifier;
 
 	filterRow_t m_filterRow;
 	sortOrder_t m_sortOrder;
+
+	bool m_refreshModel;
 };
 
 //Поддержка таблиц
@@ -785,16 +812,17 @@ public:
 	}
 
 	void Sort(unsigned int col, bool ascending = true, bool notify = true) {
-		std::vector<sortModel_t> fixedSort = { { col, ascending } };
+		std::vector<sortModel_t> fixedSort = {{ col, ascending }};
 		Sort(fixedSort, notify);
 	}
 
 	void Sort(std::vector<sortModel_t>& paSort, bool notify = true) {
 		if (notify) wxDataViewModel::BeforeReset();
 		std::sort(m_nodeValues.begin(), m_nodeValues.end(),
-			[&paSort](const wxValueTableRow* a, const wxValueTableRow* b) {
-				return a->CompareRow(b, paSort);
-			}
+			[&paSort](const wxValueTableRow* a, const wxValueTableRow* b)
+		{
+			return a->CompareRow(b, paSort);
+		}
 		);
 		if (notify) wxDataViewModel::AfterReset();
 	}
@@ -1063,9 +1091,10 @@ public:
 
 		void Sort(std::vector<sortModel_t>& paSort) {
 			std::sort(m_children.begin(), m_children.end(),
-				[&paSort](const wxValueTreeNode* a, const wxValueTreeNode* b) {
-					return a->CompareNode(b, paSort);
-				}
+				[&paSort](const wxValueTreeNode* a, const wxValueTreeNode* b)
+			{
+				return a->CompareNode(b, paSort);
+			}
 			);
 			for (auto child : m_children) child->Sort(paSort);
 		}
@@ -1255,7 +1284,7 @@ public:
 	}
 
 	void Sort(unsigned int col, bool ascending = true, bool notify = true) {
-		std::vector<sortModel_t> fixedSort = { { col, ascending } };
+		std::vector<sortModel_t> fixedSort = {{ col, ascending }};
 		Sort(fixedSort, notify);
 	}
 

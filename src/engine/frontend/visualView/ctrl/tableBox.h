@@ -34,7 +34,7 @@ protected:
 private:
 	IValueModel* m_tableModel;
 	IValueModel::IValueModelReturnLine* m_tableCurrentLine;
-	bool m_dataViewUpdated, m_dataViewSizeChanged, m_dataViewRefresh;
+	bool m_dataViewUpdated, m_dataViewSizeChanged;
 	wxSize m_dataViewSize;
 public:
 

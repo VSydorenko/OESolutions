@@ -224,7 +224,7 @@ bool CValueTableBox::FilterSource(const CSourceExplorer& src, const meta_identif
 //***********************************************************************************
 
 CValueTableBox::CValueTableBox() : IValueWindow(), ITypeControlAttribute(g_valueTableCLSID),
-m_tableModel(nullptr), m_tableCurrentLine(nullptr), m_dataViewRefresh(false), m_dataViewUpdated(false), m_dataViewSizeChanged(false)
+m_tableModel(nullptr), m_tableCurrentLine(nullptr), m_dataViewUpdated(false), m_dataViewSizeChanged(false)
 {
 	//set default params
 	*m_propertyMinSize = wxSize(300, 100);
@@ -355,12 +355,10 @@ void CValueTableBox::OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVisualHo
 			tableCtrl->AssociateModel(m_tableModel);
 		}
 
-		m_dataViewRefresh = false;
-
 		if (needRefresh) {
 
 			try {
-				m_tableModel->RefreshModel(tableCtrl->GetTopItem(), tableCtrl->GetCountPerPage());
+				m_tableModel->CallRefreshModel(tableCtrl->GetTopItem(), tableCtrl->GetCountPerPage());
 			}
 			catch (const CBackendException* err) {
 				tableCtrl->AssociateModel(nullptr);
@@ -400,7 +398,6 @@ void CValueTableBox::OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVisualHo
 
 		m_dataViewUpdated = true;
 		m_dataViewSize = tableCtrl->GetSize();
-		m_dataViewRefresh = true; 
 	}
 }
 
