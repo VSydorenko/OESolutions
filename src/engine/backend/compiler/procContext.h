@@ -45,7 +45,7 @@ public:
 	long GetLocalCount() const { return m_lVarCount; }
 };
 
-class CProcUnit;
+class BACKEND_API CProcUnit;
 
 struct CRunContext {
 

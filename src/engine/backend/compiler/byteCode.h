@@ -25,11 +25,11 @@ struct CByteUnit {
 	CParamUnit	 m_param1;
 	CParamUnit	 m_param2;
 	CParamUnit	 m_param3;
-	CParamUnit	 m_param4;			// - used for optimization
+	CParamUnit	 m_param4;			 // - used for optimization
 
-	wxString	 m_strModuleName;	// module name (since it is possible to include connections from different modules)
-	wxString	 m_strDocPath;		// уникальный путь к документу 
-	wxString	 m_strFileName;		// путь к файлу (если внешняя обработка) 
+	wxString	 m_strModuleName;	 // module name (since it is possible to include connections from different modules)
+	wxString	 m_strDocPath; 	 	 // unique path to the document
+	wxString	 m_strFileName; 	 // path to the file (if external processing)
 
 public:
 
@@ -38,9 +38,8 @@ public:
 	}
 };
 
-class CCompileCode;
+class BACKEND_API CCompileCode;
 
-//класс БАЙТ-КОДА
 struct CByteCode {
 
 	struct CByteMethod {
@@ -53,23 +52,23 @@ struct CByteCode {
 		}
 	};
 
-	//Атрибуты:
-	CByteCode* m_parent;	//Родительский байт-код (для проверки)
-	bool m_bCompile;		//признак успешной компиляции
+	//Attributes:
+	CByteCode* m_parent; //Parent bytecode (for checking)
+	bool m_bCompile; //indication of successful compilation
 	CCompileCode* m_compileModule;
-	long m_lVarCount;		// количество локальных переменных в модуле
-	long m_lStartModule;	// начало позиции старта модуля
-	wxString m_strModuleName;//имя исполняемого модуля, которому принадлежит байт-код
+	long m_lVarCount; // number of local variables in the module
+	long m_lStartModule; // beginning of the module start position
+	wxString m_strModuleName;//name of the executable module to which the bytecode belongs
 
-	//список внешних и контекстных переменных
+	//list of external and context variables
 	std::vector<CValue*> m_listExternValue;
-	std::vector <CByteUnit> m_listCode;//исполняемый код модуля
-	std::vector <CValue> m_listConst;//список констант модуля
+	std::vector <CByteUnit> m_listCode;//executable code of the module
+	std::vector <CValue> m_listConst;//list of module constants
 
-	std::map<wxString, long> m_listVar; //список переменных модуля	
-	std::map<wxString, CByteMethod> m_listFunc; //список функций и процедур модуля
-	std::map<wxString, long> m_listExportVar; //список экспортных переменных модуля
-	std::map<wxString, CByteMethod> m_listExportFunc; //список экспортных функций и процедур модуля
+	std::map<wxString, long> m_listVar; //list of module variables
+	std::map<wxString, CByteMethod> m_listFunc; //list of module functions and procedures
+	std::map<wxString, long> m_listExportVar; //list of module export variables
+	std::map<wxString, CByteMethod> m_listExportFunc; //list of module export functions and procedures
 
 public:
 
