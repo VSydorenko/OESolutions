@@ -1,6 +1,11 @@
 #include "tableBox.h"
 #include "form.h"
 
+#include "frontend/visualView/visualHost.h"
+#include "backend/compiler/value/valueTable.h"
+#include "backend/metaCollection/partial/object.h"
+#include "backend/appData.h"
+
 //***********************************************************************************
 //*                           IMPLEMENT_DYNAMIC_CLASS                               *
 //***********************************************************************************
@@ -13,8 +18,23 @@ wxIMPLEMENT_DYNAMIC_CLASS(CValueTableBox, IValueWindow);
 
 bool CValueTableBox::GetControlValue(CValue& pvarControlVal) const
 {
-	if (!m_tableModel)
-		return false;
+	if (m_tableModel == nullptr) {
+		if (appData->DesignerMode()) {
+			ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
+			if (m_dataSource.isValid()) {
+				if (srcObject != nullptr) {
+					IValueModel* tableModel = nullptr;
+					if (srcObject->GetModel(tableModel, GetIdByGuid(m_dataSource))) {
+						if (tableModel != m_tableModel) {
+							pvarControlVal = tableModel;
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false; 
+	}
 	pvarControlVal = m_tableModel;
 	return true;
 }
@@ -45,12 +65,6 @@ void CValueTableBox::AddColumn()
 	g_visualHostContext->InsertControl(newTableBoxColumn, this);
 	g_visualHostContext->RefreshEditor();
 }
-
-#include "frontend/visualView/visualHost.h"
-
-#include "backend/compiler/value/valueTable.h"
-#include "backend/metaCollection/partial/object.h"
-#include "backend/appData.h"
 
 void CValueTableBox::CreateColumnCollection(wxDataViewCtrl* tableCtrl)
 {

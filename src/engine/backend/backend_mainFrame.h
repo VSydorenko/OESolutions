@@ -8,7 +8,7 @@
 	IBackendDocMDIFrame::GetDocMDIFrame() \
 
 class BACKEND_API IBackendDocMDIFrame {
-	static IBackendDocMDIFrame* sm_mainFrame;
+	static IBackendDocMDIFrame* ms_mainFrame;
 protected:
 	IBackendDocMDIFrame();
 public:

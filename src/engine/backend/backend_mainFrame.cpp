@@ -1,31 +1,31 @@
 #include "backend_mainFrame.h"
 
-IBackendDocMDIFrame* IBackendDocMDIFrame::sm_mainFrame = nullptr;
+IBackendDocMDIFrame* IBackendDocMDIFrame::ms_mainFrame = nullptr;
 
 ///////////////////////////////////////////////////////////////////////////
 
 IBackendDocMDIFrame::IBackendDocMDIFrame()
 {
-	wxASSERT(sm_mainFrame == nullptr);
+	wxASSERT(ms_mainFrame == nullptr);
 
-	if (sm_mainFrame == nullptr) {
-		sm_mainFrame = this;
+	if (ms_mainFrame == nullptr) {
+		ms_mainFrame = this;
 	}
 }
 
 IBackendDocMDIFrame* IBackendDocMDIFrame::GetDocMDIFrame()
 {
-	return sm_mainFrame;
+	return ms_mainFrame;
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
 IBackendDocMDIFrame::~IBackendDocMDIFrame() {
 
-	wxASSERT(sm_mainFrame != nullptr);
+	wxASSERT(ms_mainFrame != nullptr);
 
-	if (sm_mainFrame != nullptr) {
-		sm_mainFrame = nullptr;
+	if (ms_mainFrame != nullptr) {
+		ms_mainFrame = nullptr;
 	}
 }
 

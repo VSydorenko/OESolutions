@@ -35,12 +35,12 @@ CValue CValueForm::CValueFormCollectionData::GetIteratorEmpty()
 CValue CValueForm::CValueFormCollectionData::GetIteratorAt(unsigned int idx)
 {
 	IValueControl* valueControl = nullptr;
-	if (m_formOwner->m_aControls.size() < idx) {
+	if (m_formOwner->m_listControl.size() < idx) {
 		return CValue();
 	}
 
 	unsigned int count = 0;
-	for (auto control : m_formOwner->m_aControls) {
+	for (auto control : m_formOwner->m_listControl) {
 		if (control->HasValueInControl()) {
 			count++;
 		}
@@ -64,7 +64,7 @@ bool CValueForm::CValueFormCollectionData::SetAt(const CValue& varKeyValue, cons
 	if (number.ToUInt() > Count())
 		return false;
 	unsigned int count = 0;
-	for (auto control : m_formOwner->m_aControls) {
+	for (auto control : m_formOwner->m_listControl) {
 		if (control->HasValueInControl()) {
 			count++;
 		}
@@ -82,7 +82,7 @@ bool CValueForm::CValueFormCollectionData::GetAt(const CValue& varKeyValue, CVal
 	if (Count() < number.ToUInt())
 		return false;
 	unsigned int count = 0;
-	for (auto control : m_formOwner->m_aControls) {
+	for (auto control : m_formOwner->m_listControl) {
 		if (control->HasValueInControl()) {
 			count++;
 		}
@@ -98,11 +98,11 @@ bool CValueForm::CValueFormCollectionData::GetAt(const CValue& varKeyValue, CVal
 bool CValueForm::CValueFormCollectionData::Property(const CValue& varKeyValue, CValue& cValueFound)
 {
 	wxString key = varKeyValue.GetString();
-	auto it = std::find_if(m_formOwner->m_aControls.begin(), m_formOwner->m_aControls.end(), [key](IValueControl* control) {
+	auto it = std::find_if(m_formOwner->m_listControl.begin(), m_formOwner->m_listControl.end(), [key](IValueControl* control) {
 		if (control->HasValueInControl()) return stringUtils::CompareString(key, control->GetControlName()); return false;
 		}
 	);
-	if (it != m_formOwner->m_aControls.end())
+	if (it != m_formOwner->m_listControl.end())
 		return (*it)->GetControlValue(cValueFound);
 	return false;
 }
@@ -110,7 +110,7 @@ bool CValueForm::CValueFormCollectionData::Property(const CValue& varKeyValue, C
 unsigned int CValueForm::CValueFormCollectionData::Count() const
 {
 	unsigned int count = 0;
-	for (auto control : m_formOwner->m_aControls) {
+	for (auto control : m_formOwner->m_listControl) {
 		if (control->HasValueInControl()) {
 			count++;
 		}
@@ -126,7 +126,7 @@ enum Func {
 void CValueForm::CValueFormCollectionData::PrepareNames() const
 {
 	m_methodHelper->ClearHelper();
-	for (auto control : m_formOwner->m_aControls) {
+	for (auto control : m_formOwner->m_listControl) {
 		if (!control->HasValueInControl())
 			continue;
 		m_methodHelper->AppendProp(
@@ -141,13 +141,13 @@ void CValueForm::CValueFormCollectionData::PrepareNames() const
 bool CValueForm::CValueFormCollectionData::SetPropVal(const long lPropNum, const CValue& varPropVal)
 {
 	unsigned int id = m_methodHelper->GetPropData(lPropNum);
-	auto& it = std::find_if(m_formOwner->m_aControls.begin(), m_formOwner->m_aControls.end(),
+	auto& it = std::find_if(m_formOwner->m_listControl.begin(), m_formOwner->m_listControl.end(),
 		[id](IValueFrame* control) {
 			return id == control->GetControlID();
 		}
 	);
 
-	if (it != m_formOwner->m_aControls.end()) {
+	if (it != m_formOwner->m_listControl.end()) {
 		IValueControl* currentControl = *it;
 		wxASSERT(currentControl);
 		bool result = currentControl->SetControlValue(varPropVal);
@@ -183,12 +183,12 @@ bool CValueForm::CValueFormCollectionData::SetPropVal(const long lPropNum, const
 bool CValueForm::CValueFormCollectionData::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 {
 	unsigned int id = m_methodHelper->GetPropData(lPropNum);
-	auto& it = std::find_if(m_formOwner->m_aControls.begin(), m_formOwner->m_aControls.end(),
+	auto& it = std::find_if(m_formOwner->m_listControl.begin(), m_formOwner->m_listControl.end(),
 		[id](IValueFrame* control) {
 			return id == control->GetControlID();
 		}
 	);
-	if (it != m_formOwner->m_aControls.end()) {
+	if (it != m_formOwner->m_listControl.end()) {
 		IValueControl* currentControl = *it;
 		wxASSERT(currentControl);
 		return currentControl->GetControlValue(pvarPropVal);

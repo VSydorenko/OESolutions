@@ -34,10 +34,10 @@ CValue CValueForm::CValueFormCollectionControl::GetIteratorEmpty()
 
 CValue CValueForm::CValueFormCollectionControl::GetIteratorAt(unsigned int idx)
 {
-	if (m_formOwner->m_aControls.size() < idx)
+	if (m_formOwner->m_listControl.size() < idx)
 		return CValue();
 
-	auto structurePos = m_formOwner->m_aControls.begin();
+	auto structurePos = m_formOwner->m_listControl.begin();
 	std::advance(structurePos, idx);
 
 	return CValue::CreateAndConvertObjectValueRef<CValueContainer::CValueReturnContainer>(
@@ -49,9 +49,9 @@ CValue CValueForm::CValueFormCollectionControl::GetIteratorAt(unsigned int idx)
 bool CValueForm::CValueFormCollectionControl::GetAt(const CValue& varKeyValue, CValue& pvarValue)
 {
 	const number_t& number = varKeyValue.GetNumber();
-	if (m_formOwner->m_aControls.size() < number.ToUInt())
+	if (m_formOwner->m_listControl.size() < number.ToUInt())
 		return false;
-	auto structurePos = m_formOwner->m_aControls.begin();
+	auto structurePos = m_formOwner->m_listControl.begin();
 	pvarValue = structurePos[number.ToUInt()];
 	return true;
 }
@@ -59,12 +59,12 @@ bool CValueForm::CValueFormCollectionControl::GetAt(const CValue& varKeyValue, C
 bool CValueForm::CValueFormCollectionControl::Property(const CValue& varKeyValue, CValue& cValueFound)
 {
 	const wxString& key = varKeyValue.GetString();
-	auto it = std::find_if(m_formOwner->m_aControls.begin(), m_formOwner->m_aControls.end(),
+	auto it = std::find_if(m_formOwner->m_listControl.begin(), m_formOwner->m_listControl.end(),
 		[key](IValueControl* control) {
 			return stringUtils::CompareString(key, control->GetControlName());
 		}
 	);
-	if (it != m_formOwner->m_aControls.end()) {
+	if (it != m_formOwner->m_listControl.end()) {
 		cValueFound = *it;
 		return true;
 	}
@@ -90,7 +90,7 @@ void CValueForm::CValueFormCollectionControl::PrepareNames() const
 	m_methodHelper->AppendFunc("property", 2, "property(key, valueFound)");
 	m_methodHelper->AppendFunc("count", "count()");
 
-	for (auto control : m_formOwner->m_aControls) {
+	for (auto control : m_formOwner->m_listControl) {
 		m_methodHelper->AppendProp(
 			control->GetControlName(),
 			true,

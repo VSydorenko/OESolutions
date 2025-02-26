@@ -260,7 +260,7 @@ public:
 
 public:
 
-	std::vector<IValueControl*> m_aControls;
+	std::vector<IValueControl*> m_listControl;
 
 	class CValueFormCollectionControl : public CValue {
 		wxDECLARE_DYNAMIC_CLASS(CValueFormCollectionControl);
@@ -283,7 +283,7 @@ public:
 
 		//Расширенные методы:
 		bool Property(const CValue& varKeyValue, CValue& cValueFound);
-		unsigned int Count() const { return m_formOwner->m_aControls.size(); }
+		unsigned int Count() const { return m_formOwner->m_listControl.size(); }
 
 		//Работа с итераторами:
 		virtual bool HasIterator() const { return true; }
