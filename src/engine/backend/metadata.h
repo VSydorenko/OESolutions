@@ -65,13 +65,14 @@ public:
 	inline CValue CreateObject(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) {
 		return CreateObjectRef(className, paParams, lSizeArray);
 	}
+	
 	template<typename T, typename... Args>
 	inline CValue CreateObjectValue(Args&&... args) {
 		return CreateObjectValueRef<T>(std::forward<Args>(args)...);
 	}
 
-	inline CValue* CreateObjectRef(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0);
-	inline CValue* CreateObjectRef(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) {
+	virtual CValue* CreateObjectRef(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0);
+	virtual CValue* CreateObjectRef(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) {
 		const class_identifier_t& clsid = GetIDObjectFromString(className);
 		return CreateObjectRef(clsid, paParams, lSizeArray);
 	}
