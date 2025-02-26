@@ -187,15 +187,15 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="launcherWnd.cpp" />
+    <ClCompile Include="connectionDB.cpp" />
+    <ClCompile Include="launcher.cpp" />
     <ClCompile Include="mainApp.cpp" />
-    <ClCompile Include="selectIBWnd.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="launcherWnd.h" />
+    <ClInclude Include="connectionDB.h" />
+    <ClInclude Include="launcher.h" />
     <ClInclude Include="mainApp.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="selectIBWnd.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="launcher.rc" />

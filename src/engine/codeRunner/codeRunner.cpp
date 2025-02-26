@@ -732,6 +732,7 @@ CFrameCodeRunner::CFrameCodeRunner(wxWindow* parent, wxWindowID id, const wxStri
 	m_codeEditor->Connect(wxEVT_STC_MODIFIED, wxStyledTextEventHandler(CFrameCodeRunner::OnChagedText), nullptr, this);
 	m_codeEditor->Connect(wxEVT_STC_NEEDSHOWN, wxStyledTextEventHandler(CFrameCodeRunner::OnNeedShow), nullptr, this);
 
+	m_codeEditor->SetText("message(\"Hello world!\");");
 }
 
 CFrameCodeRunner::~CFrameCodeRunner()

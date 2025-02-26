@@ -4,7 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "mainApp.h"
-#include "launcherWnd.h"
+#include "launcher.h"
 
 bool CMainApp::OnInit()
 {

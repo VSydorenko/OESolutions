@@ -34,6 +34,23 @@ CApplicationData::~CApplicationData()
 
 ///////////////////////////////////////////////////////////////////////////////
 
+bool CApplicationData::CreateAppDataEnv()
+{
+	if (s_instance != nullptr) s_instance->DestroyAppDataEnv();
+#if _USE_DATABASE_LAYER_EXCEPTIONS == 1
+	try {
+#endif
+		s_instance = new CApplicationData(eRunMode::eENTERPRISE_MODE);
+		return true;
+#if _USE_DATABASE_LAYER_EXCEPTIONS == 1
+	}
+	catch (const DatabaseLayerException* err) {
+		return false;
+	}
+#endif
+	return false;
+}
+
 bool CApplicationData::CreateAppDataEnv(eRunMode runMode, const wxString& strServer, const wxString& strPort,
 	const wxString& strUser, const wxString& strPassword, const wxString& strDatabase)
 {

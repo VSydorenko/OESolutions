@@ -17,10 +17,18 @@
 #include <wx/button.h>
 #include <wx/frame.h>
 
+struct CListInfo {
+	wxString m_strServer;
+	wxString m_strDatabase;
+	wxString m_strUser;
+	wxString m_strPassword;
+	wxString m_strPort;
+};
+
 class CFrameLauncher : public wxFrame {
 
 	wxListBox* m_listIBwnd;
-	wxStaticText* m_staticPath;
+	wxStaticText* m_staticDBName;
 	wxButton* m_buttonEnterprise;
 	wxButton* m_buttonDesigner;
 	wxButton* m_buttonAdd;
@@ -28,20 +36,12 @@ class CFrameLauncher : public wxFrame {
 	wxButton* m_buttonDelete;
 	wxButton* m_buttonExit;
 
-	struct listInfo_t {
-		wxString m_strServer;
-		wxString m_strDatabase;
-		wxString m_strUser;
-		wxString m_strPassword;
-		wxString m_strPort;
-	};
-
-	std::vector<std::pair<wxString, listInfo_t>> m_listInfoBase;
+	std::vector<std::pair<wxString, CListInfo>> m_listInfoBase;
 
 public:
 
-	void LoadIBList();
-	void SaveIBList();
+	void LoadListIB();
+	void SaveListIB();
 
 	CFrameLauncher(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Launch OES"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(450, 375), long style = wxDEFAULT_FRAME_STYLE | wxRESIZE_BORDER);
 	virtual ~CFrameLauncher();

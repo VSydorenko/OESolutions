@@ -29,18 +29,18 @@ class BACKEND_API CApplicationData {
 	class CApplicationDataSessionThread : public wxThread {
 	public:
 		CApplicationDataSessionThread() : wxThread(wxTHREAD_JOINABLE) {}
-
 	protected:
 		virtual ExitCode Entry();
 	};
 
-	// hiden constructor
 	CApplicationData(eRunMode runMode);
 public:
 
 	virtual ~CApplicationData();
 	static CApplicationData* Get() { return s_instance; }
 
+	///////////////////////////////////////////////////////////////////////////
+	static bool CreateAppDataEnv();
 	///////////////////////////////////////////////////////////////////////////
 	static bool CreateAppDataEnv(eRunMode runMode, const wxString& strServer = _(""), const wxString& strPort = _(""),
 		const wxString& strUser = _(""), const wxString& strPassword = _(""), const wxString& strDatabase = _(""));
