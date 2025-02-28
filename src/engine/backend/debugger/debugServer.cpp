@@ -462,7 +462,7 @@ void CDebuggerServer::CDebuggerThreadServer::Disconnect()
 			m_socket = nullptr;
 		}
 	}
-	ms_debugServer->EnableNotify();
+	if (ms_debugServer != nullptr) ms_debugServer->EnableNotify();
 }
 
 CDebuggerServer::CDebuggerThreadServer::CDebuggerThreadServer(CDebuggerServer* server, wxSocketBase* socket) :
@@ -472,12 +472,10 @@ CDebuggerServer::CDebuggerThreadServer::CDebuggerThreadServer(CDebuggerServer* s
 
 CDebuggerServer::CDebuggerThreadServer::~CDebuggerThreadServer()
 {
-	if (m_socket != nullptr) {
-		m_socket->Destroy();
-	}
+	if (m_socket != nullptr) m_socket->Destroy();
 
 	// the thread is being destroyed; make sure not to leave dangling pointers around
-	ms_debugServer->m_socketThread = nullptr;
+	if (ms_debugServer != nullptr) ms_debugServer->m_socketThread = nullptr;
 }
 
 wxThread::ExitCode CDebuggerServer::CDebuggerThreadServer::Entry()

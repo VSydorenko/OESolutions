@@ -15,11 +15,14 @@
 
 wxThread::ExitCode CApplicationData::CApplicationDataSessionThread::Entry()
 {
-	while (!TestDestroy()) {
-		if (appData == nullptr) break;
-		appData->RefreshActiveUser();
-		wxSleep(timeInterval);
+	if (appData != nullptr) {
+
+		while (!TestDestroy()) {
+			//appData->RefreshActiveUser();
+			wxSleep(timeInterval);
+		}
 	}
+
 	return (wxThread::ExitCode)0;
 }
 
