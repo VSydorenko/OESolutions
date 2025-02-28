@@ -90,7 +90,7 @@ public:
 		CReferenceDataObject* rhs = dynamic_cast<CReferenceDataObject*>(cParam.GetRef());
 		if (rhs != nullptr)
 			return m_metaObject != rhs->m_metaObject || m_objGuid != rhs->m_objGuid;
-		return false;
+		return true;
 	}
 
 	virtual bool FindValue(const wxString& findData, std::vector<CValue>& listValue) const;

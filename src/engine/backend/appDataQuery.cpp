@@ -25,7 +25,7 @@ wxThread::ExitCode CApplicationData::CApplicationDataSessionThread::Entry()
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static wxCriticalSection sm_sessionLocker;
+static wxCriticalSection g_sessionLocker;
 
 ///////////////////////////////////////////////////////////////////////////////
 //								CApplicationData
@@ -116,21 +116,23 @@ bool CApplicationData::AuthenticationUser(const wxString& userName, const wxStri
 
 void CApplicationData::RefreshActiveUser()
 {
-	const wxDateTime& currentTime = wxDateTime::Now();
-	// fisrt update current session
-	IPreparedStatement* preparedStatement = db_query->PrepareStatement("UPDATE %s SET lastActive = ? WHERE session = ?", session_table);
-	if (preparedStatement == nullptr) return;
-	preparedStatement->SetParamDate(1, currentTime);
-	preparedStatement->SetParamString(2, m_sessionGuid.str());
-	const int changedRows = preparedStatement->RunQuery();
-	db_query->CloseStatement(preparedStatement);
-	if (sm_sessionLocker.TryEnter()) {
-		IPreparedStatement* preparedStatement = db_query->PrepareStatement("DELETE FROM %s WHERE lastActive < ?", session_table);
+	if (g_sessionLocker.TryEnter()) {	
+		const wxDateTime& currentTime = wxDateTime::Now();	
+		// fisrt update current session
+		IPreparedStatement* preparedStatement = db_query->PrepareStatement("UPDATE %s SET lastActive = ? WHERE session = ?", session_table);
 		if (preparedStatement == nullptr) return;
-		preparedStatement->SetParamDate(1, currentTime.Subtract(wxTimeSpan(0, 0, timeInterval)));
-		preparedStatement->RunQuery();
+		preparedStatement->SetParamDate(1, currentTime);
+		preparedStatement->SetParamString(2, m_sessionGuid.str());
+		const int changedRows = preparedStatement->RunQuery();
 		db_query->CloseStatement(preparedStatement);
-		sm_sessionLocker.Leave();
+		{
+			IPreparedStatement* preparedStatement = db_query->PrepareStatement("DELETE FROM %s WHERE lastActive < ?", session_table);
+			if (preparedStatement == nullptr) return;
+			preparedStatement->SetParamDate(1, currentTime.Subtract(wxTimeSpan(0, 0, timeInterval)));
+			preparedStatement->RunQuery();
+			db_query->CloseStatement(preparedStatement);
+			g_sessionLocker.Leave();
+		}
 	}
 }
 
@@ -178,8 +180,6 @@ bool CApplicationData::StartSession(const wxString& userName, const wxString& us
 		}
 		return false;
 	}
-
-	sm_sessionLocker.Enter();
 
 	//start empty session 
 	IPreparedStatement* preparedStatement = db_query->PrepareStatement("INSERT INTO %s (session, userName, application, started, lastActive, computer) VALUES (?,?,?,?,?,?);", session_table);
