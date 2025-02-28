@@ -145,7 +145,7 @@ public:
 
 	virtual void SetTitle(const wxString& title) override { wxAuiMDIParentFrame::SetTitle(title); }
 	virtual void SetStatusText(const wxString& text, int number = 0) override { wxAuiMDIParentFrame::SetStatusText(text, number); }
-	virtual bool Show(bool show = true) override { return AllowRun() && wxAuiMDIParentFrame::Show(show); }
+	virtual bool Show(bool show = true) override { return (show && AllowRun() || !show && AllowClose()) && wxAuiMDIParentFrame::Show(show); }
 
 	// bring window to front
 	virtual void Raise() override;

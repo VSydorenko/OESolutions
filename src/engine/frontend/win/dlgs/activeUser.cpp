@@ -18,7 +18,7 @@ void CDialogActiveUser::RefreshTable()
 	m_activeTable->AppendColumn(_("Session"), wxLIST_FORMAT_LEFT, 0); //hide 
 
 	IDatabaseResultSet* result =
-		db_query->RunQueryWithResults("SELECT userName, application, started, computer, session FROM %s", session_table);
+		db_query->RunQueryWithResults("SELECT userName, application, started, computer, session FROM %s ORDER BY started, session", session_table);
 
 	while (result->Next()) {
 

@@ -117,22 +117,20 @@ bool CApplicationData::AuthenticationUser(const wxString& userName, const wxStri
 void CApplicationData::RefreshActiveUser()
 {
 	const wxDateTime& currentTime = wxDateTime::Now();
+	// fisrt update current session
+	IPreparedStatement* preparedStatement = db_query->PrepareStatement("UPDATE %s SET lastActive = ? WHERE session = ?", session_table);
+	if (preparedStatement == nullptr) return;
+	preparedStatement->SetParamDate(1, currentTime);
+	preparedStatement->SetParamString(2, m_sessionGuid.str());
+	const int changedRows = preparedStatement->RunQuery();
+	db_query->CloseStatement(preparedStatement);
 	if (sm_sessionLocker.TryEnter()) {
-		// fisrt update current session
-		IPreparedStatement* preparedStatement = db_query->PrepareStatement("UPDATE %s SET lastActive = ? WHERE session = ?", session_table);
+		IPreparedStatement* preparedStatement = db_query->PrepareStatement("DELETE FROM %s WHERE lastActive < ?", session_table);
 		if (preparedStatement == nullptr) return;
-		preparedStatement->SetParamDate(1, currentTime);
-		preparedStatement->SetParamString(2, m_sessionGuid.str());
-		const int changedRows = preparedStatement->RunQuery();
+		preparedStatement->SetParamDate(1, currentTime.Subtract(wxTimeSpan(0, 0, timeInterval)));
+		preparedStatement->RunQuery();
 		db_query->CloseStatement(preparedStatement);
-		{
-			IPreparedStatement* preparedStatement = db_query->PrepareStatement("DELETE FROM %s WHERE lastActive < ?", session_table);
-			if (preparedStatement == nullptr) return;
-			preparedStatement->SetParamDate(1, currentTime.Subtract(wxTimeSpan(0, 0, timeInterval)));
-			preparedStatement->RunQuery();
-			db_query->CloseStatement(preparedStatement);
-			sm_sessionLocker.Leave();
-		}
+		sm_sessionLocker.Leave();
 	}
 }
 
