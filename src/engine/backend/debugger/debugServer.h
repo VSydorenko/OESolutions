@@ -12,7 +12,7 @@ struct CRunContext;
 #define debugServerInit(f)    (CDebuggerServer::Initialize(f))
 #define debugServerDestroy()  (CDebuggerServer::Destroy())
 
-#include "backend/backend.h"
+#include "backend/backend_core.h"
 #include "debugDefs.h"
 
 class BACKEND_API CDebuggerServer {
