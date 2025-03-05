@@ -194,8 +194,7 @@ void CValueTableBoxColumn::Cleanup(wxObject* obj, IVisualHost* visualHost)
 	wxASSERT(columnObject);
 	wxHeaderCtrl* headerCtrl = tableCtrl->GenericGetHeader();
 	if (headerCtrl != nullptr) {
-		if (headerCtrl->GetColumnCount() == 1 && !columnObject->IsShown())
-			columnObject->SetHidden(false);
+		columnObject->SetHidden(false);
 		headerCtrl->ResetColumnsOrder();
 	}
 	tableCtrl->DeleteColumn(columnObject);

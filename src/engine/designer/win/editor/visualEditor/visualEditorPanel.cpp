@@ -36,7 +36,7 @@ void CVisualEditorNotebook::CVisualEditor::CreateWideGui()
 	wxPanel* panelDesigner = new wxPanel(m_splitter, wxID_ANY);
 	wxBoxSizer* designerSizer = new wxBoxSizer(wxVERTICAL);
 
-	wxASSERT(m_visualEditor);
+	wxASSERT(m_visualEditor == nullptr);
 
 	m_visualEditor = new CVisualEditorHost(this, panelDesigner);
 
