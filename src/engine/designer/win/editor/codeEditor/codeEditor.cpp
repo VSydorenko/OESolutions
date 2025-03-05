@@ -1025,6 +1025,24 @@ void CCodeEditor::OnKeyDown(wxKeyEvent& event)
 	case ' ': if (m_bEnableAutoComplete && event.ControlDown()) LoadAutoComplete(); event.Skip(); break;
 	case '9': if (m_bEnableAutoComplete && event.ShiftDown()) LoadCallTip(); event.Skip(); break;
 	case '0': if (m_bEnableAutoComplete && event.ShiftDown()) ct.Cancel(); event.Skip(); break;
+
+	case WXK_F8:
+	{
+		const int line_from_pos = LineFromPosition(GetCurrentPos());
+		if (IsEditable()) {
+			//Обновляем список точек останова
+			const wxString& strModuleName = m_document->GetFilename();
+			if ((CCodeEditor::MarkerGet(line_from_pos) & (1 << CCodeEditor::Breakpoint))) {
+				if (debugClient->RemoveBreakpoint(strModuleName, line_from_pos)) {
+					MarkerDelete(line_from_pos, CCodeEditor::Breakpoint);
+				}
+			}
+			else if (debugClient->ToggleBreakpoint(strModuleName, line_from_pos)) {
+				MarkerAdd(line_from_pos, CCodeEditor::Breakpoint);
+			}
+		}
+	}
+	break;
 	default: event.Skip(); break;
 	}
 }
