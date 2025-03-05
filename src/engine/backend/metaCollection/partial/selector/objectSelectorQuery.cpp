@@ -49,7 +49,7 @@ bool CSelectorDataObject::Read()
 
 	IPreparedStatement* statement = nullptr;
 	if (db_query->GetDatabaseLayerType() == DATABASELAYER_POSTGRESQL)
-		statement = db_query->PrepareStatement("SELECT * FROM %s WHERE _uuid = '%s' LIMIT; ", m_metaObject->GetTableNameDB(), m_objGuid.str());
+		statement = db_query->PrepareStatement("SELECT * FROM %s WHERE _uuid = '%s' LIMIT 1; ", m_metaObject->GetTableNameDB(), m_objGuid.str());
 	else
 		statement = db_query->PrepareStatement("SELECT FIRST 1 * FROM %s WHERE _uuid = '%s'; ", m_metaObject->GetTableNameDB(), m_objGuid.str());
 
@@ -125,7 +125,7 @@ bool CSelectorRegisterObject::Read()
 	wxString queryText = ""; bool isLoaded = false;
 
 	if (db_query->GetDatabaseLayerType() == DATABASELAYER_POSTGRESQL) {
-		queryText = "SELECT FIRST 1 * FROM " + m_metaObject->GetTableNameDB(); bool firstWhere = true;
+		queryText = "SELECT * FROM " + m_metaObject->GetTableNameDB() + " LIMIT 1"; bool firstWhere = true;
 		for (auto& obj : m_metaObject->GetGenericDimensions()) {
 			if (firstWhere) {
 				queryText = queryText + " WHERE ";
@@ -138,7 +138,7 @@ bool CSelectorRegisterObject::Read()
 		}
 	}
 	else {
-		queryText = "SELECT * FROM " + m_metaObject->GetTableNameDB(); bool firstWhere = true;
+		queryText = "SELECT FIRST 1 * FROM " + m_metaObject->GetTableNameDB(); bool firstWhere = true;
 		for (auto& obj : m_metaObject->GetGenericDimensions()) {
 			if (firstWhere) {
 				queryText = queryText + " WHERE ";

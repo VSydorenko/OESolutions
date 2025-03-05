@@ -199,7 +199,7 @@ bool CSelectorDataObject::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 			return true;
 		}
 	}
-	if (!m_metaObject->IsDataReference(id)) {
+	if (id != m_metaObject->GetMetaID()) {
 		pvarPropVal = m_objectValues.at(id);
 		return true;
 	}
