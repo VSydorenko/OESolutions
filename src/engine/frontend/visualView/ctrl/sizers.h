@@ -36,10 +36,10 @@ private:
 	OptionList* GetDefaultOptionState(PropertyOption* property);
 private:
 	PropertyCategory* m_categorySizerItem = IPropertyObject::CreatePropertyCategory({ "sizerItem", _("sizer item") });
-	Property* m_propertyProportion = IPropertyObject::CreateProperty(m_categorySizerItem, { "proportion", "proportion" }, PropertyType::PT_INT, 0);
+	Property* m_propertyProportion = IPropertyObject::CreateProperty(m_categorySizerItem, { "proportion", "proportion" }, PropertyType::PT_UINT, 0);
 	Property* m_propertyFlagBorder = IPropertyObject::CreateProperty(m_categorySizerItem, { "flag_border", "flag border" }, &CValueSizerItem::GetDefaultOptionBorder, wxDirection::wxALL);
 	Property* m_propertyFlagState = IPropertyObject::CreateProperty(m_categorySizerItem, { "flag_state", "flag state" }, &CValueSizerItem::GetDefaultOptionState, wxStretch::wxSHRINK);
-	Property* m_propertyBorder = IPropertyObject::CreateProperty(m_categorySizerItem, { "border", "border" }, PropertyType::PT_INT, 5);
+	Property* m_propertyBorder = IPropertyObject::CreateProperty(m_categorySizerItem, { "border", "border" }, PropertyType::PT_UINT, 5);
 public:
 
 	void SetProportion(int proportion) {
