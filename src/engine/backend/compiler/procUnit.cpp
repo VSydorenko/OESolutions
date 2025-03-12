@@ -445,8 +445,8 @@ void CProcUnit::Execute(CRunContext* pContext, CValue& pvarRetValue, bool bDelta
 		tryData_t() :
 			m_lStartLine(0), m_lEndLine(0) {
 		}
-		tryData_t(long lStartLine, long lEndLine) :
-			m_lStartLine(lStartLine), m_lEndLine(m_lEndLine) {
+		tryData_t(const long&lStartLine, const long&lEndLine) :
+			m_lStartLine(lStartLine), m_lEndLine(lEndLine) {
 		}
 	};
 
@@ -691,17 +691,19 @@ start_label:
 					break; //getting the array value
 				case OPER_GOTO: case OPER_ENDTRY:
 				{
-					long lNewLine = index1;
-					long size = tryList.size() - 1;
-					if (size >= 0) {
-						if (lNewLine >= tryList[size].m_lEndLine ||
-							lNewLine <= tryList[size].m_lStartLine) {
-							tryList.resize(size);//exit from try..catch scope
+					const long tryCodeLine = index1;
+					const long trySize = tryList.size() - 1;
+					if (trySize >= 0) {
+						if (tryCodeLine >= tryList[trySize].m_lEndLine ||
+							tryCodeLine <= tryList[trySize].m_lStartLine) {
+							tryList.resize(trySize);//exit from try..catch scope
 						}
 					}
-					lCodeLine = lNewLine - 1;//since we'll add 1 later
+					lCodeLine = tryCodeLine - 1;//since we'll add 1 later
 				} break;
-				case OPER_TRY: tryList.emplace_back(lCodeLine, index1); break; //transition on error
+				case OPER_TRY: 
+					tryList.emplace_back(lCodeLine, index1); 
+					break; //transition on error
 				case OPER_RAISE: CBackendException::Error(CBackendException::GetLastError()); break;
 				case OPER_RAISE_T: CBackendException::Error(m_pByteCode->m_listConst[index1].GetString()); break;
 				case OPER_RET: if (index1 != DEF_VAR_NORET) CopyValue(pvarRetValue, variable1);
@@ -815,12 +817,12 @@ start_label:
 		}
 	}
 	catch (const CBackendException* err) {
-		long size = tryList.size() - 1;
-		if (size >= 0) {
+		const long trySize = tryList.size() - 1;
+		if (trySize >= 0) {
 			s_errorPlace.Reset(); //Error is handled in this module - erase the error location
-			long nLine = tryList[size].m_lEndLine;
-			tryList.resize(size);
-			lCodeLine = nLine;
+			const long tryCodeLine = tryList[trySize].m_lEndLine;
+			tryList.resize(trySize);
+			lCodeLine = tryCodeLine;
 			goto start_label;
 		}
 		//there is no handler in this module - save the error location for the following modules
