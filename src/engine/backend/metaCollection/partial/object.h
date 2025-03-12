@@ -1030,6 +1030,11 @@ public:
 		return this;
 	}
 
+	//Working with iterators
+	virtual bool HasIterator() const { return true; }	
+	virtual CValue GetIteratorAt(unsigned int lPropNum) { CValue retValue; GetPropVal(lPropNum, retValue); return retValue; }
+	virtual unsigned int GetIteratorCount() const { return m_methodHelper != nullptr ? m_methodHelper->GetNProps() : 0;	}
+
 protected:
 	virtual void PrepareEmptyObject();
 protected:
@@ -1261,6 +1266,11 @@ public:
 
 	virtual wxString GetClassName() const;
 	virtual wxString GetString() const;
+
+	//Working with iterators
+	virtual bool HasIterator() const { return true; }
+	virtual CValue GetIteratorAt(unsigned int lPropNum) { CValue retValue; GetPropVal(lPropNum, retValue); return retValue; }
+	virtual unsigned int GetIteratorCount() const { return m_methodHelper != nullptr ? m_methodHelper->GetNProps() : 0; }
 
 protected:
 	IMetaObjectRegisterData* m_metaObject;
@@ -1718,6 +1728,11 @@ public:
 	virtual operator CValue() const {
 		return this;
 	}
+
+	//Working with iterators
+	virtual bool HasIterator() const { return true; }
+	virtual CValue GetIteratorAt(unsigned int lPropNum) { CValue retValue; GetPropVal(lPropNum, retValue); return retValue; }
+	virtual unsigned int GetIteratorCount() const { return m_methodHelper != nullptr ? m_methodHelper->GetNProps() : 0; }
 
 protected:
 
