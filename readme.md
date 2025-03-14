@@ -2,7 +2,7 @@
 
 Open enterprise solutions - open environment development for business processes
 
-![image](https://github.com/user-attachments/assets/b41cf194-bf97-46d4-8091-f2870e57e752)
+![image](https://github.com/user-attachments/assets/8513361c-bbc3-44bb-b07c-776202940d8b)
 
 ## Features
 
