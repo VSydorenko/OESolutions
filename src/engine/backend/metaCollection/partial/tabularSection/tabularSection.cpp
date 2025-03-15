@@ -148,6 +148,7 @@ bool ITabularSectionDataObject::CallAsFunc(const long lMethodNum, CValue& pvarRe
 	}
 	case enCount:
 		pvarRetValue = (unsigned int)GetRowCount();
+		return true;
 	case enDelete: {
 		CTabularSectionDataObjectReturnLine* retLine = nullptr;
 		if (paParams[0]->ConvertToValue(retLine)) {
