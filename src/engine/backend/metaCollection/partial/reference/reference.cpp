@@ -188,7 +188,7 @@ bool CReferenceDataObject::GetValueByMetaID(const meta_identifier_t& id, CValue&
 		return true;
 	}
 	auto& it = m_objectValues.find(id);
-	wxASSERT(it != m_objectValues.end());
+	//wxASSERT(it != m_objectValues.end());
 	if (it != m_objectValues.end()) {
 		pvarMetaVal = it->second;
 		return true;
@@ -320,14 +320,15 @@ bool CReferenceDataObject::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 			m_objectValues.insert_or_assign(id,
 				GetMetaObjectRef()->GetMetaData()->CreateObjectValueRef<CTabularSectionDataObjectRef>(this, m_metaObject->FindTableById(id), !m_newObject)
 			);
-		}
+		}	
 		if (lPropAlias == eTable && GetValueByMetaID(id, pvarPropVal)) {
 			CTabularSectionDataObjectRef* tabularSection = nullptr;
 			if (pvarPropVal.ConvertToValue(tabularSection)) {
 				if (tabularSection->IsReadAfter()) {
-					if (!tabularSection->LoadData(m_objGuid, false))
+					if (!tabularSection->LoadData(m_objGuid, false)) {
 						pvarPropVal.Reset();
-					return !pvarPropVal.IsEmpty();
+						return false;
+					}
 				}
 				return true;
 			}

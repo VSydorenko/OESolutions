@@ -6,92 +6,81 @@
 #include "catalogManager.h"
 #include "backend/appData.h"
 #include "backend/databaseLayer/databaseLayer.h"
-
 #include "backend/metaCollection/attribute/metaAttributeObject.h"
 
-CReferenceDataObject* CCatalogManager::FindByCode(const CValue& vCode)
+CReferenceDataObject* CCatalogManager::FindByCode(const CValue& cParam) const 
 {
 	if (!appData->DesignerMode()) {
-		wxString tableName = m_metaObject->GetTableNameDB();
-		if (db_query->TableExists(tableName)) {
 
-			CMetaObjectAttributeDefault* catCode = m_metaObject->GetDataCode();
-			wxASSERT(catCode);
+		if (db_query != nullptr && !db_query->IsOpen())
+			CBackendException::Error(_("database is not open!"));
+		else if (db_query == nullptr)
+			CBackendException::Error(_("database is not open!"));
 
-			wxString sqlQuery = "";
-			if (db_query->GetDatabaseLayerType() == DATABASELAYER_POSTGRESQL)
-				sqlQuery = "SELECT _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(catCode, "LIKE") + " LIMIT 1";
-			else
-				sqlQuery = "SELECT FIRST 1 _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(catCode, "LIKE");
-
-			IPreparedStatement* statement = db_query->PrepareStatement(sqlQuery, tableName);
-			if (statement == nullptr)
-				return CReferenceDataObject::Create(m_metaObject);
-
-			const CValue &code = catCode->AdjustValue(vCode);
-		
-			int position = 1;
-			IMetaObjectAttribute::SetValueAttribute(catCode, code, statement, position);
-
-			CReferenceDataObject* foundedReference = nullptr;
-			IDatabaseResultSet* databaseResultSet = statement->RunQueryWithResults();
-			wxASSERT(databaseResultSet);
-			if (databaseResultSet->Next()) {
-				Guid foundedGuid = databaseResultSet->GetResultString(guidName);
-				if (foundedGuid.isValid()) {
-					foundedReference = CReferenceDataObject::Create(m_metaObject, foundedGuid);
+		if (!cParam.IsEmpty()) {
+			const wxString& tableName = m_metaObject->GetTableNameDB();
+			if (db_query->TableExists(tableName)) {
+				CMetaObjectAttributeDefault* attributeCode = m_metaObject->GetDataCode();
+				wxASSERT(attributeCode);
+				wxString sqlQuery = "";
+				if (db_query->GetDatabaseLayerType() == DATABASELAYER_POSTGRESQL)
+					sqlQuery = "SELECT _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(attributeCode, "LIKE") + " LIMIT 1";
+				else
+					sqlQuery = "SELECT FIRST 1 _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(attributeCode, "LIKE");
+				IPreparedStatement* statement = db_query->PrepareStatement(sqlQuery, tableName);
+				if (statement == nullptr)
+					return CReferenceDataObject::Create(m_metaObject);
+				int position = 1;
+				IMetaObjectAttribute::SetValueAttribute(attributeCode, attributeCode->AdjustValue(cParam), statement, position);
+				CReferenceDataObject* foundedReference = nullptr;
+				IDatabaseResultSet* databaseResultSet = statement->RunQueryWithResults();
+				wxASSERT(databaseResultSet);
+				if (databaseResultSet->Next()) {
+					const Guid &foundedGuid = databaseResultSet->GetResultString(guidName);
+					if (foundedGuid.isValid()) foundedReference = CReferenceDataObject::Create(m_metaObject, foundedGuid);		
 				}
-			}
-			databaseResultSet->Close();
-
-			if (foundedReference != nullptr) {
-				return foundedReference;
+				databaseResultSet->Close();
+				if (foundedReference != nullptr) return foundedReference;		
 			}
 		}
 	}
 	return CReferenceDataObject::Create(m_metaObject);
 }
 
-CReferenceDataObject* CCatalogManager::FindByName(const CValue& vName)
+CReferenceDataObject* CCatalogManager::FindByDescription(const CValue& cParam) const
 {
 	if (!appData->DesignerMode()) {
-		wxString tableName = m_metaObject->GetTableNameDB();
-		if (db_query->TableExists(tableName)) {
-		
-			CMetaObjectAttributeDefault* catName = m_metaObject->GetDataCode();
-			wxASSERT(catName);
 
-			wxString sqlQuery = "";	
-			if (db_query->GetDatabaseLayerType() == DATABASELAYER_POSTGRESQL)
-				sqlQuery = "SELECT _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(catName, "LIKE") + " LIMIT 1";
-			else 
-				sqlQuery = "SELECT FIRST 1 _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(catName, "LIKE");
+		if (db_query != nullptr && !db_query->IsOpen())
+			CBackendException::Error(_("database is not open!"));
+		else if (db_query == nullptr)
+			CBackendException::Error(_("database is not open!"));
 
-			IPreparedStatement* statement = db_query->PrepareStatement(sqlQuery, tableName);
-
-			if (statement == nullptr)
-				return CReferenceDataObject::Create(m_metaObject);
-
-			const CValue &name = catName->AdjustValue(vName);
-
-			int position = 1;
-			IMetaObjectAttribute::SetValueAttribute(catName, name, statement, position);
-
-			CReferenceDataObject* foundedReference = nullptr;
-			IDatabaseResultSet* databaseResultSet = statement->RunQueryWithResults();
-			wxASSERT(databaseResultSet);
-			if (databaseResultSet->Next()) {
-				Guid foundedGuid = databaseResultSet->GetResultString(guidName);
-				if (foundedGuid.isValid()) {
-					foundedReference = CReferenceDataObject::Create(m_metaObject, foundedGuid);
+		if (!cParam.IsEmpty()) {
+			const wxString tableName = m_metaObject->GetTableNameDB();
+			if (db_query->TableExists(tableName)) {
+				CMetaObjectAttributeDefault* attributeDescription = m_metaObject->GetDataDescription();
+				wxASSERT(attributeDescription);
+				wxString sqlQuery = "";
+				if (db_query->GetDatabaseLayerType() == DATABASELAYER_POSTGRESQL)
+					sqlQuery = "SELECT _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(attributeDescription, "LIKE") + " LIMIT 1";
+				else
+					sqlQuery = "SELECT FIRST 1 _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(attributeDescription, "LIKE");
+				IPreparedStatement* statement = db_query->PrepareStatement(sqlQuery, tableName);
+				if (statement == nullptr) return CReferenceDataObject::Create(m_metaObject);
+				int position = 1;
+				IMetaObjectAttribute::SetValueAttribute(attributeDescription, attributeDescription->AdjustValue(cParam), statement, position);
+				CReferenceDataObject* foundedReference = nullptr;
+				IDatabaseResultSet* databaseResultSet = statement->RunQueryWithResults();
+				wxASSERT(databaseResultSet);
+				if (databaseResultSet->Next()) {
+					const Guid &foundedGuid = databaseResultSet->GetResultString(guidName);
+					if (foundedGuid.isValid()) foundedReference = CReferenceDataObject::Create(m_metaObject, foundedGuid);			
 				}
-			}
-			databaseResultSet->Close();
-
-			if (foundedReference != nullptr) {
-				return foundedReference;
+				databaseResultSet->Close();
+				if (foundedReference != nullptr) return foundedReference;		
 			}
 		}
-	}
+	}	
 	return CReferenceDataObject::Create(m_metaObject);
 }

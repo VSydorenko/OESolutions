@@ -26,8 +26,7 @@ bool CReferenceDataObject::ReadData(bool createData)
 		if (resultSet == nullptr)
 			return false;
 		bool readRef = false;
-		if (resultSet->Next()) {		
-			readRef = true;		
+		if (resultSet->Next()) {			
 			//load attributes 
 			for (auto& obj : m_metaObject->GetGenericAttributes()) {
 				if (!m_metaObject->IsDataReference(obj->GetMetaID())) {
@@ -39,12 +38,13 @@ bool CReferenceDataObject::ReadData(bool createData)
 					);
 				}
 			}
-
 			// table is collection values 
 			//for (auto& obj : m_metaObject->GetObjectTables()) {
 			//	m_objectValues.insert_or_assign(obj->GetMetaID(), 
-			//		CValue::CreateObjectValue<CTabularSectionDataObjectRef>(this, obj, true));
+			//		m_metaObject->GetMetaData()->CreateObjectValue<CTabularSectionDataObjectRef>(this, obj, true));
 			//}
+
+			readRef = true;
 		}	
 		resultSet->Close();
 		return readRef;

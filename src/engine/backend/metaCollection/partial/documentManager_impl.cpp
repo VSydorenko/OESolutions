@@ -7,77 +7,56 @@
 #include "backend/appData.h"
 #include "backend/databaseLayer/databaseLayer.h"
 
-CReferenceDataObject * CDocumentManager::FindByNumber(const CValue &vNumber, const CValue &vPeriod)
+CReferenceDataObject* CDocumentManager::FindByNumber(const CValue& vNumber, const CValue& vPeriod)
 {
 	if (!appData->DesignerMode()) {
-		
+	
 		if (db_query != nullptr && !db_query->IsOpen())
 			CBackendException::Error(_("database is not open!"));
 		else if (db_query == nullptr)
 			CBackendException::Error(_("database is not open!"));
-
-		wxString tableName = m_metaObject->GetTableNameDB();
+	
+		const wxString& tableName = m_metaObject->GetTableNameDB();
 		if (db_query->TableExists(tableName)) {
-
-			CMetaObjectAttributeDefault* docNumber = m_metaObject->GetDocumentNumber();
-			CMetaObjectAttributeDefault* docDate = m_metaObject->GetDocumentDate();
-			wxASSERT(docNumber && docDate);
-
+			CMetaObjectAttributeDefault* attributeNumber = m_metaObject->GetDocumentNumber();
+			CMetaObjectAttributeDefault* attributeDate = m_metaObject->GetDocumentDate();
+			wxASSERT(attributeNumber && attributeDate);
 			wxString sqlQuery = "";
 			if (db_query->GetDatabaseLayerType() == DATABASELAYER_POSTGRESQL) {
-				sqlQuery = "SELECT _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(docNumber, "LIKE") + " LIMIT 1;";
+				sqlQuery = "SELECT _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(attributeNumber, "LIKE") + " LIMIT 1;";
 				if (!vPeriod.IsEmpty()) {
-					sqlQuery += IMetaObjectAttribute::GetCompositeSQLFieldName(docNumber, "<=");
+					sqlQuery += IMetaObjectAttribute::GetCompositeSQLFieldName(attributeNumber, "<=");
 				}
 			}
 			else {
-				sqlQuery = "SELECT FIRST 1 _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(docNumber, "LIKE") + ";";
+				sqlQuery = "SELECT FIRST 1 _uuid FROM %s WHERE " + IMetaObjectAttribute::GetCompositeSQLFieldName(attributeNumber, "LIKE") + ";";
 				if (!vPeriod.IsEmpty()) {
-					sqlQuery += IMetaObjectAttribute::GetCompositeSQLFieldName(docNumber, "<=");
+					sqlQuery += IMetaObjectAttribute::GetCompositeSQLFieldName(attributeNumber, "<=");
 				}
 			}
-		
-			IPreparedStatement *statement = nullptr;
+			IPreparedStatement* statement = nullptr;
 			if (!vPeriod.IsEmpty()) {
 				statement = db_query->PrepareStatement(sqlQuery, tableName);
-				if (statement == nullptr) {
-					return CReferenceDataObject::Create(m_metaObject);
-				}
-				
+				if (statement == nullptr) return CReferenceDataObject::Create(m_metaObject);
 				int position = 1;
-
-				CValue number = docNumber->AdjustValue(vNumber);
-				IMetaObjectAttribute::SetValueAttribute(docNumber, number, statement, position);
-				CValue period = docDate->AdjustValue(vPeriod);
-				IMetaObjectAttribute::SetValueAttribute(docDate, period, statement, position);
+				IMetaObjectAttribute::SetValueAttribute(attributeNumber, attributeNumber->AdjustValue(vNumber), statement, position);
+				IMetaObjectAttribute::SetValueAttribute(attributeDate, attributeDate->AdjustValue(vPeriod), statement, position);
 			}
 			else {
 				statement = db_query->PrepareStatement(sqlQuery, tableName);
-				if (statement == nullptr) {
-					return CReferenceDataObject::Create(m_metaObject);
-				}
-
+				if (statement == nullptr) return CReferenceDataObject::Create(m_metaObject);		
 				int position = 1;
-
-				CValue number = docNumber->AdjustValue(vNumber);
-				IMetaObjectAttribute::SetValueAttribute(docNumber, number, statement, position);
+				IMetaObjectAttribute::SetValueAttribute(attributeNumber, attributeNumber->AdjustValue(vNumber), statement, position);
 			}
-
-			CReferenceDataObject *foundedReference = nullptr;
-
-			IDatabaseResultSet *databaseResultSet = statement->RunQueryWithResults();
+			CReferenceDataObject* foundedReference = nullptr;
+			IDatabaseResultSet* databaseResultSet = statement->RunQueryWithResults();
 			wxASSERT(databaseResultSet);
 			if (databaseResultSet->Next()) {
-				Guid foundedGuid = databaseResultSet->GetResultString(guidName);
-				if (foundedGuid.isValid()) {
-					foundedReference = CReferenceDataObject::Create(m_metaObject, foundedGuid);
-				}
+				const Guid& foundedGuid = databaseResultSet->GetResultString(guidName);
+				if (foundedGuid.isValid()) foundedReference = CReferenceDataObject::Create(m_metaObject, foundedGuid);
 			}
 			databaseResultSet->Close();
-
-			if (foundedReference != nullptr) {
-				return foundedReference;
-			}
+			if (foundedReference != nullptr) return foundedReference;		
 		}
 	}
 	return CReferenceDataObject::Create(m_metaObject);

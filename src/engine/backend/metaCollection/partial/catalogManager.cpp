@@ -24,7 +24,7 @@ CMetaObjectCommonModule* CCatalogManager::GetModuleManager() const { return m_me
 
 #include "reference/reference.h"
 
-CReferenceDataObject* CCatalogManager::EmptyRef()
+CReferenceDataObject* CCatalogManager::EmptyRef() const 
 {
 	return CReferenceDataObject::Create(m_metaObject);
 }
@@ -60,7 +60,7 @@ enum Func {
 	eCreateGroup,
 	eSelect,
 	eFindByCode,
-	eFindByName,
+	eFindByDescription,
 	eGetForm,
 	eGetListForm,
 	eGetSelectForm,
@@ -79,7 +79,7 @@ void CCatalogManager::PrepareNames() const
 	m_methodHelper->AppendFunc("createGroup", "createGroup()");
 	m_methodHelper->AppendFunc("select", "select()");
 	m_methodHelper->AppendFunc("findByCode", 1, "findByCode(string)");
-	m_methodHelper->AppendFunc("findByName", 1, "findByName(string)");
+	m_methodHelper->AppendFunc("findByDescription", 1, "findByDescription(string)");
 	m_methodHelper->AppendFunc("getForm", 3, "getForm(string, owner, guid)");
 	m_methodHelper->AppendFunc("getListForm", 3, "getListForm(string, owner, guid)");
 	m_methodHelper->AppendFunc("getSelectForm", 3, "getSelectForm(string, owner, guid)");
@@ -115,8 +115,8 @@ bool CCatalogManager::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CV
 	case eFindByCode:
 		pvarRetValue = FindByCode(*paParams[0]);
 		return true;
-	case eFindByName:
-		pvarRetValue = FindByName(*paParams[0]);
+	case eFindByDescription:
+		pvarRetValue = FindByDescription(*paParams[0]);
 		return true;
 	case eGetForm: {
 		CValueGuid* guidVal = lSizeArray > 2 ? paParams[2]->ConvertToType<CValueGuid>() : nullptr;

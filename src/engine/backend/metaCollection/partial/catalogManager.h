@@ -14,10 +14,10 @@ public:
 
 	virtual CMetaObjectCommonModule* GetModuleManager() const;
 
-	CReferenceDataObject* FindByCode(const CValue& vCode);
-	CReferenceDataObject* FindByName(const CValue& vName);
+	CReferenceDataObject* FindByCode(const CValue& vCode) const;
+	CReferenceDataObject* FindByDescription(const CValue& cParam) const;
 
-	CReferenceDataObject* EmptyRef();
+	CReferenceDataObject* EmptyRef() const;
 
 	virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames(); 
