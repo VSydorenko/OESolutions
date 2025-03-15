@@ -87,18 +87,14 @@ public:
 		return m_pByteCode;
 	}
 
-	void Execute(CByteCode& ByteCode) {
-		CValue pvarRetValue;
-		Execute(ByteCode, pvarRetValue, true);
-	}
-
-	void Execute(CByteCode& ByteCode, bool bRunModule) {
-		CValue pvarRetValue;
-		Execute(ByteCode, pvarRetValue, bRunModule);
-	}
-
-	void Execute(CByteCode& ByteCode, CValue& pvarRetValue, bool bRunModule = true);
-	void Execute(CRunContext* pContext, CValue& pvarRetValue, bool bDelta); // bDelta=true - flag for executing module operators that come at the end of functions and procedures
+	void Execute(CByteCode& ByteCode) { Execute(ByteCode, nullptr, true); }
+	void Execute(CByteCode& ByteCode, bool bRunModule) { Execute(ByteCode, nullptr, bRunModule); }
+	void Execute(CByteCode& ByteCode, CValue& pvarRetValue, bool bRunModule = true) { Execute(ByteCode, &pvarRetValue, bRunModule); }
+	
+private:
+	void Execute(CByteCode& ByteCode, CValue* pvarRetValue, bool bRunModule = true);
+	void Execute(CRunContext* pContext, CValue* pvarRetValue, bool bDelta); // bDelta=true - flag for executing module operators that come at the end of functions and procedures
+public:
 
 	static bool Evaluate(const wxString& strExpression, CRunContext* pRunContext, CValue& pvarRetValue, bool bCompileBlock);
 	bool CompileExpression(CRunContext* pRunContext, CValue& pvarRetValue, CCompileCode& cModule, bool bCompileBlock);
@@ -120,15 +116,16 @@ public:
 		CallAsProc(funcName, ppParams, (const long)sizeof ...(args));
 	}
 
-	bool CallAsProc(const wxString& funcName, CValue** ppParams, const long lSizeArray) {
-		CValue pvarRetValue;
-		return CallAsFunc(funcName, pvarRetValue, ppParams, lSizeArray);
+	template <typename ...Types>
+	inline void CallAsFunc(const wxString& funcName, CValue& pvarRetValue, Types&... args) {
+		CValue* ppParams[] = {&args..., nullptr};
+		CallAsFunc(funcName, pvarRetValue, ppParams, (const long)sizeof ...(args));
 	}
+
+	bool CallAsProc(const wxString& funcName, CValue** ppParams, const long lSizeArray);
 	bool CallAsFunc(const wxString& funcName, CValue& pvarRetValue, CValue** ppParams, const long lSizeArray);
-	void CallAsProc(const long lCodeLine, CValue** ppParams, const long lSizeArray) {
-		CValue pvarRetValue;
-		CallAsFunc(lCodeLine, pvarRetValue, ppParams, lSizeArray);
-	}
+
+	void CallAsProc(const long lCodeLine, CValue** ppParams, const long lSizeArray);
 	void CallAsFunc(const long lCodeLine, CValue& pvarRetValue, CValue** ppParams, const long lSizeArray);
 
 	long FindProp(const wxString& strPropName) const;

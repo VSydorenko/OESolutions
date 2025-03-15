@@ -437,7 +437,7 @@ const class_identifier_t g_valueIterator = string_to_clsid("SO_ITER");
 //						Construction/Destruction                    //
 //////////////////////////////////////////////////////////////////////
 
-void CProcUnit::Execute(CRunContext* pContext, CValue& pvarRetValue, bool bDelta)
+void CProcUnit::Execute(CRunContext* pContext, CValue* pvarRetValue, bool bDelta)
 {
 	struct tryData_t {
 		long m_lStartLine, m_lEndLine;
@@ -678,7 +678,7 @@ start_label:
 							}
 						}
 					}
-					m_ppArrayCode[lModuleNumber]->Execute(&cRunContext, *pRetValue, false);
+					m_ppArrayCode[lModuleNumber]->Execute(&cRunContext, pRetValue, false);
 					break;
 				}
 				case OPER_SET_ARRAY:
@@ -706,7 +706,12 @@ start_label:
 					break; //transition on error
 				case OPER_RAISE: CBackendException::Error(CBackendException::GetLastError()); break;
 				case OPER_RAISE_T: CBackendException::Error(m_pByteCode->m_listConst[index1].GetString()); break;
-				case OPER_RET: if (index1 != DEF_VAR_NORET) CopyValue(pvarRetValue, variable1);
+				case OPER_RET: 
+					if (index1 != DEF_VAR_NORET) {
+						if (pvarRetValue == nullptr) 
+							CBackendException::Error(_("Cannot set return value in procedure!"));
+						CopyValue(*pvarRetValue, variable1);
+					}
 				case OPER_ENDFUNC:
 				case OPER_END:
 					lCodeLine = lFinish;
@@ -842,7 +847,7 @@ start_label:
 //nRunModule parameters:
 //false-do not run
 //true-run
-void CProcUnit::Execute(CByteCode& cByteCode, CValue& pvarRetValue, bool bRunModule)
+void CProcUnit::Execute(CByteCode& cByteCode, CValue* pvarRetValue, bool bRunModule)
 {
 	Reset();
 
@@ -1006,6 +1011,20 @@ long CProcUnit::FindProcedure(const wxString& strMethodName, bool bError, int bE
 	return wxNOT_FOUND;
 }
 
+//Calling a procedure by name
+//The call is made only in the current module
+bool CProcUnit::CallAsProc(const wxString& funcName, CValue** ppParams, const long lSizeArray)
+{
+	if (m_pByteCode != nullptr) {
+		const long lCodeLine = m_pByteCode->FindMethod(funcName);
+		if (lCodeLine != wxNOT_FOUND) {
+			CallAsProc(lCodeLine, ppParams, lSizeArray);
+			return true;
+		}
+	}
+	return false; return false;
+}
+
 //Calling a function by name
 //The call is made only in the current module
 bool CProcUnit::CallAsFunc(const wxString& funcName, CValue& pvarRetValue, CValue** ppParams, const long lSizeArray)
@@ -1018,6 +1037,33 @@ bool CProcUnit::CallAsFunc(const wxString& funcName, CValue& pvarRetValue, CValu
 		}
 	}
 	return false;
+}
+
+//Calling a procedure by its address in the byte code array
+//The call is made incl. and in the parent module
+void CProcUnit::CallAsProc(const long lCodeLine, CValue** ppParams, const long lSizeArray)
+{
+	if (m_pByteCode == nullptr || !m_pByteCode->m_bCompile)
+		CBackendException::Error(_("Module not compiled!"));
+
+	const long lCodeSize = m_pByteCode->m_listCode.size();
+	if (lCodeLine >= lCodeSize) {
+		if (!GetParent())
+			CBackendException::Error(_("Error calling module procedure!"));
+		GetParent()->CallAsProc(lCodeLine - lCodeSize, ppParams, lSizeArray);
+	}
+
+	CRunContext cRunContext(index3);// number of local variables
+
+	cRunContext.m_lParamCount = array3;//number of formal parameters
+	cRunContext.m_lStart = lCodeLine;
+	cRunContext.m_compileContext = reinterpret_cast<CCompileContext*>(m_pByteCode->m_listCode[cRunContext.m_lStart].m_param1.m_numArray);
+
+	//load parameters
+	memcpy(&cRunContext.m_pRefLocVars[0], &ppParams[0], std::min(lSizeArray, cRunContext.m_lParamCount) * sizeof(CValue*));
+
+	//execute arbitrary code
+	Execute(&cRunContext, nullptr, false);
 }
 
 //Calling a function by its address in the byte code array
@@ -1044,7 +1090,7 @@ void CProcUnit::CallAsFunc(const long lCodeLine, CValue& pvarRetValue, CValue** 
 	memcpy(&cRunContext.m_pRefLocVars[0], &ppParams[0], std::min(lSizeArray, cRunContext.m_lParamCount) * sizeof(CValue*));
 
 	//execute arbitrary code
-	Execute(&cRunContext, pvarRetValue, false);
+	Execute(&cRunContext, &pvarRetValue, false);
 }
 
 long CProcUnit::FindProp(const wxString& strPropName) const
@@ -1160,7 +1206,7 @@ bool CProcUnit::Evaluate(const wxString& strExpression, CRunContext* pRunContext
 		}
 	}
 	try {
-		pRunEval->Execute(&pRunEval->m_cCurContext, pvarRetValue, bDelta);
+		pRunEval->Execute(&pRunEval->m_cCurContext, &pvarRetValue, bDelta);
 	}
 	catch (const CBackendException*) {
 		if (!isEvalMode) CBackendException::SetEvalMode(false);
