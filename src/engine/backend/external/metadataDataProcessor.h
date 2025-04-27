@@ -1,5 +1,6 @@
 #include "backend/metadataConfiguration.h"
 #include "backend/metaCollection/partial/dataProcessor.h"
+#include "backend/moduleManager/moduleManagerExt.h"
 
 #define sign_dataProcessor 0x1345F6621261E
 
@@ -31,8 +32,8 @@ public:
 	}
 
 	//runtime support:
-	virtual CValue* CreateObjectRef(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0);
-	virtual CValue* CreateObjectRef(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) {
+	virtual CValue* CreateObjectRef(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0) const;
+	virtual CValue* CreateObjectRef(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) const {
 		return CreateObjectRef(
 			GetIDObjectFromString(className), paParams, lSizeArray
 		);

@@ -5,26 +5,26 @@
 #include "backend/metaData.h"
 #include "backend/objCtor.h"
 
-void CValueTableBox::OnPropertyCreated(Property* property)
+void CValueTableBox::OnPropertyCreated(IProperty* property)
 {
-	if (m_propertySource == property) {
-		CValueTableBox::SaveToVariant(m_propertySource->GetValue(), GetMetaData());
-	}
+	//if (m_propertySource == property) {
+	//	CValueTableBox::SaveToVariant(m_propertySource->GetValue(), GetMetaData());
+	//}
 }
 
-bool CValueTableBox::OnPropertyChanging(Property* property, const wxVariant& newValue)
+bool CValueTableBox::OnPropertyChanging(IProperty* property, const wxVariant& newValue)
 {
-	if (m_propertySource == property && !CValueTableBox::LoadFromVariant(newValue))
-		return false;
 	return IValueWindow::OnPropertyChanging(property, newValue);
 }
 
-void CValueTableBox::OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue)
+void CValueTableBox::OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue)
 {
 	if (m_propertySource == property) {
-		
-		int answer = wxMessageBox(		
-			_("The data source has been changed. Refill columns?"), 
+
+		CValueTableBox::RefreshModel(true);
+
+		const int answer = wxMessageBox(
+			_("The data source has been changed. Refill columns?"),
 			_("TableBox"), wxYES_NO
 		);
 
@@ -40,18 +40,18 @@ void CValueTableBox::OnPropertyChanged(Property* property, const wxVariant& oldV
 			IMetaValueTypeCtor* typeCtor =
 				metaData->GetTypeCtor(clsid);
 			if (typeCtor != nullptr) {
-				IMetaObjectContextData* metaObject =
-					dynamic_cast<IMetaObjectContextData*>(typeCtor->GetMetaObject());
+				IMetaObjectSourceData* metaObject =
+					dynamic_cast<IMetaObjectSourceData*>(typeCtor->GetMetaObject());
 				if (metaObject != nullptr) {
 					for (auto& obj : metaObject->GetGenericAttributes()) {
 						CValueTableBoxColumn* tableBoxColumn =
 							wxDynamicCast(
 								m_formOwner->CreateControl(wxT("tableboxColumn"), this), CValueTableBoxColumn
-						);
+							);
 						wxASSERT(tableBoxColumn);
 						tableBoxColumn->SetControlName(GetControlName() + wxT("_") + obj->GetName());
 						tableBoxColumn->SetCaption(obj->GetSynonym());
-						tableBoxColumn->SetSourceId(obj->GetMetaID());
+						tableBoxColumn->SetSource(obj->GetMetaID());
 						tableBoxColumn->SetVisibleColumn(true);
 						g_visualHostContext->InsertControl(tableBoxColumn, this);
 					}
@@ -65,4 +65,6 @@ void CValueTableBox::OnPropertyChanged(Property* property, const wxVariant& oldV
 			g_visualHostContext->RefreshEditor();
 		}
 	}
+
+	IValueWindow::OnPropertyChanged(property, oldValue, newValue);
 }

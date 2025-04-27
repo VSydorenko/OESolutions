@@ -49,7 +49,7 @@ CMetaDataConfigurationFile::CMetaDataConfigurationFile(bool readOnly) : IMetaDat
 m_commonObject(nullptr), m_moduleManager(nullptr), m_configOpened(false)
 {
 	//create main metaObject
-	m_commonObject = new CMetaObject();
+	m_commonObject = new CMetaObjectConfiguration();
 	m_commonObject->SetReadOnly(!m_metaReadOnly);
 
 	if (m_commonObject->OnCreateMetaObject(this)) {

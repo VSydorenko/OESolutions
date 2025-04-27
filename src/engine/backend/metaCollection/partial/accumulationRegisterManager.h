@@ -2,7 +2,7 @@
 #define _ACC_REGISTER_MANAGER_H__
 
 #include "accumulationRegister.h"
-#include "backend/wrapper/managerInfo.h"
+#include "backend/managerInfo.h"
 
 class CAccumulationRegisterManager : public CValue,
 	public IMetaManagerInfo {

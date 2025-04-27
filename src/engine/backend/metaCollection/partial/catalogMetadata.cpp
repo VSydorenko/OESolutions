@@ -8,9 +8,6 @@
 #include "backend/metaData.h"
 #include "backend/moduleManager/moduleManager.h"
 
-#define objectModule wxT("objectModule")
-#define managerModule wxT("managerModule")
-
 //********************************************************************************************
 //*										 metaData											 * 
 //********************************************************************************************
@@ -23,11 +20,6 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectCatalog, IMetaObjectRecordDataFolderMutable
 
 CMetaObjectCatalog::CMetaObjectCatalog() : IMetaObjectRecordDataFolderMutableRef()
 {
-	m_attributeOwner = IMetaObjectContextData::CreateEmptyType(wxT("owner"), _("Owner"), wxEmptyString, true, eItemMode::eItemMode_Folder_Item);
-
-	//create module
-	m_moduleObject = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectModule>(objectModule);
-
 	//set default proc
 	m_moduleObject->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, { "cancel" });
 	m_moduleObject->SetDefaultProcedure("onWrite", eContentHelper::eProcedureHelper, { "cancel" });
@@ -36,8 +28,6 @@ CMetaObjectCatalog::CMetaObjectCatalog() : IMetaObjectRecordDataFolderMutableRef
 
 	m_moduleObject->SetDefaultProcedure("filling", eContentHelper::eProcedureHelper, { "source", "standartProcessing" });
 	m_moduleObject->SetDefaultProcedure("onCopy", eContentHelper::eProcedureHelper, { "source" });
-
-	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
 }
 
 CMetaObjectCatalog::~CMetaObjectCatalog()
@@ -270,77 +260,62 @@ IBackendValueForm* CMetaObjectCatalog::GetFolderSelectForm(const wxString& formN
 	);
 }
 
-OptionList* CMetaObjectCatalog::GetFormObject(PropertyOption*)
+bool CMetaObjectCatalog::GetFormObject(CPropertyList*prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormObject == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true;
 }
 
-OptionList* CMetaObjectCatalog::GetFormFolder(PropertyOption*)
+bool CMetaObjectCatalog::GetFormFolder(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormGroup == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true;
 }
 
-OptionList* CMetaObjectCatalog::GetFormList(PropertyOption*)
+bool CMetaObjectCatalog::GetFormList(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormList == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true;
 }
 
-OptionList* CMetaObjectCatalog::GetFormSelect(PropertyOption*)
+bool CMetaObjectCatalog::GetFormSelect(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormSelect == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true;
 }
 
-OptionList* CMetaObjectCatalog::GetFormFolderSelect(PropertyOption*)
+bool CMetaObjectCatalog::GetFormFolderSelect(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormFolderSelect == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true;
 }
 
-wxString CMetaObjectCatalog::GetDataPresentation(const IObjectValueInfo* objValue) const
+wxString CMetaObjectCatalog::GetDataPresentation(const IObjectDataValue* objValue) const
 {
 	CValue vDescription;
 	if (objValue->GetValueByMetaID(m_attributeDescription->GetMetaID(), vDescription))
@@ -373,59 +348,6 @@ std::vector<IMetaObjectAttribute*> CMetaObjectCatalog::GetSearchedAttributes() c
 	return attributes;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
-#include "backend/objCtor.h"
-
-bool CMetaObjectCatalog::LoadFromVariant(const wxVariant& variant)
-{
-	std::set<meta_identifier_t> prevRecords = m_ownerData.m_data;
-	if (m_ownerData.LoadFromVariant(variant)) {
-		std::set<meta_identifier_t> records = m_ownerData.m_data;
-		for (auto record : prevRecords) {
-			auto& it = records.find(record);
-			if (it != records.end())
-				continue;
-			CMetaObjectCatalog* catalog = wxDynamicCast(
-				m_metaData->GetMetaObject(record), CMetaObjectCatalog
-			);
-			if (catalog != nullptr) {
-				IMetaValueTypeCtor* so =
-					m_metaData->GetTypeCtor(catalog, eCtorMetaType::eCtorMetaType_Reference);
-				wxASSERT(so);
-				m_attributeOwner->ClearMetatype(
-					so->GetClassType()
-				);
-			}
-		}
-		for (auto record : records) {
-			auto& it = prevRecords.find(record);
-			if (it != prevRecords.end())
-				continue;
-			CMetaObjectCatalog* catalog = wxDynamicCast(
-				m_metaData->GetMetaObject(record), CMetaObjectCatalog
-			);
-			if (catalog != nullptr) {
-				IMetaValueTypeCtor* so =
-					m_metaData->GetTypeCtor(catalog, eCtorMetaType::eCtorMetaType_Reference);
-				wxASSERT(so);
-				m_attributeOwner->SetMetatype(
-					so->GetClassType()
-				);
-			}
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-void CMetaObjectCatalog::SaveToVariant(wxVariant& variant, IMetaData* metaData) const
-{
-	m_ownerData.SaveToVariant(variant, metaData);
-}
-
 //***************************************************************************
 //*                       Save & load metaData                              *
 //***************************************************************************
@@ -445,7 +367,7 @@ bool CMetaObjectCatalog::LoadData(CMemoryReader& dataReader)
 	m_propertyDefFormList->SetValue(GetIdByGuid(dataReader.r_stringZ()));
 	m_propertyDefFormSelect->SetValue(GetIdByGuid(dataReader.r_stringZ()));
 
-	if (!m_ownerData.LoadData(dataReader))
+	if (!m_propertyOwner->LoadData(dataReader))
 		return false;
 
 	return IMetaObjectRecordDataFolderMutableRef::LoadData(dataReader);
@@ -466,7 +388,7 @@ bool CMetaObjectCatalog::SaveData(CMemoryWriter& dataWritter)
 	dataWritter.w_stringZ(GetGuidByID(m_propertyDefFormList->GetValueAsInteger()));
 	dataWritter.w_stringZ(GetGuidByID(m_propertyDefFormSelect->GetValueAsInteger()));
 
-	if (!m_ownerData.SaveData(dataWritter))
+	if (!m_propertyOwner->SaveData(dataWritter))
 		return false;
 
 	//create or update table:
@@ -545,6 +467,8 @@ bool CMetaObjectCatalog::OnReloadMetaObject()
 	return true;
 }
 
+#include "backend/objCtor.h"
+
 bool CMetaObjectCatalog::OnBeforeRunMetaObject(int flags)
 {
 	if (!m_attributeOwner->OnBeforeRunMetaObject(flags))
@@ -565,7 +489,7 @@ bool CMetaObjectCatalog::OnBeforeRunMetaObject(int flags)
 		m_metaData->GetTypeCtor(this, eCtorMetaType::eCtorMetaType_Reference);
 
 	if (typeCtor != nullptr && !m_attributeParent->ContainType(typeCtor->GetClassType())) {
-		m_attributeParent->SetDefaultMetatype(typeCtor->GetClassType());
+		m_attributeParent->SetDefaultMetaType(typeCtor->GetClassType());
 	}
 
 	return true;

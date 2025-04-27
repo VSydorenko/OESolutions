@@ -519,7 +519,7 @@ void CDataProcessorTree::FillData()
 	UpdateChoiceSelection();
 
 	//set init flag
-	m_initialize = true;
+	m_initialized = true;
 
 	//set modify 
 	Modify(m_metaData->IsModified());

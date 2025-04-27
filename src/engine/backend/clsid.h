@@ -1,5 +1,5 @@
-#ifndef _CLSID_H__
-#define _CLSID_H__
+#ifndef __CLSID_H__
+#define __CLSID_H__
 
 typedef unsigned wxLongLong_t class_identifier_t;
 

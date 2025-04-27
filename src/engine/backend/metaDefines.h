@@ -1,5 +1,5 @@
-#ifndef _METAOBJECTS_DEFINES_H__
-#define _METAOBJECTS_DEFINES_H__
+#ifndef __META_DEFINES_H__
+#define __META_DEFINES_H__
 
 //special object 
 #include "backend/metaCollection/metaModuleObject.h"

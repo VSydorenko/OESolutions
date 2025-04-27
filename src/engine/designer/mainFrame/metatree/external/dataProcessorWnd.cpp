@@ -16,7 +16,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(CDataProcessorTree, wxPanel);
 #define ICON_SIZE 16
 
 CDataProcessorTree::CDataProcessorTree(CMetaDocument* docParent, wxWindow* parent, wxWindowID id)
-	: IMetaDataTree(docParent, parent, id), m_metaData(nullptr), m_initialize(false)
+	: IMetaDataTree(docParent, parent, id), m_metaData(nullptr), m_initialized(false)
 {
 	this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
@@ -167,7 +167,7 @@ void CDataProcessorTree::OnEditCaptionName(wxCommandEvent& event)
 
 	m_docParent->OnChangeFilename(true);
 
-	if (m_initialize) {
+	if (m_initialized) {
 		m_metaData->Modify(true);
 	}
 }
@@ -178,7 +178,7 @@ void CDataProcessorTree::OnEditCaptionSynonym(wxCommandEvent& event)
 	wxASSERT(dataProcessor);
 	dataProcessor->SetSynonym(m_synonymValue->GetValue());
 
-	if (m_initialize) {
+	if (m_initialized) {
 		m_metaData->Modify(true);
 	}
 }
@@ -189,7 +189,7 @@ void CDataProcessorTree::OnEditCaptionComment(wxCommandEvent& event)
 	wxASSERT(dataProcessor);
 	dataProcessor->SetComment(m_commentValue->GetValue());
 
-	if (m_initialize) {
+	if (m_initialized) {
 		m_metaData->Modify(true);
 	}
 }
@@ -207,7 +207,7 @@ void CDataProcessorTree::OnChoiceDefForm(wxCommandEvent& event)
 		dataProcessor->SetDefFormObject(wxNOT_FOUND);
 	}
 
-	if (m_initialize) {
+	if (m_initialized) {
 		m_metaData->Modify(true);
 	}
 }

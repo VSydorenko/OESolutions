@@ -6,7 +6,7 @@
 #include "enumerationManager.h"
 #include "backend/metaData.h"
 
-#include "object.h"
+#include "commonObject.h"
 #include "reference/reference.h"
 
 wxIMPLEMENT_DYNAMIC_CLASS(CEnumerationManager, CValue);

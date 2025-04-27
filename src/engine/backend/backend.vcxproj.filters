@@ -29,73 +29,12 @@
       <Filter>moduleManager</Filter>
     </ClInclude>
     <ClInclude Include="metaDefines.h" />
-    <ClInclude Include="systemManager\systemManager.h">
-      <Filter>systemManager</Filter>
-    </ClInclude>
-    <ClInclude Include="systemManager\systemManagerEnum.h">
-      <Filter>systemManager</Filter>
-    </ClInclude>
-    <ClInclude Include="systemManager\systemEnum.h">
-      <Filter>systemManager</Filter>
-    </ClInclude>
     <ClInclude Include="compiler\compileModule.h">
       <Filter>compiler</Filter>
     </ClInclude>
-    <ClInclude Include="wrapper\moduleInfo.h">
-      <Filter>wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="wrapper\managerInfo.h">
-      <Filter>wrapper</Filter>
-    </ClInclude>
     <ClInclude Include="appData.h" />
-    <ClInclude Include="wrapper\typeInfo.h">
-      <Filter>wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="wrapper\actionInfo.h">
-      <Filter>wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="wrapper\valueInfo.h">
-      <Filter>wrapper</Filter>
-    </ClInclude>
     <ClInclude Include="uniqueKey.h" />
-    <ClInclude Include="wrapper\tableInfo.h">
-      <Filter>wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="wrapper\propertyInfo.h">
-      <Filter>wrapper</Filter>
-    </ClInclude>
     <ClInclude Include="srcExplorer.h" />
-    <ClInclude Include="srcObject.h" />
-    <ClInclude Include="compiler\value\valueArray.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
-    <ClInclude Include="compiler\value\valueColour.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
-    <ClInclude Include="compiler\value\valueFile.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
-    <ClInclude Include="compiler\value\valueFont.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
-    <ClInclude Include="compiler\value\valueMap.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
-    <ClInclude Include="compiler\value\valueOLE.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
-    <ClInclude Include="compiler\value\valuePoint.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
-    <ClInclude Include="compiler\value\valueSize.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
-    <ClInclude Include="compiler\value\valueTable.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
-    <ClInclude Include="compiler\value\valueType.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
     <ClInclude Include="databaseLayer\databaseErrorCodes.h">
       <Filter>databaseLayer</Filter>
     </ClInclude>
@@ -126,12 +65,6 @@
     <ClInclude Include="databaseLayer\resultSetMetaData.h">
       <Filter>databaseLayer</Filter>
     </ClInclude>
-    <ClInclude Include="compiler\value\valueGuid.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
-    <ClInclude Include="compiler\value\value.h">
-      <Filter>compiler\value</Filter>
-    </ClInclude>
     <ClInclude Include="guid.h" />
     <ClInclude Include="databaseLayer\sqllite\sqliteDatabaseLayer.h">
       <Filter>databaseLayer\sqllite</Filter>
@@ -160,13 +93,10 @@
     <ClInclude Include="compiler\compileContext.h">
       <Filter>compiler</Filter>
     </ClInclude>
-    <ClInclude Include="compiler\enum.h">
-      <Filter>compiler</Filter>
-    </ClInclude>
     <ClInclude Include="compiler\enumFactory.h">
       <Filter>compiler</Filter>
     </ClInclude>
-    <ClInclude Include="compiler\enumObject.h">
+    <ClInclude Include="compiler\enumUnit.h">
       <Filter>compiler</Filter>
     </ClInclude>
     <ClInclude Include="compiler\procContext.h">
@@ -288,7 +218,6 @@
     <ClInclude Include="backend_exception.h" />
     <ClInclude Include="stringUtils.h" />
     <ClInclude Include="typeconv.h" />
-    <ClInclude Include="types.h" />
     <ClInclude Include="clsid.h" />
     <ClInclude Include="compiler\ttmath\ttmath.h">
       <Filter>compiler\ttmath</Filter>
@@ -387,10 +316,7 @@
     <ClInclude Include="metaCollection\enumeration\metaEnumObject.h">
       <Filter>metaCollection\enumeration</Filter>
     </ClInclude>
-    <ClInclude Include="metaCollection\partial\object.h">
-      <Filter>metaCollection\partial</Filter>
-    </ClInclude>
-    <ClInclude Include="metaCollection\partial\objectVariant.h">
+    <ClInclude Include="metaCollection\partial\commonObject.h">
       <Filter>metaCollection\partial</Filter>
     </ClInclude>
     <ClInclude Include="metaCollection\partial\accumulationRegister.h">
@@ -405,13 +331,7 @@
     <ClInclude Include="metaCollection\partial\catalog.h">
       <Filter>metaCollection\partial</Filter>
     </ClInclude>
-    <ClInclude Include="metaCollection\partial\catalogData.h">
-      <Filter>metaCollection\partial</Filter>
-    </ClInclude>
     <ClInclude Include="metaCollection\partial\catalogManager.h">
-      <Filter>metaCollection\partial</Filter>
-    </ClInclude>
-    <ClInclude Include="metaCollection\partial\catalogVariant.h">
       <Filter>metaCollection\partial</Filter>
     </ClInclude>
     <ClInclude Include="metaCollection\partial\constant.h">
@@ -438,16 +358,10 @@
     <ClInclude Include="metaCollection\partial\document.h">
       <Filter>metaCollection\partial</Filter>
     </ClInclude>
-    <ClInclude Include="metaCollection\partial\documentData.h">
-      <Filter>metaCollection\partial</Filter>
-    </ClInclude>
     <ClInclude Include="metaCollection\partial\documentEnum.h">
       <Filter>metaCollection\partial</Filter>
     </ClInclude>
     <ClInclude Include="metaCollection\partial\documentManager.h">
-      <Filter>metaCollection\partial</Filter>
-    </ClInclude>
-    <ClInclude Include="metaCollection\partial\documentVariant.h">
       <Filter>metaCollection\partial</Filter>
     </ClInclude>
     <ClInclude Include="metaCollection\partial\enumeration.h">
@@ -484,8 +398,195 @@
       <Filter>metaCollection\partial\tabularSection</Filter>
     </ClInclude>
     <ClInclude Include="value_ptr.h" />
-    <ClInclude Include="metaCollection\metaContext.h">
+    <ClInclude Include="metaCollection\metaSource.h">
       <Filter>metaCollection</Filter>
+    </ClInclude>
+    <ClInclude Include="moduleManager\moduleManagerExt.h">
+      <Filter>moduleManager</Filter>
+    </ClInclude>
+    <ClInclude Include="metaCollection\attribute\metaAttributeObjectEnum.h">
+      <Filter>metaCollection\attribute</Filter>
+    </ClInclude>
+    <ClInclude Include="metaCollection\metaObjectMetadataEnum.h">
+      <Filter>metaCollection</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\propertyObject.h">
+      <Filter>propertyManager</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyBoolean.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyNumber.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyDate.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyString.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyEnum.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyList.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyType.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyRecord.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyGeneration.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertySource.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyOwner.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\propertyManager.h">
+      <Filter>propertyManager</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\variant\recordVariant.h">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\variant\ownerVariant.h">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\variant\genVariant.h">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\variant\typeVariant.h">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyColour.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertySize.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyPoint.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyFont.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyPicture.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\variant\numberVariant.h">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\variant\sourceVariant.h">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\propertyEditor.h">
+      <Filter>propertyManager</Filter>
+    </ClInclude>
+    <ClInclude Include="backend_type.h" />
+    <ClInclude Include="typeDescription.h" />
+    <ClInclude Include="propertyManager\property\eventList.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\eventControl.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="srcObject.h" />
+    <ClInclude Include="moduleInfo.h" />
+    <ClInclude Include="tableInfo.h" />
+    <ClInclude Include="valueInfo.h" />
+    <ClInclude Include="actionInfo.h" />
+    <ClInclude Include="compiler\value.h">
+      <Filter>compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropEvent.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropEventTool.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropFont.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropGeneration.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropNumber.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropOwner.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropPicture.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropPoint.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropRecord.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropSize.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropSource.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropString.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropType.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
+    <ClInclude Include="system\systemEnum.h">
+      <Filter>system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\systemManager.h">
+      <Filter>system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\systemManagerEnum.h">
+      <Filter>system</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valueEvent.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valueFile.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valueFont.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valueGuid.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valueMap.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valueOLE.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valuePoint.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valueSize.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valueTable.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valueType.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valueArray.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="system\value\valueColour.h">
+      <Filter>system\value</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\ctrl\checktree.h">
+      <Filter>propertyManager\property\advprop\ctrl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -533,68 +634,11 @@
     <ClCompile Include="moduleManager\moduleManagerUnit.cpp">
       <Filter>moduleManager</Filter>
     </ClCompile>
-    <ClCompile Include="systemManager\systemManagerEnum.cpp">
-      <Filter>systemManager</Filter>
-    </ClCompile>
-    <ClCompile Include="systemManager\systemManagerFunc.cpp">
-      <Filter>systemManager</Filter>
-    </ClCompile>
-    <ClCompile Include="systemManager\systemManager.cpp">
-      <Filter>systemManager</Filter>
-    </ClCompile>
     <ClCompile Include="compiler\compileModule.cpp">
       <Filter>compiler</Filter>
     </ClCompile>
-    <ClCompile Include="wrapper\moduleInfo.cpp">
-      <Filter>wrapper</Filter>
-    </ClCompile>
     <ClCompile Include="appData.cpp" />
-    <ClCompile Include="wrapper\typeInfo.cpp">
-      <Filter>wrapper</Filter>
-    </ClCompile>
     <ClCompile Include="uniqueKey.cpp" />
-    <ClCompile Include="wrapper\propertyInfo.cpp">
-      <Filter>wrapper</Filter>
-    </ClCompile>
-    <ClCompile Include="wrapper\tableInfo.cpp">
-      <Filter>wrapper</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueArray.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueColour.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueFile.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueFont.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueMap.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueOLE.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valuePoint.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueSize.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueTable.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueTable_res.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueTableModel.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueType.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
     <ClCompile Include="databaseLayer\databaseErrorReporter.cpp">
       <Filter>databaseLayer</Filter>
     </ClCompile>
@@ -612,18 +656,6 @@
     </ClCompile>
     <ClCompile Include="databaseLayer\resultSetMetaData.cpp">
       <Filter>databaseLayer</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueGuid.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\value.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\value_res.cpp">
-      <Filter>compiler\value</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler\value\valueFactory.cpp">
-      <Filter>compiler\value</Filter>
     </ClCompile>
     <ClCompile Include="guid.cpp" />
     <ClCompile Include="databaseLayer\sqllite\sqliteDatabaseLayer.cpp">
@@ -644,7 +676,7 @@
     <ClCompile Include="utils\wxmd5.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="compiler\enum.cpp">
+    <ClCompile Include="compiler\enumUnit.cpp">
       <Filter>compiler</Filter>
     </ClCompile>
     <ClCompile Include="compiler\enumFactory.cpp">
@@ -871,19 +903,16 @@
     <ClCompile Include="metaCollection\partial\informationRegisterQuery.cpp">
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
-    <ClCompile Include="metaCollection\partial\object.cpp">
+    <ClCompile Include="metaCollection\partial\commonObject.cpp">
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
-    <ClCompile Include="metaCollection\partial\objectModel.cpp">
+    <ClCompile Include="metaCollection\partial\commonObjectModel.cpp">
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
-    <ClCompile Include="metaCollection\partial\objectProperty.cpp">
+    <ClCompile Include="metaCollection\partial\commonObjectProperty.cpp">
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
-    <ClCompile Include="metaCollection\partial\objectQuery.cpp">
-      <Filter>metaCollection\partial</Filter>
-    </ClCompile>
-    <ClCompile Include="metaCollection\partial\objectVariant.cpp">
+    <ClCompile Include="metaCollection\partial\commonObjectQuery.cpp">
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
     <ClCompile Include="metaCollection\partial\accumulationRegisterEnum.cpp">
@@ -916,9 +945,6 @@
     <ClCompile Include="metaCollection\partial\catalogAction.cpp">
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
-    <ClCompile Include="metaCollection\partial\catalogData.cpp">
-      <Filter>metaCollection\partial</Filter>
-    </ClCompile>
     <ClCompile Include="metaCollection\partial\catalogManager.cpp">
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
@@ -938,9 +964,6 @@
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
     <ClCompile Include="metaCollection\partial\catalogObject.cpp">
-      <Filter>metaCollection\partial</Filter>
-    </ClCompile>
-    <ClCompile Include="metaCollection\partial\catalogVariant.cpp">
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
     <ClCompile Include="metaCollection\partial\constantAction.cpp">
@@ -1006,9 +1029,6 @@
     <ClCompile Include="metaCollection\partial\documentAction.cpp">
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
-    <ClCompile Include="metaCollection\partial\documentData.cpp">
-      <Filter>metaCollection\partial</Filter>
-    </ClCompile>
     <ClCompile Include="metaCollection\partial\documentEnum.cpp">
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
@@ -1031,9 +1051,6 @@
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
     <ClCompile Include="metaCollection\partial\documentObject.cpp">
-      <Filter>metaCollection\partial</Filter>
-    </ClCompile>
-    <ClCompile Include="metaCollection\partial\documentVariant.cpp">
       <Filter>metaCollection\partial</Filter>
     </ClCompile>
     <ClCompile Include="metaCollection\partial\enumerationAction.cpp">
@@ -1123,6 +1140,205 @@
     <ClCompile Include="metaCollection\partial\tabularSection\tabularSection.cpp">
       <Filter>metaCollection\partial\tabularSection</Filter>
     </ClCompile>
+    <ClCompile Include="moduleManager\moduleManagerExt.cpp">
+      <Filter>moduleManager</Filter>
+    </ClCompile>
+    <ClCompile Include="metaCollection\partial\informationRegisterEnum.cpp">
+      <Filter>metaCollection\partial</Filter>
+    </ClCompile>
+    <ClCompile Include="metaCollection\attribute\metaAttributeObjectEnum.cpp">
+      <Filter>metaCollection\attribute</Filter>
+    </ClCompile>
+    <ClCompile Include="metaCollection\metaObjectMetadataEnum.cpp">
+      <Filter>metaCollection</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\propertyObject.cpp">
+      <Filter>propertyManager</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyBoolean.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyNumber.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyDate.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyString.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyEnum.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyList.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyType.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyRecord.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyGeneration.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertySource.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyOwner.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\variant\recordVariant.cpp">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\variant\genVariant.cpp">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\variant\ownerVariant.cpp">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\variant\typeVariant.cpp">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyColour.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertySize.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyPoint.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyFont.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyPicture.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\variant\numberVariant.cpp">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\variant\sourceVariant.cpp">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\propertyEditor.cpp">
+      <Filter>propertyManager</Filter>
+    </ClCompile>
+    <ClCompile Include="backend_type.cpp" />
+    <ClCompile Include="propertyManager\property\eventList.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\eventControl.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="metaCollection\metaSource.cpp">
+      <Filter>metaCollection</Filter>
+    </ClCompile>
+    <ClCompile Include="tableInfo.cpp" />
+    <ClCompile Include="moduleInfo.cpp" />
+    <ClCompile Include="compiler\value_res.cpp">
+      <Filter>compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler\value.cpp">
+      <Filter>compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler\valueFactory.cpp">
+      <Filter>compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="typeDescription.cpp" />
+    <ClCompile Include="propertyManager\property\advprop\advpropEvent.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropEventTool.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropFont.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropGeneration.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropNumber.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropOwner.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropPicture.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropPoint.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropRecord.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropSize.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropSource.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropString.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropType.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClCompile>
+    <ClCompile Include="system\systemManager.cpp">
+      <Filter>system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\systemManagerEnum.cpp">
+      <Filter>system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\systemManagerFunc.cpp">
+      <Filter>system</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueEvent.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueFile.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueFont.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueGuid.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueMap.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueOLE.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valuePoint.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueSize.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueTable.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueTable_res.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueTableModel.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueType.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueArray.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="system\value\valueColour.cpp">
+      <Filter>system\value</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\ctrl\checktree.cpp">
+      <Filter>propertyManager\property\advprop\ctrl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="debugger">
@@ -1134,17 +1350,8 @@
     <Filter Include="moduleManager">
       <UniqueIdentifier>{ac49a1b3-bb42-4b4f-9b17-a6ec169f254f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="systemManager">
-      <UniqueIdentifier>{18dba576-1530-4589-9207-1de10f999be6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="compiler">
       <UniqueIdentifier>{154d9ec9-4ee0-4bf9-9618-e99db35efcbb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="wrapper">
-      <UniqueIdentifier>{92fe7c94-2fca-478a-8432-63b7ba88e1cc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="compiler\value">
-      <UniqueIdentifier>{40347ae0-b398-4570-bdf5-11f78ee03abc}</UniqueIdentifier>
     </Filter>
     <Filter Include="databaseLayer">
       <UniqueIdentifier>{a817edbf-c64d-499d-8148-46d695095097}</UniqueIdentifier>
@@ -1224,6 +1431,30 @@
     <Filter Include="databaseLayer\postgres\engine\dll">
       <UniqueIdentifier>{f3d5ad68-1601-4e62-b0a9-fc2b00b345a2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="propertyManager">
+      <UniqueIdentifier>{12f001df-9d4a-4ecb-b9de-c1a0b1df5de7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="propertyManager\property">
+      <UniqueIdentifier>{e9abee7e-c389-4d66-a928-96c6e652ade0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="propertyManager\property\variant">
+      <UniqueIdentifier>{f0a66fe9-388b-4697-a3d1-3f3120b32c46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="propertyManager\property\advprop">
+      <UniqueIdentifier>{1056196c-ca6e-4009-a5b1-d66c5a656659}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="system">
+      <UniqueIdentifier>{18dba576-1530-4589-9207-1de10f999be6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="system\value">
+      <UniqueIdentifier>{6c33e170-a787-4450-8345-50e49a8875cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="propertyManager\property\advprop\ctrl">
+      <UniqueIdentifier>{f5119896-3ef7-46cf-a4a0-ebb94aea2a07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="propertyManager\property\advprop\ctrl\res">
+      <UniqueIdentifier>{fc490645-ff4d-4970-8919-6dfc46ea7ed3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="databaseLayer\postgres\engine\dll\libcrypto-3-x64.dll">
@@ -1249,5 +1480,31 @@
     <MASM Include="compiler\ttmath\ttmathuint_x86_64_msvc.asm">
       <Filter>compiler\ttmath</Filter>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="propertyManager\property\advprop\ctrl\res\checked_d.xpm">
+      <Filter>propertyManager\property\advprop\ctrl\res</Filter>
+    </None>
+    <None Include="propertyManager\property\advprop\ctrl\res\checked_ld.xpm">
+      <Filter>propertyManager\property\advprop\ctrl\res</Filter>
+    </None>
+    <None Include="propertyManager\property\advprop\ctrl\res\checked_mo.xpm">
+      <Filter>propertyManager\property\advprop\ctrl\res</Filter>
+    </None>
+    <None Include="propertyManager\property\advprop\ctrl\res\checked2.xpm">
+      <Filter>propertyManager\property\advprop\ctrl\res</Filter>
+    </None>
+    <None Include="propertyManager\property\advprop\ctrl\res\unchecked_d.xpm">
+      <Filter>propertyManager\property\advprop\ctrl\res</Filter>
+    </None>
+    <None Include="propertyManager\property\advprop\ctrl\res\unchecked_ld.xpm">
+      <Filter>propertyManager\property\advprop\ctrl\res</Filter>
+    </None>
+    <None Include="propertyManager\property\advprop\ctrl\res\unchecked_mo.xpm">
+      <Filter>propertyManager\property\advprop\ctrl\res</Filter>
+    </None>
+    <None Include="propertyManager\property\advprop\ctrl\res\unchecked2.xpm">
+      <Filter>propertyManager\property\advprop\ctrl\res</Filter>
+    </None>
   </ItemGroup>
 </Project>

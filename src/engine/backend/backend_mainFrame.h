@@ -2,7 +2,7 @@
 #define __MAIN_FRAME_CORE_H__
 
 #include "backend/uniqueKey.h"
-#include "backend/systemManager/systemEnum.h"
+#include "backend/system/systemEnum.h"
 
 #define backend_mainFrame \
 	IBackendDocMDIFrame::GetDocMDIFrame() \

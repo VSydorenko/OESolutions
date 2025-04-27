@@ -1,5 +1,5 @@
 #include "toolbar.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 
 //**********************************************************************************
 //*                              Events                                            *
@@ -13,8 +13,7 @@ void CValueToolbar::OnToolBarLeftDown(wxMouseEvent& event)
 	wxASSERT(toolBar);
 	if (g_visualHostContext != nullptr) {
 		wxAuiToolBarItem* foundedItem = toolBar->FindToolByPosition(event.GetX(), event.GetY());
-		if (foundedItem == nullptr)
-			g_visualHostContext->SelectControl(this);
+		if (foundedItem == nullptr) g_visualHostContext->SelectControl(this);
 	}
 
 	event.Skip();
@@ -30,38 +29,31 @@ void CValueToolbar::OnTool(wxCommandEvent& event)
 		IVisualHost* visualHost = visualDoc->GetVisualView();
 		bool isDemonstation = visualHost ? visualHost->IsDemonstration() : false;
 		if (isDemonstation) {
-			//event.Skip();
-			//return;
+			event.Skip();
+			return;
 		}
 	}
-
 	IValueFrame* foundedControl = FindControlByID(event.GetId());
 	if (foundedControl != nullptr) {
-		CAuiToolBar* toolBar = wxDynamicCast(
-			GetWxObject(), CAuiToolBar
-		);
+		CAuiToolBar* toolBar = wxDynamicCast( +GetWxObject(), CAuiToolBar);
 		wxASSERT(toolBar);
 		if (toolBar != nullptr)
 			toolBar->SetFocus();
 		CValueToolBarItem* toolItem = dynamic_cast<CValueToolBarItem*>(foundedControl);
 		if (toolItem != nullptr) {
-			IValueFrame* sourceElement = GetActionSrc() != wxNOT_FOUND ?
-				FindControlByID(GetActionSrc()) : nullptr;
-			const wxString &actionValue = toolItem->GetAction();
 			action_identifier_t actionId = wxNOT_FOUND;
-			if (sourceElement != nullptr &&
-				actionValue.ToInt(&actionId)) {
+			IValueFrame* sourceElement = GetActionSrc() != wxNOT_FOUND ? FindControlByID(GetActionSrc()) : nullptr;
+			const wxString& actionStr = toolItem->GetAction();
+			if (sourceElement != nullptr && actionStr.ToInt(&actionId)) {
 				try {
-					sourceElement->ExecuteAction(actionId,
-						toolItem->GetOwnerForm()
-					);
+					sourceElement->ExecuteAction(actionId, toolItem->GetOwnerForm());
 				}
 				catch (const CBackendException* err) {
 					wxMessageBox(err->what(), m_formOwner->GetCaption());
 				}
 			}
-			else if (actionValue.Length() > 0) {
-				CallAsEvent(actionValue, toolItem->GetValue());
+			else if (actionStr.Length() > 0) {
+				CallAsEvent(actionStr, toolItem->GetValue());
 			}
 		}
 

@@ -4,7 +4,7 @@
 #include <wx/wx.h>
 #include <wx/stc/stc.h>
 
-#include "backend/systemManager/systemEnum.h"
+#include "backend/system/systemEnum.h"
 
 //
 // Forward declarations.

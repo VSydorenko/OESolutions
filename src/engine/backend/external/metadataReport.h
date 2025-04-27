@@ -1,5 +1,6 @@
 #include "backend/metaData.h"
 #include "backend/metaCollection/partial/dataReport.h"
+#include "backend/moduleManager/moduleManagerExt.h"
 
 #define sign_dataReport 0x2355F6421261D
 
@@ -28,8 +29,8 @@ public:
 	virtual wxString GetFileName() const { return m_fullPath; }
 
 	//runtime support:
-	virtual CValue* CreateObjectRef(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0);
-	virtual CValue* CreateObjectRef(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) {
+	virtual CValue* CreateObjectRef(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0) const;
+	virtual CValue* CreateObjectRef(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) const {
 		return CreateObjectRef(
 			GetIDObjectFromString(className), paParams, lSizeArray
 		);

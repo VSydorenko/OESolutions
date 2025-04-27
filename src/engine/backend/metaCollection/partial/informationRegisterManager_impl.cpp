@@ -6,8 +6,8 @@
 #include "informationRegister.h"
 #include "informationRegisterManager.h"
 
-#include "backend/compiler/value/valueMap.h"
-#include "backend/compiler/value/valueTable.h"
+#include "backend/system/value/valueMap.h"
+#include "backend/system/value/valueTable.h"
 #include "backend/databaseLayer/databaseLayer.h"
 #include "backend/appData.h"
 
@@ -22,7 +22,7 @@ CValue CInformationRegisterManager::Get(const CValue& cFilter)
 	CValueTable::IValueModelColumnCollection* colCollection = retTable->GetColumnCollection();
 	wxASSERT(colCollection);
 	for (auto& obj : m_metaObject->GetGenericAttributes()) {
-		CValueTable::IValueModelColumnCollection::IValueModelColumnInfo* colInfo = colCollection->AddColumn(obj->GetName(), obj->GetTypeDescription(), obj->GetSynonym());
+		CValueTable::IValueModelColumnCollection::IValueModelColumnInfo* colInfo = colCollection->AddColumn(obj->GetName(), obj->GetTypeDesc(), obj->GetSynonym());
 		colInfo->SetColumnID(obj->GetMetaID());
 	}
 
@@ -97,7 +97,7 @@ CValue CInformationRegisterManager::Get(const CValue& cPeriod, const CValue& cFi
 		CValueTable::IValueModelColumnCollection::IValueModelColumnInfo* colInfo =
 			colCollection->AddColumn(
 				obj->GetName(),
-				obj->GetTypeDescription(),
+				obj->GetTypeDesc(),
 				obj->GetSynonym()
 			);
 		colInfo->SetColumnID(obj->GetMetaID());
@@ -532,7 +532,7 @@ CValue CInformationRegisterManager::SliceFirst(const CValue& cPeriod, const CVal
 		CValueTable::IValueModelColumnCollection::IValueModelColumnInfo* colInfo =
 			colCollection->AddColumn(
 				obj->GetName(),
-				obj->GetTypeDescription(),
+				obj->GetTypeDesc(),
 				obj->GetSynonym()
 			);
 		colInfo->SetColumnID(obj->GetMetaID());
@@ -722,7 +722,7 @@ CValue CInformationRegisterManager::SliceLast(const CValue& cPeriod, const CValu
 		CValueTable::IValueModelColumnCollection::IValueModelColumnInfo* colInfo =
 			colCollection->AddColumn(
 				obj->GetName(),
-				obj->GetTypeDescription(),
+				obj->GetTypeDesc(),
 				obj->GetSynonym()
 			);
 		colInfo->SetColumnID(obj->GetMetaID());

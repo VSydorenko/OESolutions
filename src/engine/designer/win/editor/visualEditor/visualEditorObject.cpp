@@ -8,7 +8,7 @@
 #include "frontend/mainFrame/mainFrame.h"
 #include "frontend/mainFrame/objinspect/objinspect.h"
 
-#include "backend/wrapper/propertyInfo.h"
+#include "backend/propertyManager/propertyManager.h"
 
 
 
@@ -109,12 +109,12 @@ protected:
 
 class ModifyPropertyCmd : public BaseVisualCmd
 {
-	Property* m_property;
+	IProperty* m_property;
 	wxVariant m_oldValue, m_newValue;
 
 public:
 
-	ModifyPropertyCmd(CVisualEditorNotebook::CVisualEditor* data, Property* prop, const wxVariant& oldValue, const wxVariant& newValue);
+	ModifyPropertyCmd(CVisualEditorNotebook::CVisualEditor* data, IProperty* prop, const wxVariant& oldValue, const wxVariant& newValue);
 
 protected:
 	virtual void DoExecute() override;
@@ -127,11 +127,11 @@ protected:
 
 class ModifyEventCmd : public BaseVisualCmd
 {
-	Event* m_event = nullptr;
+	IEvent* m_event = nullptr;
 	wxVariant m_oldValue, m_newValue;
 
 public:
-	ModifyEventCmd(CVisualEditorNotebook::CVisualEditor* data, Event* event, const wxVariant& oldValue, const wxVariant& newValue);
+	ModifyEventCmd(CVisualEditorNotebook::CVisualEditor* data, IEvent* event, const wxVariant& oldValue, const wxVariant& newValue);
 
 protected:
 	virtual void DoExecute() override;
@@ -418,7 +418,7 @@ void RemoveObjectCmd::DoRestore()
 
 //-----------------------------------------------------------------------------
 
-ModifyPropertyCmd::ModifyPropertyCmd(CVisualEditorNotebook::CVisualEditor* data, Property* prop, const wxVariant& oldValue, const wxVariant& newValue) : BaseVisualCmd(data),
+ModifyPropertyCmd::ModifyPropertyCmd(CVisualEditorNotebook::CVisualEditor* data, IProperty* prop, const wxVariant& oldValue, const wxVariant& newValue) : BaseVisualCmd(data),
 m_property(prop), m_oldValue(oldValue), m_newValue(newValue)
 {
 }
@@ -427,7 +427,7 @@ void ModifyPropertyCmd::DoExecute()
 {
 	CVisualEditorNotebook::CVisualEditor::CVisualEditorHost* visulEditor = m_visualData->GetVisualEditor();
 	// Get the IValueFrame from the event
-	IValueFrame* m_object = dynamic_cast<IValueFrame*>(m_property->GetObject());
+	IValueFrame* m_object = dynamic_cast<IValueFrame*>(m_property->GetPropertyObject());
 	m_property->SetValue(m_newValue);
 
 	if (m_visualData->m_document != nullptr)
@@ -445,7 +445,7 @@ void ModifyPropertyCmd::DoRestore()
 {
 	CVisualEditorNotebook::CVisualEditor::CVisualEditorHost* visulEditor = m_visualData->GetVisualEditor();
 	// Get the IValueFrame from the event
-	IValueFrame* m_object = dynamic_cast<IValueFrame*>(m_property->GetObject());
+	IValueFrame* m_object = dynamic_cast<IValueFrame*>(m_property->GetPropertyObject());
 
 	m_property->SetValue(m_oldValue);
 
@@ -464,7 +464,7 @@ void ModifyPropertyCmd::DoRestore()
 
 //-----------------------------------------------------------------------------
 
-ModifyEventCmd::ModifyEventCmd(CVisualEditorNotebook::CVisualEditor* data, Event* event, const wxVariant& oldValue, const wxVariant& newValue) : BaseVisualCmd(data),
+ModifyEventCmd::ModifyEventCmd(CVisualEditorNotebook::CVisualEditor* data, IEvent* event, const wxVariant& oldValue, const wxVariant& newValue) : BaseVisualCmd(data),
 m_event(event), m_oldValue(oldValue), m_newValue(newValue)
 {
 }
@@ -958,18 +958,18 @@ void CVisualEditorNotebook::CVisualEditor::MovePosition(IValueFrame* obj, bool r
 
 /////////////////////////////////////////////////////////////////////////////////////
 
-void CVisualEditorNotebook::CVisualEditor::ModifyProperty(Property* prop, const wxVariant& oldValue, const wxVariant& newValue)
+void CVisualEditorNotebook::CVisualEditor::ModifyProperty(IProperty* prop, const wxVariant& oldValue, const wxVariant& newValue)
 {
-	IPropertyObject* object = prop->GetObject();
+	IPropertyObject* object = prop->GetPropertyObject();
 	if (oldValue != newValue) {
 		Execute(new ModifyPropertyCmd(this, prop, oldValue, newValue));
 		NotifyPropertyModified(prop);
 	}
 }
 
-void CVisualEditorNotebook::CVisualEditor::ModifyEvent(Event* evt, const wxVariant& oldValue, const wxVariant& newValue)
+void CVisualEditorNotebook::CVisualEditor::ModifyEvent(IEvent* evt, const wxVariant& oldValue, const wxVariant& newValue)
 {
-	IPropertyObject* object = evt->GetObject();
+	IPropertyObject* object = evt->GetPropertyObject();
 	if (oldValue != newValue) {
 		Execute(new ModifyEventCmd(this, evt, oldValue, newValue));
 		NotifyEventModified(evt);
@@ -1128,32 +1128,33 @@ void CVisualEditorNotebook::CVisualEditor::ToggleBorderFlag(IValueFrame* obj, in
 		return;
 	if (!parent->IsSubclassOf(wxT("sizerItem")))
 		return;
-	Property* propFlag = parent->GetProperty(wxT("flag"));
+	IProperty* propFlag = parent->GetProperty(wxT("flag"));
+	
 	if (!propFlag)
 		return;
 
-	wxString value = propFlag->GetValueAsString();
+	//wxString value = propFlag->GetValueAsString();
 
-	value = typeConv::ClearFlag(wxT("wxALL"), value);
-	value = typeConv::ClearFlag(wxT("wxTOP"), value);
-	value = typeConv::ClearFlag(wxT("wxBOTTOM"), value);
-	value = typeConv::ClearFlag(wxT("wxRIGHT"), value);
-	value = typeConv::ClearFlag(wxT("wxLEFT"), value);
+	//value = typeConv::ClearFlag(wxT("wxALL"), value);
+	//value = typeConv::ClearFlag(wxT("wxTOP"), value);
+	//value = typeConv::ClearFlag(wxT("wxBOTTOM"), value);
+	//value = typeConv::ClearFlag(wxT("wxRIGHT"), value);
+	//value = typeConv::ClearFlag(wxT("wxLEFT"), value);
 
-	int intVal = propFlag->GetValueAsInteger();
-	intVal ^= border;
+	//int intVal = propFlag->GetValueAsInteger();
+	//intVal ^= border;
 
-	if ((intVal & wxALL) == wxALL) {
-		value = typeConv::SetFlag(wxT("wxALL"), value);
-	}
-	else {
-		if ((intVal & wxTOP) != 0) value = typeConv::SetFlag(wxT("wxTOP"), value);
-		if ((intVal & wxBOTTOM) != 0) value = typeConv::SetFlag(wxT("wxBOTTOM"), value);
-		if ((intVal & wxRIGHT) != 0) value = typeConv::SetFlag(wxT("wxRIGHT"), value);
-		if ((intVal & wxLEFT) != 0) value = typeConv::SetFlag(wxT("wxLEFT"), value);
-	}
+	//if ((intVal & wxALL) == wxALL) {
+	//	value = typeConv::SetFlag(wxT("wxALL"), value);
+	//}
+	//else {
+	//	if ((intVal & wxTOP) != 0) value = typeConv::SetFlag(wxT("wxTOP"), value);
+	//	if ((intVal & wxBOTTOM) != 0) value = typeConv::SetFlag(wxT("wxBOTTOM"), value);
+	//	if ((intVal & wxRIGHT) != 0) value = typeConv::SetFlag(wxT("wxRIGHT"), value);
+	//	if ((intVal & wxLEFT) != 0) value = typeConv::SetFlag(wxT("wxLEFT"), value);
+	//}
 
-	ModifyProperty(propFlag, propFlag->GetValueAsString(), value);
+	//ModifyProperty(propFlag, propFlag->GetValueAsString(), value);
 }
 
 void CVisualEditorNotebook::CVisualEditor::CreateBoxSizerWithObject(IValueFrame* obj)

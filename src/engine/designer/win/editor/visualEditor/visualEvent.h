@@ -28,14 +28,14 @@ public:
 class wxFramePropertyEvent : public wxFrameEvent
 {
 public:
-	wxFramePropertyEvent(wxEventType commandType, Property*property, const wxVariant &oldValue);
+	wxFramePropertyEvent(wxEventType commandType, IProperty*property, const wxVariant &oldValue);
 	wxFramePropertyEvent(const wxFramePropertyEvent& event);
 	wxEvent* Clone() const override;
 	wxVariant GetValue() { return m_strValue; }
-	Property*GetFrameProperty() { return m_property; }
+	IProperty*GetFrameProperty() { return m_property; }
 private:
 	wxVariant m_strValue;
-	Property*m_property;
+	IProperty*m_property;
 };
 
 class wxFrameEventHandlerEvent : public wxFrameEvent

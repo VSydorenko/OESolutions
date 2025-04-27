@@ -2,78 +2,47 @@
 #define _gridProperty_H__
 
 #include <wx/grid.h>
-#include "backend/wrapper/propertyInfo.h"
+#include "backend/propertyManager/propertyManager.h"
 
 class CGrid;
 
+#include "frontend/visualView/special/enum/valueEnum.h"
+
 class CPropertyObjectGrid : public IPropertyObject {
+	std::vector<wxGridBlockCoords> m_currentBlocks;
 	CGrid* m_ownerGrid;
 private:
 
-	PropertyCategory* m_categoryGeneral = IPropertyObject::CreatePropertyCategory({"general", _("general")});
-	Property* m_propertyName = IPropertyObject::CreateProperty(m_categoryGeneral, "name", PropertyType::PT_WXNAME);
-	Property* m_propertyText = IPropertyObject::CreateProperty(m_categoryGeneral, "text", PropertyType::PT_WXSTRING);
+	CPropertyCategory* m_categoryGeneral = IPropertyObject::CreatePropertyCategory(wxT("general"), _("general"));
+	CPropertyName* m_propertyName = IPropertyObject::CreateProperty<CPropertyName>(m_categoryGeneral, wxT("name"), _("name"), wxEmptyString);
+	CPropertyString* m_propertyText = IPropertyObject::CreateProperty<CPropertyString>(m_categoryGeneral, wxT("text"), _("text"), wxEmptyString);
 
-	PropertyCategory* m_categoryAlignment = IPropertyObject::CreatePropertyCategory({"alignment", _("alignment")});
-	Property* m_propertyAlignHorz = IPropertyObject::CreateProperty(m_categoryAlignment, { "align_horz", "align horz" }, &CPropertyObjectGrid::GetAlignment);
-	Property* m_propertyAlignVert = IPropertyObject::CreateProperty(m_categoryAlignment, { "align_vert", "align vert" }, &CPropertyObjectGrid::GetAlignment);
-	Property* m_propertyOrient = IPropertyObject::CreateProperty(m_categoryAlignment, "orient_text", &CPropertyObjectGrid::GetOrient);
+	CPropertyCategory* m_categoryAlignment = IPropertyObject::CreatePropertyCategory(wxT("alignment"), _("alignment"));
+	CPropertyEnum<CValueEnumHorizontalAlignment>* m_propertyAlignHorz = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumHorizontalAlignment>>(m_categoryAlignment, wxT("align_horz"), _("horizontal align"), wxAlignment::wxALIGN_LEFT);
+	CPropertyEnum<CValueEnumVerticalAlignment>* m_propertyAlignVert = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumVerticalAlignment>>(m_categoryAlignment, wxT("align_vert"), _("vertical align"), wxAlignment::wxALIGN_CENTER);
+	CPropertyEnum<CValueEnumOrient>* m_propertyOrient = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumOrient>>(m_categoryAlignment, wxT("orient_text"), _("orientation text"), wxOrientation::wxVERTICAL);
 
-	PropertyCategory* m_categoryAppearance = IPropertyObject::CreatePropertyCategory({ "appearance", "appearance" });
-	Property* m_propertyFont = IPropertyObject::CreateProperty(m_categoryAppearance, "font", PropertyType::PT_WXFONT);
-	Property* m_propertyBackgroundColour = IPropertyObject::CreateProperty(m_categoryAppearance, { "background_colour", "background colour" }, PropertyType::PT_WXCOLOUR);
-	Property* m_propertyTextColour = IPropertyObject::CreateProperty(m_categoryAppearance, { "text_colour", "text colour" }, PropertyType::PT_WXCOLOUR);
+	CPropertyCategory* m_categoryAppearance = IPropertyObject::CreatePropertyCategory(wxT("appearance"), _("appearance"));
+	CPropertyFont* m_propertyFont = IPropertyObject::CreateProperty<CPropertyFont>(m_categoryAppearance, wxT("font"), _("font"));
+	CPropertyColour* m_propertyBackgroundColour = IPropertyObject::CreateProperty<CPropertyColour>(m_categoryAppearance, wxT("background_colour"), _("background colour"), wxNullColour);
+	CPropertyColour* m_propertyTextColour = IPropertyObject::CreateProperty<CPropertyColour>(m_categoryAppearance, wxT("text_colour"), _("text colour"), wxNullColour);
 
-	PropertyCategory* m_categoryBorder = IPropertyObject::CreatePropertyCategory({"border", _("border")});
-	Property* m_propertyLeftBorder = IPropertyObject::CreateProperty(m_categoryBorder, { "left_border", "left border" }, &CPropertyObjectGrid::GetBorder, wxPENSTYLE_TRANSPARENT);
-	Property* m_propertyRightBorder = IPropertyObject::CreateProperty(m_categoryBorder, { "right_border", "right border" }, &CPropertyObjectGrid::GetBorder, wxPENSTYLE_TRANSPARENT);
-	Property* m_propertyTopBorder = IPropertyObject::CreateProperty(m_categoryBorder, { "top_border", "top border" }, &CPropertyObjectGrid::GetBorder, wxPENSTYLE_TRANSPARENT);
-	Property* m_propertyBottomBorder = IPropertyObject::CreateProperty(m_categoryBorder, { "bottom_border", "bottom border" }, &CPropertyObjectGrid::GetBorder, wxPENSTYLE_TRANSPARENT);
-	Property* m_propertyColourBorder = IPropertyObject::CreateProperty(m_categoryBorder, { "border_colour", "border colour" }, PropertyType::PT_WXCOLOUR, *wxBLACK);
+	CPropertyCategory* m_categoryBorder = IPropertyObject::CreatePropertyCategory(wxT("border"), _("border"));
+	CPropertyEnum<CValueEnumBorder>* m_propertyLeftBorder = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumBorder>>(m_categoryBorder, wxT("left_border"), _("left"), wxPENSTYLE_TRANSPARENT);
+	CPropertyEnum<CValueEnumBorder>* m_propertyRightBorder = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumBorder>>(m_categoryBorder, wxT("right_border"), _("right"), wxPENSTYLE_TRANSPARENT);
+	CPropertyEnum<CValueEnumBorder>* m_propertyTopBorder = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumBorder>>(m_categoryBorder, wxT("top_border"), _("top"), wxPENSTYLE_TRANSPARENT);
+	CPropertyEnum<CValueEnumBorder>* m_propertyBottomBorder = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumBorder>>(m_categoryBorder, wxT("bottom_border"), _("bottom"), wxPENSTYLE_TRANSPARENT);
+	CPropertyColour* m_propertyColourBorder = IPropertyObject::CreateProperty<CPropertyColour>(m_categoryBorder, wxT("border_colour"), _("colour"), *wxBLACK);
 
 private:
 
-	std::vector<wxGridBlockCoords> m_currentBlocks;
-
-	OptionList* GetAlignment(PropertyOption* property) {
-		OptionList* optList = new OptionList();
-		optList->AddOption(_("left"), wxALIGN_LEFT);
-		optList->AddOption(_("right"), wxALIGN_RIGHT);
-		optList->AddOption(_("top"), wxALIGN_TOP);
-		optList->AddOption(_("bottom"), wxALIGN_BOTTOM);
-		optList->AddOption(_("center"), wxALIGN_CENTER);
-		return optList;
-	}
-
-	OptionList* GetOrient(PropertyOption* property) {
-		OptionList* optList = new OptionList();
-		optList->AddOption(_("vertical"), wxVERTICAL);
-		optList->AddOption(_("horizontal"), wxHORIZONTAL);
-		return optList;
-	}
-
-	OptionList* GetBorder(PropertyOption* property) {
-		OptionList* optList = new OptionList();
-		optList->AddOption(_("none"), wxPENSTYLE_TRANSPARENT);
-		optList->AddOption(_("solid"), wxPENSTYLE_SOLID);
-		optList->AddOption(_("dotted"), wxPENSTYLE_DOT);
-
-		optList->AddOption(_("thin dashed"), wxPENSTYLE_SHORT_DASH);
-		optList->AddOption(_("thick dashed"), wxPENSTYLE_DOT_DASH);
-		optList->AddOption(_("large dashed"), wxPENSTYLE_LONG_DASH);
-
-		return optList;
-	}
-
-	void ClearSelectedCell() {
-		m_currentBlocks.clear();
-	}
+	void ClearSelectedCell() { m_currentBlocks.clear(); }
 
 	void AddSelectedCell(const wxGridBlockCoords& coords, bool afterErase = false);
 	void ShowProperty();
 
-	void OnPropertyCreated(Property* property, const wxGridBlockCoords& coords);
-	void OnPropertyChanged(Property* property, const wxGridBlockCoords& coords);
+	void OnPropertyCreated(IProperty* property, const wxGridBlockCoords& coords);
+	void OnPropertyChanged(IProperty* property, const wxGridBlockCoords& coords);
 
 	friend class CGrid;
 
@@ -83,23 +52,16 @@ public:
 	virtual ~CPropertyObjectGrid();
 
 	//system override 
-	virtual int GetComponentType() const {
-		return COMPONENT_TYPE_ABSTRACT;
-	}
+	virtual int GetComponentType() const { return COMPONENT_TYPE_ABSTRACT; }
 
-	virtual wxString GetObjectTypeName() const override {
-		return wxT("cells");
-	}
-
-	virtual wxString GetClassName() const {
-		return wxT("cells");
-	}
+	virtual wxString GetObjectTypeName() const override { return wxT("cells"); }
+	virtual wxString GetClassName() const { return wxT("cells"); }
 
 	/**
 	* Property events
 	*/
-	virtual void OnPropertyCreated(Property* property);
-	virtual void OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue);
+	virtual void OnPropertyCreated(IProperty* property);
+	virtual void OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue);
 
 };
 

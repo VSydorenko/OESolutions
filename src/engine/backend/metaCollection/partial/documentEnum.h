@@ -1,5 +1,5 @@
-#ifndef _DOCUMENT_ENUM_H_
-#define _DOCUMENT_ENUM_H_
+#ifndef __DOCUMENT_ENUM_H__
+#define __DOCUMENT_ENUM_H__
 
 enum eDocumentWriteMode {
 	eDocumentWriteMode_Posting,
@@ -12,68 +12,32 @@ enum eDocumentPostingMode {
 	eDocumentPostingMode_Regular
 };
 
-#include "backend/compiler/enumObject.h"
+#pragma region enumeration
+#include "backend/compiler/enumUnit.h"
 
 class CValueEnumDocumentWriteMode : public IEnumeration<eDocumentWriteMode> {
-	wxDECLARE_DYNAMIC_CLASS(CValueEnumDocumentWriteMode);
+	wxDECLARE_DYNAMIC_CLASS(CValueEnumPostingMode);
 public:
+	CValueEnumDocumentWriteMode() : IEnumeration() {}
+	//CValueEnumDocumentWriteMode(eDocumentWriteMode mode) : IEnumeration(mode) {}
 
-	CValueEnumDocumentWriteMode() : IEnumeration() {
-		InitializeEnumeration();
-	}
-
-	CValueEnumDocumentWriteMode(eDocumentWriteMode writeMode) : IEnumeration(writeMode) {
-		InitializeEnumeration(writeMode);
-	}
-
-protected:
-
-	void CreateEnumeration() {
-		AddEnumeration(eDocumentWriteMode_Posting, wxT("posting"));
-		AddEnumeration(eDocumentWriteMode_UndoPosting, wxT("undoPosting"));
-		AddEnumeration(eDocumentWriteMode_Write, wxT("write"));
-	}
-
-	virtual void InitializeEnumeration() override
-	{
-		CreateEnumeration();
-		IEnumeration::InitializeEnumeration();
-	}
-
-	virtual void InitializeEnumeration(eDocumentWriteMode value) override {
-		CreateEnumeration();
-		IEnumeration::InitializeEnumeration(value);
+	virtual void CreateEnumeration() {
+		AddEnumeration(eDocumentWriteMode::eDocumentWriteMode_Posting, wxT("posting"));
+		AddEnumeration(eDocumentWriteMode::eDocumentWriteMode_UndoPosting, wxT("undoPosting"));
+		AddEnumeration(eDocumentWriteMode::eDocumentWriteMode_Write, wxT("write"));
 	}
 };
-
 class CValueEnumDocumentPostingMode : public IEnumeration<eDocumentPostingMode> {
 	wxDECLARE_DYNAMIC_CLASS(CValueEnumDocumentPostingMode);
 public:
+	CValueEnumDocumentPostingMode() : IEnumeration() {}
+	//CValueEnumDocumentPostingMode(eDocumentPostingMode mode) : IEnumeration(mode) {}
 
-	CValueEnumDocumentPostingMode() : IEnumeration() {
-		InitializeEnumeration();
-	}
-
-	CValueEnumDocumentPostingMode(eDocumentPostingMode postingMode) : IEnumeration(postingMode) {
-		InitializeEnumeration(postingMode);
-	}
-
-protected:
-
-	void CreateEnumeration() {
-		AddEnumeration(eDocumentPostingMode_RealTime, wxT("realTime"));
-		AddEnumeration(eDocumentPostingMode_Regular, wxT("regular"));
-	}
-
-	virtual void InitializeEnumeration() override {
-		CreateEnumeration();
-		IEnumeration::InitializeEnumeration();
-	}
-
-	virtual void InitializeEnumeration(eDocumentPostingMode value) override {
-		CreateEnumeration();
-		IEnumeration::InitializeEnumeration(value);
+	virtual void CreateEnumeration() {
+		AddEnumeration(eDocumentPostingMode::eDocumentPostingMode_RealTime, wxT("realTime"));
+		AddEnumeration(eDocumentPostingMode::eDocumentPostingMode_Regular, wxT("regular"));
 	}
 };
+#pragma endregion 
 
 #endif // ! _DOCUMENT_EMUN_H_

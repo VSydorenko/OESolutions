@@ -1,5 +1,5 @@
-#ifndef checktree_H_INCLUDED
-#define checktree_H_INCLUDED
+#ifndef __checktree_H_INCLUDED__
+#define __checktree_H_INCLUDED__
 
 #include <wx/treectrl.h>
 

@@ -84,13 +84,13 @@ void CVisualEditorNotebook::CVisualEditor::NotifyObjectRemoved(IValueFrame* obj)
 	NotifyEvent(event, false);
 }
 
-void CVisualEditorNotebook::CVisualEditor::NotifyPropertyModified(Property* prop)
+void CVisualEditorNotebook::CVisualEditor::NotifyPropertyModified(IProperty* prop)
 {
 	wxFramePropertyEvent event(wxEVT_PROPERTY_MODIFIED, prop, wxNullVariant);
 	NotifyEvent(event, false);
 }
 
-void CVisualEditorNotebook::CVisualEditor::NotifyEventModified(Event* event)
+void CVisualEditorNotebook::CVisualEditor::NotifyEventModified(IEvent* event)
 {
 }
 

@@ -5,7 +5,7 @@
 
 #include "tabularSection.h"
 
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "backend/metaCollection/partial/reference/reference.h"
 
 #include "backend/appData.h"
@@ -60,30 +60,39 @@ class_identifier_t ITabularSectionDataObject::GetClassType() const
 {
 	IMetaData* metaData = m_metaTable->GetMetaData();
 	wxASSERT(metaData);
-	IMetaValueTypeCtor* clsFactory =
-		metaData->GetTypeCtor(m_metaTable, eCtorMetaType::eCtorMetaType_TabularSection);
-	wxASSERT(clsFactory);
-	return clsFactory->GetClassType();
+	if (m_metaTable->IsAllowed()) {
+		IMetaValueTypeCtor* clsFactory =
+			metaData->GetTypeCtor(m_metaTable, eCtorMetaType::eCtorMetaType_TabularSection);
+		wxASSERT(clsFactory);
+		return clsFactory->GetClassType();
+	}
+	return 0;
 }
 
 wxString ITabularSectionDataObject::GetClassName() const
 {
 	IMetaData* metaData = m_metaTable->GetMetaData();
 	wxASSERT(metaData);
-	IMetaValueTypeCtor* clsFactory =
-		metaData->GetTypeCtor(m_metaTable, eCtorMetaType::eCtorMetaType_TabularSection);
-	wxASSERT(clsFactory);
-	return clsFactory->GetClassName();
+	if (m_metaTable->IsAllowed()) {
+		IMetaValueTypeCtor* clsFactory =
+			metaData->GetTypeCtor(m_metaTable, eCtorMetaType::eCtorMetaType_TabularSection);
+		wxASSERT(clsFactory);
+		return clsFactory->GetClassName();
+	}
+	return _("<deleted metaobject>");
 }
 
 wxString ITabularSectionDataObject::GetString() const
 {
-	IMetaData* metaData = m_metaTable->GetMetaData();
-	wxASSERT(metaData);
-	IMetaValueTypeCtor* clsFactory =
-		metaData->GetTypeCtor(m_metaTable, eCtorMetaType::eCtorMetaType_TabularSection);
-	wxASSERT(clsFactory);
-	return clsFactory->GetClassName();
+	if (m_metaTable->IsAllowed()) {
+		IMetaData* metaData = m_metaTable->GetMetaData();
+		wxASSERT(metaData);
+		IMetaValueTypeCtor* clsFactory =
+			metaData->GetTypeCtor(m_metaTable, eCtorMetaType::eCtorMetaType_TabularSection);
+		wxASSERT(clsFactory);
+		return clsFactory->GetClassName();
+	}
+	return _("<deleted metaobject>");
 }
 
 bool ITabularSectionDataObject::SetValueByMetaID(const wxDataViewItem& item, const meta_identifier_t& id, const CValue& varMetaVal)
@@ -209,11 +218,11 @@ CTabularSectionDataObjectRef::CTabularSectionDataObjectRef(IRecordDataObjectRef*
 }
 
 CTabularSectionDataObjectRef::CTabularSectionDataObjectRef(CSelectorDataObject* selectorObject, CMetaObjectTableData* tableObject) :
-	ITabularSectionDataObject((IObjectValueInfo*)selectorObject, tableObject), m_readAfter(false)
+	ITabularSectionDataObject((IObjectDataValue*)selectorObject, tableObject), m_readAfter(false)
 {
 }
 
-#include "backend/compiler/value/valueTable.h"
+#include "backend/system/value/valueTable.h"
 
 bool ITabularSectionDataObject::LoadDataFromTable(IValueTable* srcTable)
 {

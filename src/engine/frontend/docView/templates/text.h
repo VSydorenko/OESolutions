@@ -1,5 +1,5 @@
-#ifndef _TEXT_H__
-#define _TEXT_H__
+#ifndef __TEXT_H__
+#define __TEXT_H__
 
 // ----------------------------------------------------------------------------
 // Edit form classes

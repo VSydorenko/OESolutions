@@ -1,7 +1,7 @@
 #ifndef _SELECTOR_H__
 #define _SELECTOR_H__
 
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 
 class BACKEND_API ISelectorObject : public CValue {
 public:
@@ -36,7 +36,7 @@ protected:
 };
 
 class BACKEND_API CSelectorDataObject : public ISelectorObject,
-	public IObjectValueInfo {
+	public IObjectDataValue {
 public:
 
 	CSelectorDataObject(IMetaObjectRecordDataMutableRef* metaObject);
@@ -112,7 +112,7 @@ protected:
 	std::map<
 		valueArray_t,
 		valueArray_t
-	> m_objectValues;
+	> m_listObjectValue;
 };
 
 #endif

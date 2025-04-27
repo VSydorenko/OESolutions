@@ -10,13 +10,13 @@
 wxIMPLEMENT_DYNAMIC_CLASS(CVisualEditorNotebook::CVisualEditor, wxPanel);
 
 CVisualEditorNotebook::CVisualEditor::CVisualEditor() :
-	wxPanel(), m_bReadOnly(false)
+	wxPanel(), m_visualEditor(nullptr), m_bReadOnly(false)
 {
 }
 
 CVisualEditorNotebook::CVisualEditor::CVisualEditor(CMetaDocument* document, wxWindow* parent, int id) :
 	wxPanel(parent, id),
-	m_document(document), m_cmdProc(new CCommandProcessor()), m_valueForm(nullptr),
+	m_document(document), m_visualEditor(nullptr), m_cmdProc(new CCommandProcessor()), m_valueForm(nullptr),
 	m_bReadOnly(false)
 {
 	CreateWideGui();
@@ -61,7 +61,7 @@ void CVisualEditorNotebook::CVisualEditor::CreateWideGui()
 
 #include "frontend/docView/docView.h" 
 
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "backend/metadataConfiguration.h"
 
 bool CVisualEditorNotebook::CVisualEditor::LoadForm()

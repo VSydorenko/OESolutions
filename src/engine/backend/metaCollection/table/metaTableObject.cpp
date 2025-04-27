@@ -6,30 +6,27 @@
 #include "metaTableObject.h"
 #include "backend/metaData.h"
 
-wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectTableData, IMetaObjectContextData)
+wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectTableData, IMetaObjectSourceData)
 
 //***********************************************************************
 //*                         Attributes                                  * 
 //***********************************************************************
 
 #include "backend/objCtor.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 
-typeDescription_t CMetaObjectTableData::GetTypeDescription() const
+CTypeDescription CMetaObjectTableData::GetTypeDesc() const
 {
-	IMetaValueTypeCtor* typeCtor =
-		m_metaData->GetTypeCtor(this, eCtorMetaType::eCtorMetaType_TabularSection);
+	IMetaValueTypeCtor* typeCtor = m_metaData->GetTypeCtor(this, eCtorMetaType::eCtorMetaType_TabularSection);
 	wxASSERT(typeCtor);
-	if (typeCtor != nullptr)
-		return typeDescription_t(typeCtor->GetClassType());
-	return typeDescription_t();
+	if (typeCtor != nullptr) return CTypeDescription(typeCtor->GetClassType());
+	return CTypeDescription();
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
-CMetaObjectTableData::CMetaObjectTableData() : IMetaObjectContextData()
+CMetaObjectTableData::CMetaObjectTableData() : IMetaObjectSourceData()
 {
-	m_numberLine = IMetaObjectContextData::CreateNumber("numberLine", _("N"), wxEmptyString, 6, 0);
 }
 
 CMetaObjectTableData::~CMetaObjectTableData()
@@ -42,8 +39,7 @@ bool CMetaObjectTableData::LoadData(CMemoryReader& dataReader)
 	m_propertyUse->SetValue(dataReader.r_u16());
 
 	//load default attributes:
-	m_numberLine->LoadMeta(dataReader);
-	return true;
+	return m_numberLine->LoadMeta(dataReader);
 }
 
 bool CMetaObjectTableData::SaveData(CMemoryWriter& dataWritter)
@@ -51,8 +47,7 @@ bool CMetaObjectTableData::SaveData(CMemoryWriter& dataWritter)
 	dataWritter.w_u16(m_propertyUse->GetValueAsInteger());
 
 	//save default attributes:
-	m_numberLine->SaveMeta(dataWritter);
-	return true;
+	return m_numberLine->SaveMeta(dataWritter);;
 }
 
 //***********************************************************************

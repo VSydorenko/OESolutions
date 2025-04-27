@@ -5,18 +5,18 @@
 
 #include "metaFormObject.h"
 #include "backend/metaData.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "backend/appData.h"
 
-void CMetaObjectForm::OnPropertyCreated(Property* property)
+void CMetaObjectForm::OnPropertyCreated(IProperty* property)
 {
 }
 
-void CMetaObjectForm::OnPropertySelected(Property* property)
+void CMetaObjectForm::OnPropertySelected(IProperty* property)
 {
 }
 
-void CMetaObjectForm::OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue)
+void CMetaObjectForm::OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue)
 {
 	if (property == m_properyFormType) {
 		if (appData->DesignerMode()) {

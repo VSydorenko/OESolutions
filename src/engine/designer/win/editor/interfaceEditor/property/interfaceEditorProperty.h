@@ -1,7 +1,7 @@
 #ifndef _INTERFACE_EDITOR_PROPERTY_H_
 #define _INTERFACE_EDITOR_PROPERTY_H_
 
-#include "backend/wrapper/propertyInfo.h"
+#include "backend/propertyManager/propertyManager.h"
 
 enum eMenuType {
 	eMenu,
@@ -9,41 +9,48 @@ enum eMenuType {
 	eSeparator
 };
 
+#pragma region enumeration
+#include "backend/compiler/enumUnit.h"
+class CValueEnumMenuType : public IEnumeration<eMenuType> {
+	wxDECLARE_DYNAMIC_CLASS(CValueEnumMenuType);
+public:
+	CValueEnumMenuType() : IEnumeration() {}
+	//CValueEnumMenuType(const eMenuType& mode) : IEnumeration(mode) {}
+
+	virtual void CreateEnumeration() {
+		AddEnumeration(eMenu, wxT("menu"));
+		AddEnumeration(eSubMenu, wxT("subMenu"));
+		AddEnumeration(eSeparator, wxT("separator"));
+	}
+};
+#pragma endregion 
+
 class CPropertyInterfaceItem : public IPropertyObject {
 
-	OptionList* GetMenuType(PropertyOption*) {
-		OptionList* optionlist = new OptionList;
-		optionlist->AddOption(_("menu"), eMenu); 
-		optionlist->AddOption(_("subMenu"), eSubMenu);
-		optionlist->AddOption(_("separator"), eSeparator);
-		return optionlist;
-	}
-
-	OptionList* GetSubMenu(PropertyOption*) {
-		OptionList* optionlist = new OptionList;
-		optionlist->AddOption(_("<Custom submenu>"), wxNOT_FOUND);
-		optionlist->AddOption(_("file"), wxID_FILE);
-		optionlist->AddOption(_("edit"), wxID_EDIT);
-		//optionlist->AddOption(_("all operations..."), wxID_ENTERPRISE_ALL_OPERATIONS);
-		return optionlist;
+	bool GetSubMenu(CPropertyList* prop) {
+		prop->AppendItem(_("<Custom submenu>"), wxNOT_FOUND, wxEmptyValue);
+		prop->AppendItem(_("file"), wxID_FILE, wxEmptyValue);
+		prop->AppendItem(_("edit"), wxID_EDIT, wxEmptyValue);
+		//optionlist->AppendItem(_("all operations..."), wxID_ENTERPRISE_ALL_OPERATIONS);
+		return true;
 	}
 
 protected:
 
-	PropertyCategory* m_interfaceCategory = IPropertyObject::CreatePropertyCategory("general");
-	Property* m_propertyMenuType = IPropertyObject::CreateProperty(m_interfaceCategory, "menuType", &CPropertyInterfaceItem::GetMenuType, eMenuType::eMenu);
-	Property* m_propertySubMenu = IPropertyObject::CreateProperty(m_interfaceCategory, "subMenu", &CPropertyInterfaceItem::GetSubMenu, wxNOT_FOUND);
-	Property* m_propertyAction = IPropertyObject::CreateProperty(m_interfaceCategory, "action", PropertyType::PT_TEXT);
+	CPropertyCategory* m_interfaceCategory = IPropertyObject::CreatePropertyCategory("general");
+	CPropertyEnum<CValueEnumMenuType>* m_propertyMenuType = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumMenuType>>(m_interfaceCategory, "menuType", eMenuType::eMenu);
+	CPropertyList* m_propertySubMenu = IPropertyObject::CreateProperty<CPropertyList>(m_interfaceCategory, "subMenu", &CPropertyInterfaceItem::GetSubMenu, wxNOT_FOUND);
+	CPropertyText* m_propertyAction = IPropertyObject::CreateProperty<CPropertyText>(m_interfaceCategory, "action", wxEmptyString);
 
-	PropertyCategory* m_interfacePresentation = IPropertyObject::CreatePropertyCategory("presentation");
-	Property* m_propertyCaption = IPropertyObject::CreateProperty(m_interfacePresentation, "caption", PropertyType::PT_TEXT);
-	Property* m_propertyToolTip = IPropertyObject::CreateProperty(m_interfacePresentation, "tooltip", PropertyType::PT_TEXT);
-	Property* m_propertyDescription = IPropertyObject::CreateProperty(m_interfacePresentation, "tooltip", PropertyType::PT_TEXT);
-	Property* m_propertyPicture = IPropertyObject::CreateProperty(m_interfacePresentation, "picture", PropertyType::PT_BITMAP);
+	CPropertyCategory* m_interfacePresentation = IPropertyObject::CreatePropertyCategory("presentation");
+	CPropertyCaption* m_propertyCaption = IPropertyObject::CreateProperty<CPropertyCaption>(m_interfacePresentation, "caption", wxEmptyString);
+	CPropertyText* m_propertyToolTip = IPropertyObject::CreateProperty<CPropertyText>(m_interfacePresentation, "tooltip", wxEmptyString);
+	CPropertyText* m_propertyDescription = IPropertyObject::CreateProperty<CPropertyText>(m_interfacePresentation, "tooltip", wxEmptyString);
+	CPropertyPicture* m_propertyPicture = IPropertyObject::CreateProperty<CPropertyPicture>(m_interfacePresentation, "picture");
 
 public:
 
-	void SetCaption(const wxString &caption) {
+	void SetCaption(const wxString& caption) {
 		m_propertyCaption->SetValue(caption);
 	}
 
@@ -51,30 +58,23 @@ public:
 		return m_propertyCaption->GetValueAsString();
 	}
 
-	CPropertyInterfaceItem(eMenuType menuType) {
+	CPropertyInterfaceItem(const eMenuType &menuType) {
 		m_propertyMenuType->SetValue(menuType);
 	}
 
 	virtual ~CPropertyInterfaceItem();
 
 	//system override 
-	virtual int GetComponentType() const {
-		return COMPONENT_TYPE_ABSTRACT;
-	}
+	virtual int GetComponentType() const { return COMPONENT_TYPE_ABSTRACT; }
 
-	virtual wxString GetObjectTypeName() const override {
-		return wxT("interfaceEditor");
-	}
-
-	virtual wxString GetClassName() const override {
-		return wxT("interfaceEditor");
-	}
+	virtual wxString GetObjectTypeName() const override { return wxT("interfaceEditor"); }
+	virtual wxString GetClassName() const override { return wxT("interfaceEditor"); }
 
 	/**
 	* Property events
 	*/
 	virtual void OnPropertyRefresh(class wxPropertyGridManager* pg,
-		class wxPGProperty* pgProperty, Property* property);
+		class wxPGProperty* pgProperty, IProperty* property);
 };
 
 #endif 

@@ -17,7 +17,7 @@ wxObject* CValueStaticLine::Create(wxWindow* wxparent, IVisualHost* visualHost)
 	wxStaticLine* staticline = new wxStaticLine(wxparent, wxID_ANY,
 		wxDefaultPosition,
 		wxDefaultSize,
-		m_propertyOrient->GetValueAsInteger()
+		m_propertyOrient->GetValueAsEnum()
 	);
 
 	return staticline;
@@ -40,7 +40,7 @@ void CValueStaticLine::Update(wxObject* wxobject, IVisualHost* visualHost)
 		staticline->Create(winParent, wxID_ANY,
 			wxDefaultPosition,
 			wxDefaultSize,
-			m_propertyOrient->GetValueAsInteger()
+			m_propertyOrient->GetValueAsEnum()
 		);
 		staticline->Show(isShown);
 	}

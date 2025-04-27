@@ -1,6 +1,6 @@
 #include "widgets.h"
 #include "form.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "backend/metaData.h"
 
 //*******************************************************************
@@ -14,10 +14,16 @@ void CValueCheckbox::OnClickedCheckbox(wxCommandEvent& event)
 
 	m_selValue = checkbox->GetValue();
 
-	if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
+	//if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
+	//	ISourceDataObject* srcData = m_formOwner->GetSourceObject();
+	//	wxASSERT(srcData);
+	//	srcData->SetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
+	//}
+
+	if (!m_propertySource->IsEmptyProperty()) {
 		ISourceDataObject* srcData = m_formOwner->GetSourceObject();
 		wxASSERT(srcData);
-		srcData->SetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
+		srcData->SetValueByMetaID(m_propertySource->GetValueAsSource(), m_selValue);
 	}
 
 	m_formOwner->RefreshForm();

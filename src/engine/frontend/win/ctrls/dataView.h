@@ -1,7 +1,7 @@
 #ifndef __DATA_VIEW_H__
 #define __DATA_VIEW_H__
 
-#include "backend/wrapper/tableInfo.h"
+#include "backend/tableInfo.h"
 
 class wxDataModelViewCtrl : public wxDataViewCtrl {
 	class wxTableModelNotifier* m_genNotitfier;

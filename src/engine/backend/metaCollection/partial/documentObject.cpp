@@ -9,7 +9,7 @@
 #include "backend/appData.h"
 #include "reference/reference.h"
 #include "backend/databaseLayer/databaseLayer.h"
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 
 //*********************************************************************************************
 //*                                  CRecorderRegisterDocument	                              *
@@ -23,15 +23,15 @@ void CRecordDataObjectDocument::CRecorderRegisterDocument::CreateRecordSet()
 {
 	CMetaObjectDocument* metaDocument = dynamic_cast<CMetaObjectDocument*>(m_document->GetMetaObject());
 	wxASSERT(metaDocument);
-
-	const recordData_t& recordData = metaDocument->GetRecordData();
 	IMetaData* metaData = metaDocument->GetMetaData();
 	wxASSERT(metaData);
+	
 	CRecorderRegisterDocument::ClearRecordSet();
 
-	for (auto& meta_id : recordData.m_data) {
+	const CMetaDescription& metaDesc = metaDocument->GetRecordDescription();
+	for (unsigned int idx = 0; idx < metaDesc.GetTypeCount(); idx++) {
 		IMetaObjectRegisterData* metaObject = nullptr;
-		if (!metaData->GetMetaObject(metaObject, meta_id) || !metaObject->IsAllowed())
+		if (!metaData->GetMetaObject(metaObject, metaDesc.GetByIdx(idx)) || !metaObject->IsAllowed())
 			continue;
 		CMetaObjectAttributeDefault* registerRecord = metaObject->GetRegisterRecorder();
 		wxASSERT(registerRecord);
@@ -41,7 +41,7 @@ void CRecordDataObjectDocument::CRecorderRegisterDocument::CreateRecordSet()
 		recordSet->SetKeyValue(registerRecord->GetMetaID(), m_document->GetReference());
 		recordSet->IncrRef();
 
-		m_records.insert_or_assign(meta_id, recordSet);
+		m_records.insert_or_assign(metaObject->GetMetaID(), recordSet);
 	}
 
 	PrepareNames();
@@ -141,10 +141,10 @@ bool CRecordDataObjectDocument::IsPosted() const
 void CRecordDataObjectDocument::SetDeletionMark(bool deletionMark)
 {
 	WriteObject(
-		eDocumentWriteMode::eDocumentWriteMode_UndoPosting, 
+		eDocumentWriteMode::eDocumentWriteMode_UndoPosting,
 		eDocumentPostingMode::eDocumentPostingMode_Regular
 	);
-	
+
 	IRecordDataObjectRef::SetDeletionMark(deletionMark);
 }
 
@@ -264,7 +264,7 @@ bool CRecordDataObjectDocument::WriteObject(eDocumentWriteMode writeMode, eDocum
 
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("BeforeWrite", cancel, CValue::CreateObjectValue<CValueEnumDocumentWriteMode>(writeMode), CValue::CreateObjectValue<CValueEnumDocumentPostingMode>(postingMode));
+					m_procUnit->CallAsProc(wxT("BeforeWrite"), cancel, CValue::CreateEnumObject<CValueEnumDocumentWriteMode>(writeMode), CValue::CreateEnumObject<CValueEnumDocumentPostingMode>(postingMode));
 
 					if (cancel.GetBoolean()) {
 						db_query->RollBack(); CSystemFunction::Raise(_("failed to write object in db!"));
@@ -276,9 +276,9 @@ bool CRecordDataObjectDocument::WriteObject(eDocumentWriteMode writeMode, eDocum
 						CMetaObjectAttributeDefault* metaPosted = dataRef->GetDocumentPosted();
 						wxASSERT(metaPosted);
 						if (writeMode == eDocumentWriteMode::eDocumentWriteMode_Posting)
-							m_objectValues.insert_or_assign(metaPosted->GetMetaID(), true);
+							m_listObjectValue.insert_or_assign(metaPosted->GetMetaID(), true);
 						else if (writeMode == eDocumentWriteMode::eDocumentWriteMode_UndoPosting)
-							m_objectValues.insert_or_assign(metaPosted->GetMetaID(), false);
+							m_listObjectValue.insert_or_assign(metaPosted->GetMetaID(), false);
 					}
 				}
 
@@ -305,7 +305,7 @@ bool CRecordDataObjectDocument::WriteObject(eDocumentWriteMode writeMode, eDocum
 
 				if (writeMode == eDocumentWriteMode::eDocumentWriteMode_Posting) {
 					CValue cancel = false;
-					m_procUnit->CallAsProc("Posting", cancel, CValue::CreateObjectValue<CValueEnumDocumentPostingMode>(postingMode));
+					m_procUnit->CallAsProc(wxT("Posting"), cancel, CValue::CreateEnumObject<CValueEnumDocumentPostingMode>(postingMode));
 					if (cancel.GetBoolean()) {
 						db_query->RollBack();
 						CSystemFunction::Raise(_("failed to write object in db!"));
@@ -321,7 +321,7 @@ bool CRecordDataObjectDocument::WriteObject(eDocumentWriteMode writeMode, eDocum
 				else if (writeMode == eDocumentWriteMode::eDocumentWriteMode_UndoPosting) {
 
 					CValue cancel = false;
-					m_procUnit->CallAsProc("UndoPosting", cancel);
+					m_procUnit->CallAsProc(wxT("UndoPosting"), cancel);
 					if (cancel.GetBoolean()) {
 						db_query->RollBack(); CSystemFunction::Raise(_("failed to write object in db!"));
 						return false;
@@ -335,7 +335,7 @@ bool CRecordDataObjectDocument::WriteObject(eDocumentWriteMode writeMode, eDocum
 				}
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("OnWrite", cancel);
+					m_procUnit->CallAsProc(wxT("OnWrite"), cancel);
 					if (cancel.GetBoolean()) {
 						db_query->RollBack();
 						CSystemFunction::Raise(_("failed to write object in db!"));
@@ -380,7 +380,7 @@ bool CRecordDataObjectDocument::DeleteObject()
 
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("BeforeDelete", cancel);
+					m_procUnit->CallAsProc(wxT("BeforeDelete"), cancel);
 					if (cancel.GetBoolean()) {
 						db_query->RollBack();
 						CSystemFunction::Raise(_("failed to delete object in db!"));
@@ -396,7 +396,7 @@ bool CRecordDataObjectDocument::DeleteObject()
 
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("OnDelete", cancel);
+					m_procUnit->CallAsProc(wxT("OnDelete"), cancel);
 					if (cancel.GetBoolean()) {
 						db_query->RollBack();
 						CSystemFunction::Raise(_("failed to delete object in db!"));
@@ -466,7 +466,7 @@ void CRecordDataObjectDocument::PrepareNames() const
 			eProperty
 		);
 	}
-	
+
 	//fill custom tables 
 	for (auto& obj : m_metaObject->GetObjectTables()) {
 		if (obj->IsDeleted())
@@ -479,7 +479,7 @@ void CRecordDataObjectDocument::PrepareNames() const
 			eTable
 		);
 	}
-	
+
 	if (m_procUnit != nullptr) {
 		CByteCode* byteCode = m_procUnit->GetByteCode();
 		if (byteCode != nullptr) {
@@ -545,12 +545,12 @@ bool CRecordDataObjectDocument::GetPropVal(const long lPropNum, CValue& pvarProp
 	else if (lPropAlias == eSystem) {
 		switch (m_methodHelper->GetPropData(lPropNum))
 		{
-		case eRegisterRecords:
-			pvarPropVal = m_registerRecords->GetValue();
-			return true;
-		case eThisObject:
-			pvarPropVal = GetValue();
-			return true;
+			case eRegisterRecords:
+				pvarPropVal = m_registerRecords->GetValue();
+				return true;
+			case eThisObject:
+				pvarPropVal = GetValue();
+				return true;
 		}
 	}
 	return false;
@@ -560,39 +560,39 @@ bool CRecordDataObjectDocument::CallAsFunc(const long lMethodNum, CValue& pvarRe
 {
 	switch (lMethodNum)
 	{
-	case eIsNew:
-		pvarRetValue = m_newObject;
-		return true;
-	case eCopy:
-		pvarRetValue = CopyObject();
-		return true;
-	case eFill:
-		FillObject(*paParams[0]);
-		return true;
-	case eWrite:
-		WriteObject(
-			lSizeArray > 0 ? paParams[0]->ConvertToEnumValue<eDocumentWriteMode>() : eDocumentWriteMode::eDocumentWriteMode_Write,
-			lSizeArray > 1 ? paParams[1]->ConvertToEnumValue<eDocumentPostingMode>() : eDocumentPostingMode::eDocumentPostingMode_RealTime
-		);
-		return true;
-	case eDelete:
-		DeleteObject();
-		return true;
-	case eModified:
-		pvarRetValue = m_objModified;
-		return true;
-	case Func::eGetFormObject:
-		pvarRetValue = GetFormValue(
-			paParams[0]->GetString(),
-			paParams[1]->ConvertToType<IBackendControlFrame>()
-		);
-		return true;
-	case Func::eGetMetadata:
-		pvarRetValue = m_metaObject;
-		return true;
+		case eIsNew:
+			pvarRetValue = m_newObject;
+			return true;
+		case eCopy:
+			pvarRetValue = CopyObject();
+			return true;
+		case eFill:
+			FillObject(*paParams[0]);
+			return true;
+		case eWrite:
+			WriteObject(
+				lSizeArray > 0 ? paParams[0]->ConvertToEnumValue<eDocumentWriteMode>() : eDocumentWriteMode::eDocumentWriteMode_Write,
+				lSizeArray > 1 ? paParams[1]->ConvertToEnumValue<eDocumentPostingMode>() : eDocumentPostingMode::eDocumentPostingMode_RealTime
+			);
+			return true;
+		case eDelete:
+			DeleteObject();
+			return true;
+		case eModified:
+			pvarRetValue = m_objModified;
+			return true;
+		case Func::eGetFormObject:
+			pvarRetValue = GetFormValue(
+				paParams[0]->GetString(),
+				paParams[1]->ConvertToType<IBackendControlFrame>()
+			);
+			return true;
+		case Func::eGetMetadata:
+			pvarRetValue = m_metaObject;
+			return true;
 	}
 
-	return IModuleInfo::ExecuteFunc(
+	return IModuleDataObject::ExecuteFunc(
 		GetMethodName(lMethodNum), pvarRetValue, paParams, lSizeArray
 	);
 }
@@ -635,9 +635,9 @@ bool CRecordDataObjectDocument::CRecorderRegisterDocument::CallAsFunc(const long
 {
 	switch (lMethodNum)
 	{
-	case enWriteRegister:
-		WriteRecordSet();
-		return true;
+		case enWriteRegister:
+			WriteRecordSet();
+			return true;
 	}
 
 	return false;

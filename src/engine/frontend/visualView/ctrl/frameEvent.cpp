@@ -22,9 +22,8 @@ m_controlEvent(controlEvent), m_methodHelper(new CMethodHelper())
 {
 }
 
-#include "backend/compiler/value/valueMap.h"
-#include "frontend/visualView/special/valueEvent.h"
-
+#include "backend/system/value/valueMap.h"
+//#include "backend/system/value/valueEvent.h"
 
 IValueFrame::CValueEventContainer::~CValueEventContainer()
 {
@@ -43,30 +42,33 @@ CValue IValueFrame::CValueEventContainer::GetIteratorAt(unsigned int idx)
 		return CValue();
 	}
 
-	Event* event = m_controlEvent->GetEvent(idx);
-	if (!event) {
-		return CValue();
-	}
+	IEvent* event = m_controlEvent->GetEvent(idx);
+	if (event == nullptr) return CValue();
+	//return CValue::CreateAndConvertObjectValueRef<CValueEvent>(event->GetValue());
 
-	return CValue::CreateAndConvertObjectValueRef<CValueEvent>(event->GetValue());
+	CValue retEvent;
+	event->GetDataValue(retEvent);
+	return retEvent;
 }
 
 #include "backend/appData.h"
 
 bool IValueFrame::CValueEventContainer::SetAt(const CValue& varKeyValue, const CValue& varValue)
 {
-	number_t number = varKeyValue.GetNumber();
+	const number_t number = varKeyValue.GetNumber();
 	if (m_controlEvent->GetEventCount() < number.ToUInt())
 		return false;
-	Event* event = m_controlEvent->GetEvent(number.ToUInt());
-	CValueEvent* eventValue = nullptr;
-	if (varValue.ConvertToValue(eventValue)) {
-		event->SetValue(eventValue->GetString());
-	}
-	else {
-		event->SetValue(wxEmptyString);
-	}
-	return true;
+	IEvent* event = m_controlEvent->GetEvent(number.ToUInt());
+	if (event == nullptr) return false;
+	//CValueEvent* eventValue = nullptr;
+	//if (varValue.ConvertToValue(eventValue)) {
+	//	event->SetValue(eventValue->GetString());
+	//}
+	//else {
+	//	event->SetValue(wxEmptyString);
+	//}
+	//return true;
+	return event->SetDataValue(varValue);
 }
 
 bool IValueFrame::CValueEventContainer::GetAt(const CValue& varKeyValue, CValue& pvarValue)
@@ -74,26 +76,26 @@ bool IValueFrame::CValueEventContainer::GetAt(const CValue& varKeyValue, CValue&
 	number_t number = varKeyValue.GetNumber();
 	if (m_controlEvent->GetEventCount() < number.ToUInt())
 		return false;
-	Event* event = m_controlEvent->GetEvent(number.ToUInt());
-	if (!event)
-		return false;
-	wxString eventValue = event->GetValue();
-	if (eventValue.IsEmpty())
-		return false;
-	pvarValue = CValue::CreateAndConvertObjectValueRef<CValueEvent>(eventValue);
-	return true;
+	IEvent* event = m_controlEvent->GetEvent(number.ToUInt());
+	if (event == nullptr) return false;
+	//wxString eventValue = event->GetValue();
+	//if (eventValue.IsEmpty())
+	//	return false;
+	//pvarValue = CValue::CreateAndConvertObjectValueRef<CValueEvent>(eventValue);
+	//return true;
+	return event->GetDataValue(pvarValue);
 }
 
 bool IValueFrame::CValueEventContainer::Property(const CValue& varKeyValue, CValue& cValueFound)
 {
 	const wxString& key = varKeyValue.GetString();
 	for (unsigned int idx = 0; idx < m_controlEvent->GetEventCount(); idx++) {
-		Event* event = m_controlEvent->GetEvent(idx);
-		if (event == nullptr)
-			continue;
+		IEvent* event = m_controlEvent->GetEvent(idx);
+		if (event == nullptr) continue;
 		if (stringUtils::CompareString(key, event->GetName())) {
-			cValueFound = CValue::CreateAndConvertObjectValueRef<CValueEvent>(event->GetName());
-			return true;
+			//cValueFound = CValue::CreateAndConvertObjectValueRef<CValueEvent>(event->GetName());
+			//return true;
+			return event->GetDataValue(cValueFound);
 		}
 	}
 	return false;
@@ -113,7 +115,7 @@ void IValueFrame::CValueEventContainer::PrepareNames() const
 	m_methodHelper->AppendFunc("count", "count()");
 
 	for (unsigned int idx = 0; idx < m_controlEvent->GetEventCount(); idx++) {
-		Event* event = m_controlEvent->GetEvent(idx);
+		IEvent* event = m_controlEvent->GetEvent(idx);
 		if (event == nullptr)
 			continue;
 		m_methodHelper->AppendProp(event->GetName());
@@ -122,17 +124,19 @@ void IValueFrame::CValueEventContainer::PrepareNames() const
 
 bool IValueFrame::CValueEventContainer::SetPropVal(const long lPropNum, const CValue& varPropVal)
 {
-	CValueEvent* eventValue = nullptr;
+	//CValueEvent* eventValue = nullptr;
 	if (m_controlEvent->GetEventCount() < (unsigned int)lPropNum)
 		return false;
-	Event* event = m_controlEvent->GetEvent(lPropNum);
-	if (varPropVal.ConvertToValue(eventValue)) {
-		event->SetValue(eventValue->GetString());
-	}
-	else {
-		event->SetValue(wxEmptyString);
-	}
-	return true;
+	IEvent* event = m_controlEvent->GetEvent(lPropNum);
+	if (event == nullptr) return false;
+	//if (varPropVal.ConvertToValue(eventValue)) {
+	//	event->SetValue(eventValue->GetString());
+	//}
+	//else {
+	//	event->SetValue(wxEmptyString);
+	//}
+	//return true;
+	return event->SetDataValue(varPropVal);
 }
 
 bool IValueFrame::CValueEventContainer::GetPropVal(const long lPropNum, CValue& pvarPropVal)
@@ -140,30 +144,27 @@ bool IValueFrame::CValueEventContainer::GetPropVal(const long lPropNum, CValue& 
 	if (m_controlEvent->GetEventCount() < (unsigned int)lPropNum)
 		return false;
 
-	Event* event = m_controlEvent->GetEvent(lPropNum);
-	if (!event)
-		return false;
+	IEvent* event = m_controlEvent->GetEvent(lPropNum);
+	if (event == nullptr) return false;
 
 	const wxString& eventValue = event->GetValue();
-	if (eventValue.IsEmpty())
-		return false;
-
-	pvarPropVal = CValue::CreateAndConvertObjectValueRef<CValueEvent>(eventValue);
-	return true;
+	if (eventValue.IsEmpty()) return true;
+	//pvarPropVal = CValue::CreateAndConvertObjectValueRef<CValueEvent>(eventValue);
+	return event->GetDataValue(pvarPropVal);
 }
 
-#include "backend/compiler/value/valueType.h"
+#include "backend/system/value/valueType.h"
 
 bool IValueFrame::CValueEventContainer::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)
 {
 	switch (lMethodNum)
 	{
-	case enControlProperty:
-		pvarRetValue = Property(*paParams[0], lSizeArray > 1 ? *paParams[1] : CValue());
-		return true;
-	case enControlCount:
-		pvarRetValue = Count();
-		return true;
+		case enControlProperty:
+			pvarRetValue = Property(*paParams[0], lSizeArray > 1 ? *paParams[1] : CValue());
+			return true;
+		case enControlCount:
+			pvarRetValue = Count();
+			return true;
 	}
 
 	return false;

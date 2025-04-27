@@ -4,7 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "visualEditor.h"
-#include "backend/wrapper/propertyInfo.h"
+#include "backend/propertyManager/propertyManager.h"
 
 #include <wx/imaglist.h>
 
@@ -108,7 +108,7 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::RebuildTree(
 
 	// Clear the old tree and map
 	m_tcObjects->DeleteAllItems();
-	m_aItems.clear();
+	m_listItem.clear();
 
 	if (valueForm != nullptr) {
 		wxTreeItemId dummy;
@@ -126,7 +126,7 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::RebuildTree(
 void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnSelChanged(wxTreeEvent& event)
 {
 	wxTreeItemId id = event.GetItem();
-	if (!id.IsOk()) 
+	if (!id.IsOk())
 		return;
 
 	// Make selected items bold
@@ -221,7 +221,7 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnExpansionC
 	wxTreeItemId id = event.GetItem();
 	wxTreeItemData* item_data = m_tcObjects->GetItemData(id);
 
-	if (item_data != nullptr) {	
+	if (item_data != nullptr) {
 		IValueFrame* obj(((CVisualEditorObjectTreeItemData*)item_data)->GetObject());
 		assert(obj);
 		Disconnect(wxID_ANY, wxEVT_OBJECT_EXPANDED, wxFrameObjectEventHandler(CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnObjectExpanded));
@@ -284,7 +284,7 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::AddChildren(
 		}
 
 		// Add the item to the map
-		m_aItems.insert(
+		m_listItem.insert(
 			std::map< IValueFrame*, wxTreeItemId>::value_type(obj, new_parent)
 		);
 
@@ -340,7 +340,7 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::UpdateItem(c
 	}
 }
 
-#define ICON_SIZE 21
+#define ICON_SIZE 22
 
 void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::Create()
 {
@@ -351,9 +351,10 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::Create()
 	for (auto objClass : CValue::GetListCtorsByType(eCtorObjectType::eCtorObjectType_object_control)) {
 		IControlTypeCtor* controlDesc = dynamic_cast<IControlTypeCtor*>(objClass);
 		wxASSERT(controlDesc);
-		const wxBitmap &controlImage = controlDesc->GetClassIcon();
+		wxBitmap controlImage = controlDesc->GetClassIcon();
 		if (controlImage.IsOk()) {
-			int retIndex = m_iconList->Add(controlImage);
+			wxBitmap::Rescale(controlImage, wxSize(ICON_SIZE, ICON_SIZE));
+			const int retIndex = m_iconList->Add(controlImage);
 			if (retIndex != wxNOT_FOUND) {
 				m_iconIdx.insert(
 					std::map<wxString, int>::value_type(objClass->GetClassName(), retIndex)
@@ -367,8 +368,8 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::Create()
 
 void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::RestoreItemStatus(IValueFrame* obj)
 {
-	std::map< IValueFrame*, wxTreeItemId>::iterator item_it = m_aItems.find(obj);
-	if (item_it != m_aItems.end()) {
+	std::map< IValueFrame*, wxTreeItemId>::iterator item_it = m_listItem.find(obj);
+	if (item_it != m_listItem.end()) {
 		wxTreeItemId id = item_it->second;
 
 		if (obj->GetExpanded()) {
@@ -376,8 +377,7 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::RestoreItemS
 		}
 	}
 
-	unsigned int i, count =
-		obj->GetChildCount();
+	unsigned int i, count = obj->GetChildCount();
 
 	for (i = 0; i < count; i++) {
 		RestoreItemStatus(obj->GetChild(i));
@@ -393,8 +393,8 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::AddItem(IVal
 		}
 
 		// add new item to the object tree
-		std::map< IValueFrame*, wxTreeItemId>::iterator it = m_aItems.find(parent);
-		if ((it != m_aItems.end()) && it->second.IsOk()) {
+		std::map< IValueFrame*, wxTreeItemId>::iterator it = m_listItem.find(parent);
+		if ((it != m_listItem.end()) && it->second.IsOk()) {
 			AddChildren(item, it->second, false);
 		}
 	}
@@ -403,8 +403,8 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::AddItem(IVal
 void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::RemoveItem(IValueFrame* item)
 {
 	// remove affected object tree items only
-	std::map< IValueFrame*, wxTreeItemId>::iterator it = m_aItems.find(item);
-	if ((it != m_aItems.end()) && it->second.IsOk())
+	std::map< IValueFrame*, wxTreeItemId>::iterator it = m_listItem.find(item);
+	if ((it != m_listItem.end()) && it->second.IsOk())
 	{
 		m_tcObjects->Delete(it->second);
 		// clear map records for all item's children
@@ -414,7 +414,7 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::RemoveItem(I
 
 void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::ClearMap(IValueFrame* obj)
 {
-	m_aItems.erase(obj);
+	m_listItem.erase(obj);
 
 	for (unsigned int i = 0; i < obj->GetChildCount(); i++) {
 		ClearMap(obj->GetChild(i));
@@ -422,7 +422,7 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::ClearMap(IVa
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// Enterprise Event Handlers
+// Enterprise IEvent Handlers
 /////////////////////////////////////////////////////////////////////////////
 void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnProjectLoaded(wxFrameEvent&)
 {
@@ -436,8 +436,8 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnProjectSav
 void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnObjectExpanded(wxFrameObjectEvent& event)
 {
 	IValueFrame* obj = event.GetFrameObject();
-	std::map< IValueFrame*, wxTreeItemId>::iterator it = m_aItems.find(obj);
-	if (it != m_aItems.end())
+	std::map< IValueFrame*, wxTreeItemId>::iterator it = m_listItem.find(obj);
+	if (it != m_listItem.end())
 	{
 		if (m_tcObjects->IsExpanded(it->second) != obj->GetExpanded())
 		{
@@ -456,8 +456,8 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnObjectSele
 	IValueFrame* obj = event.GetFrameObject();
 
 	// Find the tree item associated with the object and select it
-	std::map< IValueFrame*, wxTreeItemId>::iterator it = m_aItems.find(obj);
-	if (it != m_aItems.end()) {
+	std::map< IValueFrame*, wxTreeItemId>::iterator it = m_listItem.find(obj);
+	if (it != m_listItem.end()) {
 		// Ignore expand/collapse events
 		Disconnect(wxID_ANY, wxEVT_COMMAND_TREE_ITEM_EXPANDED, wxTreeEventHandler(CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnExpansionChange));
 		Disconnect(wxID_ANY, wxEVT_COMMAND_TREE_ITEM_COLLAPSED, wxTreeEventHandler(CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnExpansionChange));
@@ -487,15 +487,14 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnObjectRemo
 
 void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnPropertyModified(wxFramePropertyEvent& event)
 {
-	Property* prop =
-		event.GetFrameProperty();
+	IProperty* prop = event.GetFrameProperty();
 
-	if (prop->GetType() == PropertyType::PT_WXNAME) {
-		std::map< IValueFrame*, wxTreeItemId>::iterator it = m_aItems.find((IValueFrame*)prop->GetObject());
-		if (it != m_aItems.end()) {
+	//if (prop->GetType() == PropertyType::PT_WXNAME) {
+		std::map< IValueFrame*, wxTreeItemId>::iterator it = m_listItem.find((IValueFrame*)prop->GetPropertyObject());
+		if (it != m_listItem.end()) {
 			UpdateItem(it->second, it->first);
 		}
-	}
+	//}
 }
 
 void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnProjectRefresh(wxFrameEvent&)
@@ -527,7 +526,7 @@ EVT_UPDATE_UI(wxID_ANY, CVisualEditorNotebook::CVisualEditor::CVisualEditorItemP
 wxEND_EVENT_TABLE()
 
 bool CVisualEditorNotebook::CVisualEditor::CVisualEditorItemPopupMenu::HasDeleteObject() {
-	return m_selID == MENU_DELETE; 
+	return m_selID == MENU_DELETE;
 }
 
 CVisualEditorNotebook::CVisualEditor::CVisualEditorItemPopupMenu::CVisualEditorItemPopupMenu(CVisualEditor* handler, wxWindow* parent, IValueFrame* obj)
@@ -551,14 +550,14 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorItemPopupMenu::OnMenuEve
 
 	switch (m_selID)
 	{
-	case MENU_CUT: m_formHandler->CutObject(m_formHandler->GetSelectedObject()); break;
-	case MENU_COPY: m_formHandler->CopyObject(m_formHandler->GetSelectedObject()); break;
-	case MENU_PASTE: m_formHandler->PasteObject(m_formHandler->GetSelectedObject()); break;
-	case MENU_DELETE: m_formHandler->RemoveObject(m_formHandler->GetSelectedObject()); break;
-	case MENU_MOVE_UP: m_formHandler->MovePosition(m_object, false); break;
-	case MENU_MOVE_DOWN: m_formHandler->MovePosition(m_object, true); break;
+		case MENU_CUT: m_formHandler->CutObject(m_formHandler->GetSelectedObject()); break;
+		case MENU_COPY: m_formHandler->CopyObject(m_formHandler->GetSelectedObject()); break;
+		case MENU_PASTE: m_formHandler->PasteObject(m_formHandler->GetSelectedObject()); break;
+		case MENU_DELETE: m_formHandler->RemoveObject(m_formHandler->GetSelectedObject()); break;
+		case MENU_MOVE_UP: m_formHandler->MovePosition(m_object, false); break;
+		case MENU_MOVE_DOWN: m_formHandler->MovePosition(m_object, true); break;
 
-	default: { m_object->ExecuteMenu(m_formHandler->GetVisualEditor(), m_selID); }
+		default: { m_object->ExecuteMenu(m_formHandler->GetVisualEditor(), m_selID); }
 	}
 }
 
@@ -568,12 +567,12 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorItemPopupMenu::OnUpdateE
 
 	switch (e.GetId())
 	{
-	case MENU_CUT:
-	case MENU_COPY:
-	case MENU_MOVE_UP:
-	case MENU_MOVE_DOWN:
-	case MENU_MOVE_NEW_BOXSIZER: e.Enable(m_formHandler->CanCopyObject() && m_formHandler->IsEditable()); break;
-	case MENU_DELETE: e.Enable(m_formHandler->CanCopyObject() && m_formHandler->IsEditable() && currentControl->CanDeleteControl()); break;
-	case MENU_PASTE: e.Enable(m_formHandler->CanPasteObject() && m_formHandler->IsEditable()); break;
+		case MENU_CUT:
+		case MENU_COPY:
+		case MENU_MOVE_UP:
+		case MENU_MOVE_DOWN:
+		case MENU_MOVE_NEW_BOXSIZER: e.Enable(m_formHandler->CanCopyObject() && m_formHandler->IsEditable()); break;
+		case MENU_DELETE: e.Enable(m_formHandler->CanCopyObject() && m_formHandler->IsEditable() && currentControl->CanDeleteControl()); break;
+		case MENU_PASTE: e.Enable(m_formHandler->CanPasteObject() && m_formHandler->IsEditable()); break;
 	}
 }

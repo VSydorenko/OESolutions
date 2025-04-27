@@ -18,23 +18,19 @@
 
 #include "backend/metaData.h"
 
-class CDialogGeneration : public wxDialog
-{
+class CDialogGeneration : public wxDialog {
 	wxListCtrl* m_listData;
 	wxButton* m_buttonOk;
 	wxButton* m_buttonCancel;
-
-	std::set<meta_identifier_t> m_clsids;
-
+	CMetaDescription m_metaDesc;
 public:
 
-	bool ShowModal(meta_identifier_t& clsid);
+	bool ShowModal(meta_identifier_t& id);
 
-	CDialogGeneration(IMetaData* metaData, std::set<meta_identifier_t>& clsids);
+	CDialogGeneration(IMetaData* metaData, const CMetaDescription& metaType);
 	virtual ~CDialogGeneration();
 
 protected:
-
 	virtual void OnListItemSelected(wxListEvent& event);
 };
 

@@ -6,8 +6,8 @@
 #include "accumulationRegister.h"
 #include "accumulationRegisterManager.h"
 
-#include "backend/compiler/value/valueMap.h"
-#include "backend/compiler/value/valueTable.h"
+#include "backend/system/value/valueMap.h"
+#include "backend/system/value/valueTable.h"
 #include "backend/databaseLayer/databaseLayer.h"
 #include "backend/appData.h"
 
@@ -25,7 +25,7 @@ CValue CAccumulationRegisterManager::Balance(const CValue& cPeriod, const CValue
 		CValueTable::IValueModelColumnCollection::IValueModelColumnInfo* colInfo =
 			colCollection->AddColumn(
 				dimension->GetName(),
-				dimension->GetTypeDescription(),
+				dimension->GetTypeDesc(),
 				dimension->GetSynonym()
 			);
 	}
@@ -33,7 +33,7 @@ CValue CAccumulationRegisterManager::Balance(const CValue& cPeriod, const CValue
 	for (auto& obj : m_metaObject->GetObjectResources()) {
 		colCollection->AddColumn(
 			obj->GetName() + "_Balance",
-			obj->GetTypeDescription(),
+			obj->GetTypeDesc(),
 			obj->GetSynonym() + " " + _("Balance")
 		);
 	}
@@ -196,25 +196,25 @@ CValue CAccumulationRegisterManager::Turnovers(const CValue& cBeginOfPeriod, con
 		CValueTable::IValueModelColumnCollection::IValueModelColumnInfo* colInfo =
 			colCollection->AddColumn(
 				dimension->GetName(),
-				dimension->GetTypeDescription(),
+				dimension->GetTypeDesc(),
 				dimension->GetSynonym()
 			);
 	}
 	for (auto& obj : m_metaObject->GetObjectResources()) {
 		colCollection->AddColumn(
 			obj->GetName() + wxT("_Turnover"),
-			obj->GetTypeDescription(),
+			obj->GetTypeDesc(),
 			obj->GetSynonym() + " " + _("Turnover")
 		);
 		if (m_metaObject->GetRegisterType() == eRegisterType::eBalances) {
 			colCollection->AddColumn(
 				obj->GetName() + wxT("_Receipt"),
-				obj->GetTypeDescription(),
+				obj->GetTypeDesc(),
 				obj->GetSynonym() + " " + _("Receipt")
 			);
 			colCollection->AddColumn(
 				obj->GetName() + wxT("_Expense"),
-				obj->GetTypeDescription(),
+				obj->GetTypeDesc(),
 				obj->GetSynonym() + " " + _("Expense")
 			);
 		}

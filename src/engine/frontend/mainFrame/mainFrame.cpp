@@ -73,7 +73,7 @@ CDocMDIFrame::CDocMDIFrame(const wxString& title,
 	Create(title, pos, size, style | wxNO_FULL_REPAINT_ON_RESIZE);
 }
 
-#include "backend/compiler/value/value.h"
+#include "backend/compiler/value.h"
 
 bool CDocMDIFrame::Create(const wxString& title,
 	const wxPoint& pos,

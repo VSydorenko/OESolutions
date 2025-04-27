@@ -1,5 +1,5 @@
 #include "uniqueKey.h"
-#include "metaCollection/partial/object.h"
+#include "metaCollection/partial/commonObject.h"
 
 bool CUniqueKey::isValid() const
 {

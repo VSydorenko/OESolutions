@@ -6,7 +6,7 @@
 #include "informationRegisterManager.h"
 #include "backend/metaData.h"
 
-#include "object.h"
+#include "commonObject.h"
 
 wxIMPLEMENT_DYNAMIC_CLASS(CInformationRegisterManager, CValue);
 

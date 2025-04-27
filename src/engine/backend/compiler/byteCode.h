@@ -1,7 +1,7 @@
-#ifndef _BYTE_CODE_H__
-#define _BYTE_CODE_H__
+#ifndef __BYTE_CODE_H__
+#define __BYTE_CODE_H__
 
-#include "backend/compiler/value/value.h"
+#include "backend/compiler/value.h"
 
 struct CParamUnit {
 

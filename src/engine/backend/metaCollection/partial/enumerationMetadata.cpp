@@ -7,8 +7,6 @@
 #include "backend/metaData.h"
 #include "list/objectList.h"
 
-#define managerModule wxT("managerModule")
-
 wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectEnumeration, IMetaObjectRecordDataEnumRef)
 
 //********************************************************************************************
@@ -22,8 +20,6 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectEnumeration, IMetaObjectRecordDataEnumRef)
 
 CMetaObjectEnumeration::CMetaObjectEnumeration() : IMetaObjectRecordDataEnumRef()
 {
-	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
-
 	m_propertyQuickChoice->SetValue(true);
 }
 
@@ -130,35 +126,29 @@ IBackendValueForm* CMetaObjectEnumeration::GetSelectForm(const wxString& formNam
 	);
 }
 
-OptionList* CMetaObjectEnumeration::GetFormList(PropertyOption*)
+bool CMetaObjectEnumeration::GetFormList(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormList == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), prop);
 		}
 	}
-
-	return optlist;
+	return true; 
 }
 
-OptionList* CMetaObjectEnumeration::GetFormSelect(PropertyOption*)
+bool CMetaObjectEnumeration::GetFormSelect(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormSelect == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true;
 }
 
-wxString CMetaObjectEnumeration::GetDataPresentation(const IObjectValueInfo* objValue) const
+wxString CMetaObjectEnumeration::GetDataPresentation(const IObjectDataValue* objValue) const
 {
 	for (auto &obj : GetObjectEnums()) {
 		if (objValue->GetGuid() == obj->GetGuid()) {

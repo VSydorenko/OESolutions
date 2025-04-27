@@ -471,7 +471,7 @@ void CCodeEditor::ShowMethods()
 	funcList->Destroy();
 }
 
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 
 bool CCodeEditor::SyntaxControl(bool throwMessage) const
 {
@@ -482,7 +482,7 @@ bool CCodeEditor::SyntaxControl(bool throwMessage) const
 	IModuleManager* moduleManager = metaData->GetModuleManager();
 	wxASSERT(moduleManager);
 
-	IModuleInfo* dataRef = nullptr;
+	IModuleDataObject* dataRef = nullptr;
 	if (moduleManager->FindCompileModule(metaObject, dataRef)) {
 		CCompileModule* compileModule = dataRef->GetCompileModule();
 		try {
@@ -891,7 +891,7 @@ void CCodeEditor::OnTextChange(wxStyledTextEvent& event)
 			if (hasChanged) {
 				IModuleManager* moduleManager = metaData->GetModuleManager();
 				wxASSERT(moduleManager);
-				IModuleInfo* pRefData = nullptr;
+				IModuleDataObject* pRefData = nullptr;
 				if (moduleManager->FindCompileModule(m_document->GetMetaObject(), pRefData)) {
 					CCompileCode* compileModule = pRefData->GetCompileModule();
 					wxASSERT(compileModule);

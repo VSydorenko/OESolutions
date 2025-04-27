@@ -1,7 +1,5 @@
 #ifndef _TYPECONV_H__
 #define _TYPECONV_H__
-
-#include "types.h"
 #include "number.h"
 #include "fontcontainer.h"
 

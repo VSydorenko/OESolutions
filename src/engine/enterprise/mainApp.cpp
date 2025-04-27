@@ -70,7 +70,10 @@ bool CEnterpriseApp::OnCmdLineParsed(wxCmdLineParser& parser)
 	return wxApp::OnCmdLineParsed(parser);
 }
 #endif
+
 //////////////////////////////////////////////////////////////////////////////////
+
+#include "backend/backend_exception.h"
 
 bool CEnterpriseApp::OnInit()
 {
@@ -176,7 +179,7 @@ void CEnterpriseApp::OnUnhandledException()
 	wxApp::OnUnhandledException();
 }
 
-#include "backend/compiler/value/valueOLE.h"
+#include "backend/system/value/valueOLE.h"
 
 void CEnterpriseApp::OnFatalException()
 {

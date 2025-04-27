@@ -5,13 +5,13 @@
 
 #include "moduleManager.h"
 
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 #include "backend/appData.h"
 
 wxIMPLEMENT_DYNAMIC_CLASS(IModuleManager::CModuleUnit, CValue);
 
 IModuleManager::CModuleUnit::CModuleUnit(IModuleManager *moduleManager, CMetaObjectModule *moduleObject, bool managerModule) :
-	CValue(eValueTypes::TYPE_VALUE, true), IModuleInfo(new CCompileCommonModule(moduleObject)),
+	CValue(eValueTypes::TYPE_VALUE, true), IModuleDataObject(new CCompileCommonModule(moduleObject)),
 	m_methodHelper(new CMethodHelper()),
 	m_moduleManager(moduleManager),
 	m_moduleObject(moduleObject)
@@ -88,14 +88,14 @@ void IModuleManager::CModuleUnit::PrepareNames() const
 
 bool IModuleManager::CModuleUnit::CallAsProc(const long lMethodNum, CValue** paParams, const long lSizeArray)
 {
-	return IModuleInfo::ExecuteProc(
+	return IModuleDataObject::ExecuteProc(
 		GetMethodName(lMethodNum), paParams, lSizeArray
 	);
 }
 
 bool IModuleManager::CModuleUnit::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)
 {
-	return IModuleInfo::ExecuteFunc(
+	return IModuleDataObject::ExecuteFunc(
 		GetMethodName(lMethodNum), pvarRetValue, paParams, lSizeArray
 	);
 }

@@ -6,7 +6,7 @@
 #include "codeEditor.h"
 #include "backend/debugger/debugClient.h"
 #include "frontend/docView/docView.h"
-#include "backend/wrapper/managerInfo.h"
+#include "backend/managerInfo.h"
 
 #include "codeEditorParser.h"
 #include "backend/metaCollection/metaModuleObject.h"
@@ -38,7 +38,7 @@ void CCodeEditor::AddKeywordFromObject(const CValue& vObject)
 				wxEmptyString
 			);
 		}
-		IModuleInfo* moduleInfo = dynamic_cast<IModuleInfo*>(vObject.GetRef());
+		IModuleDataObject* moduleInfo = dynamic_cast<IModuleDataObject*>(vObject.GetRef());
 		if (moduleInfo != nullptr) {
 			CMetaObjectModule* computeModuleObject = moduleInfo->GetMetaObject();
 			if (computeModuleObject != nullptr) {
@@ -379,7 +379,7 @@ void CCodeEditor::LoadCallTip()
 					}
 				}
 
-				IModuleInfo* moduleInfo = dynamic_cast<IModuleInfo*>(vObject.GetRef());
+				IModuleDataObject* moduleInfo = dynamic_cast<IModuleDataObject*>(vObject.GetRef());
 				if (moduleInfo) {
 					CMetaObjectModule* computeModuleObject = moduleInfo->GetMetaObject();
 					if (computeModuleObject) {
@@ -462,8 +462,8 @@ void CCodeEditor::LoadSysKeyword()
 
 	for (int i = 0; i < LastKeyWord; i++) {
 		ac.Append(eContentType::eVariable,
-			s_listKeyWord[i].Eng,
-			s_listKeyWord[i].strShortDescription
+			s_listKeyWord[i].m_strKeyWord,
+			s_listKeyWord[i].m_strShortDescription
 		);
 	}
 

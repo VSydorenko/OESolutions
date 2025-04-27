@@ -5,7 +5,7 @@
 
 #include "appData.h"
 
-bool CMetaObject::ExecuteSystemSQLCommand()
+bool CMetaObjectConfiguration::ExecuteSystemSQLCommand()
 {
 	int retCode = DATABASE_LAYER_QUERY_RESULT_ERROR;
 	if (db_query->GetDatabaseLayerType() == DATABASELAYER_POSTGRESQL) {

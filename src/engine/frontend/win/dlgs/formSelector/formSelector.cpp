@@ -5,7 +5,7 @@
 
 #include "formSelector.h"
 #include "backend/metaCollection/metaFormObject.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "frontend/mainFrame/mainFrame.h"
 
 CDialogSelectTypeForm::CDialogSelectTypeForm(IMetaObject*metaValue, IMetaObjectForm *metaObject)

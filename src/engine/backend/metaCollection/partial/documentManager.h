@@ -2,7 +2,7 @@
 #define _MANAGER_DOCUMENT_H__
 
 #include "document.h"
-#include "backend/wrapper/managerInfo.h"
+#include "backend/managerInfo.h"
 
 class CDocumentManager : public CValue,
 	public IMetaManagerInfo {

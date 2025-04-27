@@ -6,7 +6,7 @@
 #include "metaFormObject.h"
 #include "backend/databaseLayer/databaseLayer.h"
 #include "backend/metaData.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "backend/appData.h"
 
 //***********************************************************************
@@ -128,18 +128,24 @@ bool CMetaObjectForm::SaveData(CMemoryWriter& writer)
 	return IMetaObjectForm::SaveData(writer);
 }
 
-OptionList* CMetaObjectForm::GetFormType(PropertyOption*)
+bool CMetaObjectForm::GetFormType(CPropertyList* prop)
 {
 	IMetaObjectGenericData* metaObject = wxDynamicCast(
 		GetParent(), IMetaObjectGenericData
 	);
-
 	wxASSERT(metaObject);
-
-	OptionList* optionlist = metaObject->GetFormType();
-	optionlist->AddOption(formDefaultName, defaultFormType);
-
-	return optionlist;
+	prop->AppendItem(formDefaultName, defaultFormType, wxEmptyValue);
+	CFormTypeList formList = metaObject->GetFormType();
+	for (unsigned int idx = 0; idx < formList.GetItemCount(); idx++) {
+		prop->AppendItem(
+			formList.GetItemName(idx), 
+			formList.GetItemLabel(idx), 
+			formList.GetItemHelp(idx), 
+			formList.GetItemId(idx), 
+			formList.GetItemName(idx)
+		);
+	}
+	return true;
 }
 
 //***********************************************************************
@@ -286,5 +292,5 @@ bool CMetaObjectCommonForm::OnAfterCloseMetaObject()
 //*                       Register in runtime                           *
 //***********************************************************************
 
-METADATA_TYPE_REGISTER(CMetaObjectForm, "baseForm", g_metaFormCLSID);
+METADATA_TYPE_REGISTER(CMetaObjectForm, "form", g_metaFormCLSID);
 METADATA_TYPE_REGISTER(CMetaObjectCommonForm, "commonForm", g_metaCommonFormCLSID);

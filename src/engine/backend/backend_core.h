@@ -91,9 +91,15 @@ enum eValueTypes {
 #define version_generate(major, minor, release) \
 		( (major * 1000) + (minor * 100) + release )
 
-#define version_oes_1_0_0 version_generate(1, 0, 0)	
-#define version_oes_last  version_oes_1_0_0
+enum eProgramVersion {
+	version_oes_1_0_0 = version_generate(1, 0, 0),
+	version_oes_1_0_1 = version_generate(1, 0, 1),
+	version_oes_last  = version_oes_1_0_1
+};
 
 //*******************************************************************************************
+
+#define COMPONENT_TYPE_ABSTRACT		 0
+#define COMPONENT_TYPE_METADATA		 COMPONENT_TYPE_ABSTRACT
 
 #endif 

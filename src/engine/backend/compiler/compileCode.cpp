@@ -6,7 +6,7 @@
 #include "compileCode.h"
 #include "codeDef.h"
 
-#include "systemManager/systemManager.h"
+#include "system/systemManager.h"
 
 #pragma warning(push)
 #pragma warning(disable : 4018)
@@ -435,7 +435,7 @@ void CCompileCode::GETKeyWord(int nKey)
 	if (!(lex.m_lexType == KEYWORD && lex.m_numData == nKey)) {
 		m_numCurrentCompile--;
 		SetError(ERROR_KEYWORD,
-			wxString::Format(wxT("%s"), s_listKeyWord[nKey].Eng)
+			wxString::Format(wxT("%s"), s_listKeyWord[nKey].m_strKeyWord)
 		);
 	}
 }

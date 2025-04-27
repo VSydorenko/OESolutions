@@ -12,7 +12,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(CValueHTMLBox, IValueWindow);
 
 CValueHTMLBox::CValueHTMLBox() : IValueWindow()
 {
-	*m_propertyMinSize = wxSize(250, 150);
+	m_propertyMinSize->SetValue(wxSize(250, 150));
 }
 
 wxObject* CValueHTMLBox::Create(wxWindow* wxparent, IVisualHost* visualHost)

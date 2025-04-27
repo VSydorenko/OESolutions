@@ -11,40 +11,35 @@ enum eRecordType {
 	eReceipt
 };
 
-#include "backend/compiler/enumObject.h"
+#pragma region enumeration
+#include "backend/compiler/enumUnit.h"
+class CValueEnumAccumulationRegisterType : public IEnumeration<eRegisterType> {
+	wxDECLARE_DYNAMIC_CLASS(CValueEnumAccumulationRegisterType);
+public:
+	CValueEnumAccumulationRegisterType() : IEnumeration() {}
+	//CValueEnumAccumulationRegisterType(eRegisterType mode) : IEnumeration(mode) {}
 
+	virtual void CreateEnumeration() {
+		AddEnumeration(eRegisterType::eBalances, wxT("balances"));
+		AddEnumeration(eRegisterType::eTurnovers, wxT("turnovers"));
+	}
+};
 class CValueEnumAccumulationRegisterRecordType : public IEnumeration<eRecordType> {
 	wxDECLARE_DYNAMIC_CLASS(CValueEnumAccumulationRegisterRecordType);
 public:
-
-	static CValue CreateDefEnumValue();
-
-	CValueEnumAccumulationRegisterRecordType() : IEnumeration() {
-		InitializeEnumeration();
+	static CValue CreateDefEnumValue() {
+		return CValue::CreateEnumObject<CValueEnumAccumulationRegisterRecordType>(eRecordType::eExpense);
 	}
+	
+	CValueEnumAccumulationRegisterRecordType() : IEnumeration() {}
+	//CValueEnumAccumulationRegisterRecordType(eRecordType recordType) : IEnumeration(recordType) {}
 
-	CValueEnumAccumulationRegisterRecordType(eRecordType recordType) : IEnumeration(recordType) {
-		InitializeEnumeration(recordType);
-	}
-
-protected:
-
-	void CreateEnumeration(){
+	virtual void CreateEnumeration() {
 		AddEnumeration(eExpense, wxT("expense"));
 		AddEnumeration(eReceipt, wxT("receipt"));
 	}
-
-	virtual void InitializeEnumeration() override {
-		CreateEnumeration();
-		IEnumeration::InitializeEnumeration();
-	}
-
-	virtual void InitializeEnumeration(eRecordType value) override {
-		CreateEnumeration();
-		IEnumeration::InitializeEnumeration(value);
-	}
 };
-
 const class_identifier_t g_enumRecordTypeCLSID = string_to_clsid("EN_RETP");
+#pragma endregion 
 
 #endif

@@ -1,28 +1,32 @@
 #include "catalog.h"
+#include "backend/metadata.h"
+#include "backend/objCtor.h"
 
-void CMetaObjectCatalog::OnPropertyCreated(Property* property)
+void CMetaObjectCatalog::OnPropertyCreated(IProperty* property)
 {
-	if (m_propertyOwners == property) {
-		CMetaObjectCatalog::SaveToVariant(m_propertyOwners->GetValue(), m_metaData);
-	}
 	IMetaObjectRecordDataMutableRef::OnPropertyCreated(property);
 }
 
-bool CMetaObjectCatalog::OnPropertyChanging(Property* property, const wxVariant& newValue)
+bool CMetaObjectCatalog::OnPropertyChanging(IProperty* property, const wxVariant& newValue)
 {
-	if (m_propertyOwners == property && !CMetaObjectCatalog::LoadFromVariant(newValue))
-		return true;
 	return IMetaObjectRecordDataMutableRef::OnPropertyChanging(property, newValue);
 }
 
-void CMetaObjectCatalog::OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue)
+void CMetaObjectCatalog::OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue)
 {
-	if (m_attributeOwner->GetClsidCount() > 0) {
-		m_attributeOwner->ClearFlag(metaDisableFlag);
+	if (m_propertyOwner == property) {
+		const CMetaDescription& metaDesc = m_propertyOwner->GetValueAsMetaDesc(); CTypeDescription typeDesc;
+		for (unsigned int idx = 0; idx < metaDesc.GetTypeCount(); idx++) {
+			const IMetaObject* catalog = m_metaData->GetMetaObject(metaDesc.GetByIdx(idx));
+			if (catalog != nullptr) {
+				IMetaValueTypeCtor* so = m_metaData->GetTypeCtor(catalog, eCtorMetaType::eCtorMetaType_Reference);
+				wxASSERT(so);
+				typeDesc.AppendMetaType(so->GetClassType());
+			}
+		}
+		m_attributeOwner->SetDefaultMetaType(typeDesc);
 	}
-	else {
-		m_attributeOwner->SetFlag(metaDisableFlag);
-	}
-
+	if (m_attributeOwner->GetClsidCount() > 0) m_attributeOwner->ClearFlag(metaDisableFlag);
+	else m_attributeOwner->SetFlag(metaDisableFlag);
 	IMetaObjectRecordDataMutableRef::OnPropertyChanged(property, oldValue, newValue);
 }

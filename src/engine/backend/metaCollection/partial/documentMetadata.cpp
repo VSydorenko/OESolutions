@@ -8,9 +8,6 @@
 #include "backend/metaData.h"
 #include "backend/moduleManager/moduleManager.h"
 
-#define objectModule wxT("objectModule")
-#define managerModule wxT("managerModule")
-
 wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectDocument, IMetaObjectRecordDataMutableRef);
 
 //********************************************************************************************
@@ -32,14 +29,6 @@ public:
 
 CMetaObjectDocument::CMetaObjectDocument() : IMetaObjectRecordDataMutableRef()
 {
-	//create default attributes
-	m_attributeNumber = IMetaObjectContextData::CreateString(wxT("number"), _("Number"), wxEmptyString, 11, true);
-	m_attributeDate = IMetaObjectContextData::CreateDate(wxT("date"), _("Date"), wxEmptyString, eDateFractions::eDateFractions_DateTime, true);
-	m_attributePosted = IMetaObjectContextData::CreateBoolean(wxT("posted"), _("Posted"), wxEmptyString);
-
-	//create module
-	m_moduleObject = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectModule>(objectModule);
-
 	//set default proc
 	m_moduleObject->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, { "cancel", "writeMode", "postingMode" });
 	m_moduleObject->SetDefaultProcedure("onWrite", eContentHelper::eProcedureHelper, { "cancel" });
@@ -51,8 +40,6 @@ CMetaObjectDocument::CMetaObjectDocument() : IMetaObjectRecordDataMutableRef()
 
 	m_moduleObject->SetDefaultProcedure("filling", eContentHelper::eProcedureHelper, { "source", "standartProcessing" });
 	m_moduleObject->SetDefaultProcedure("onCopy", eContentHelper::eProcedureHelper, { "source" });
-
-	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
 }
 
 CMetaObjectDocument::~CMetaObjectDocument()
@@ -222,49 +209,40 @@ IBackendValueForm* CMetaObjectDocument::GetSelectForm(const wxString& formName, 
 	);
 }
 
-OptionList* CMetaObjectDocument::GetFormObject(PropertyOption*)
+bool CMetaObjectDocument::GetFormObject(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormObject == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true;
 }
 
-OptionList* CMetaObjectDocument::GetFormList(PropertyOption*)
+bool CMetaObjectDocument::GetFormList(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormList == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true;
 }
 
-OptionList* CMetaObjectDocument::GetFormSelect(PropertyOption*)
+bool CMetaObjectDocument::GetFormSelect(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormSelect == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true;
 }
 
-wxString CMetaObjectDocument::GetDataPresentation(const IObjectValueInfo* objValue) const
+wxString CMetaObjectDocument::GetDataPresentation(const IObjectDataValue* objValue) const
 {
 	CValue vDate, vNumber;
 	if (!objValue->GetValueByMetaID(m_attributeDate->GetMetaID(), vDate))
@@ -299,45 +277,46 @@ std::vector<IMetaObjectAttribute*> CMetaObjectDocument::GetSearchedAttributes() 
 
 bool CMetaObjectDocument::LoadFromVariant(const wxVariant& variant)
 {
-	std::set<meta_identifier_t> prevRecords = m_recordData.m_data;
-	if (m_recordData.LoadFromVariant(variant)) {
-		std::set<meta_identifier_t> records = m_recordData.m_data;
-		for (auto record : prevRecords) {
-			auto& it = records.find(record);
-			if (it != records.end())
-				continue;
-			IMetaObjectRegisterData* registerData = wxDynamicCast(
-				m_metaData->GetMetaObject(record), IMetaObjectRegisterData
-			);
-			if (registerData != nullptr) {
-				CMetaObjectAttributeDefault* infoRecorder = registerData->GetRegisterRecorder();
-				infoRecorder->ClearMetatype(
-					m_attributeReference->GetClsids()
-				);
-			}
-		}
-		for (auto record : records) {
-			auto& it = prevRecords.find(record);
-			if (it != prevRecords.end())
-				continue;
-			IMetaObjectRegisterData* registerData = wxDynamicCast(
-				m_metaData->GetMetaObject(record), IMetaObjectRegisterData
-			);
-			if (registerData != nullptr) {
-				CMetaObjectAttributeDefault* infoRecorder = registerData->GetRegisterRecorder();
-				infoRecorder->SetMetatype(
-					m_attributeReference->GetClsids()
-				);
-			}
-		}
-		return true;
-	}
-	return false;
+	//std::set<meta_identifier_t> prevRecords = m_recordData.m_data;
+	//if (m_recordData.LoadFromVariant(variant)) {
+	//	std::set<meta_identifier_t> records = m_recordData.m_data;
+	//	for (auto record : prevRecords) {
+	//		auto& it = records.find(record);
+	//		if (it != records.end())
+	//			continue;
+	//		IMetaObjectRegisterData* registerData = wxDynamicCast(
+	//			m_metaData->GetMetaObject(record), IMetaObjectRegisterData
+	//		);
+	//		if (registerData != nullptr) {
+	//			CMetaObjectAttributeDefault* infoRecorder = registerData->GetRegisterRecorder();
+	//			infoRecorder->ClearMetaType(
+	//				m_attributeReference->GetClsidList()
+	//			);
+	//		}
+	//	}
+	//	for (auto record : records) {
+	//		auto& it = prevRecords.find(record);
+	//		if (it != prevRecords.end())
+	//			continue;
+	//		IMetaObjectRegisterData* registerData = wxDynamicCast(
+	//			m_metaData->GetMetaObject(record), IMetaObjectRegisterData
+	//		);
+	//		if (registerData != nullptr) {
+	//			CMetaObjectAttributeDefault* infoRecorder = registerData->GetRegisterRecorder();
+	//			infoRecorder->AppendMetaType(
+	//				m_attributeReference->GetClsidList()
+	//			);
+	//		}
+	//	}
+	//	return true;
+	//}
+	//return false;
+	return true;
 }
 
 void CMetaObjectDocument::SaveToVariant(wxVariant& variant, IMetaData* metaData) const
 {
-	m_recordData.SaveToVariant(variant, metaData);
+	//m_recordData.SaveToVariant(variant, metaData);
 }
 
 //***************************************************************************
@@ -360,7 +339,7 @@ bool CMetaObjectDocument::LoadData(CMemoryReader& dataReader)
 	m_propertyDefFormList->SetValue(GetIdByGuid(dataReader.r_stringZ()));
 	m_propertyDefFormSelect->SetValue(GetIdByGuid(dataReader.r_stringZ()));
 
-	if (!m_recordData.LoadData(dataReader))
+	if (!m_propertyRegisterRecord->LoadData(dataReader))
 		return false;
 
 	return IMetaObjectRecordDataMutableRef::LoadData(dataReader);
@@ -382,7 +361,7 @@ bool CMetaObjectDocument::SaveData(CMemoryWriter& dataWritter)
 	dataWritter.w_stringZ(GetGuidByID(m_propertyDefFormList->GetValueAsInteger()));
 	dataWritter.w_stringZ(GetGuidByID(m_propertyDefFormSelect->GetValueAsInteger()));
 
-	if (!m_recordData.SaveData(dataWritter))
+	if (!m_propertyRegisterRecord->SaveData(dataWritter))
 		return false;
 
 	//create or update table:

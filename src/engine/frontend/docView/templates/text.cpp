@@ -162,7 +162,7 @@ wxPrintout* CTextEditView::OnCreatePrintout()
 }
 
 #include "backend/metaData.h"
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 
 void CTextEditView::OnFind(wxFindDialogEvent& event)
 {

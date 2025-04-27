@@ -3,9 +3,6 @@
 #include "backend/metaData.h"
 #include "backend/moduleManager/moduleManager.h"
 
-#define objectModule wxT("recordSetModule")
-#define managerModule wxT("managerModule")
-
 //***********************************************************************
 //*                         metaData                                    * 
 //***********************************************************************
@@ -18,14 +15,9 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectInformationRegister, IMetaObjectRegisterDat
 CMetaObjectInformationRegister::CMetaObjectInformationRegister() : IMetaObjectRegisterData(),
 m_metaRecordManager(new CMetaObjectRecordManager())
 {
-	//create module
-	m_moduleObject = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectModule>(objectModule);
-
 	//set default proc
 	m_moduleObject->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, { "cancel" });
 	m_moduleObject->SetDefaultProcedure("onWrite", eContentHelper::eProcedureHelper, { "cancel" });
-
-	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
 }
 
 CMetaObjectInformationRegister::~CMetaObjectInformationRegister()
@@ -122,32 +114,26 @@ IBackendValueForm* CMetaObjectInformationRegister::GetListForm(const wxString& f
 
 /////////////////////////////////////////////////////////////////////////////
 
-OptionList* CMetaObjectInformationRegister::GetFormRecord(PropertyOption*)
+bool CMetaObjectInformationRegister::GetFormRecord(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormRecord == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true;
 }
 
-OptionList* CMetaObjectInformationRegister::GetFormList(PropertyOption*)
+bool CMetaObjectInformationRegister::GetFormList(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormList == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true; 
 }
 
 //***************************************************************************

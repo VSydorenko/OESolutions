@@ -10,7 +10,7 @@
 #include "backend/databaseLayer/databaseLayer.h"
 #include "backend/databaseLayer/databaseErrorCodes.h"
 
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 
 bool CTabularSectionDataObjectRef::LoadData(const Guid& srcGuid, bool createData)
 {
@@ -42,7 +42,7 @@ bool CTabularSectionDataObjectRef::LoadData(const Guid& srcGuid, bool createData
 	return true;
 }
 
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 
 bool CTabularSectionDataObjectRef::SaveData()
 {

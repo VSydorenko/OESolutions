@@ -6,9 +6,6 @@
 #include "dataReport.h"
 #include "backend/metaData.h"
 
-#define objectModule wxT("objectModule")
-#define managerModule wxT("managerModule")
-
 wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectReport, IMetaObjectRecordDataExt)
 wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectReportExternal, CMetaObjectReport)
 
@@ -18,10 +15,8 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectReportExternal, CMetaObjectReport)
 
 CMetaObjectReport::CMetaObjectReport(int objMode) : IMetaObjectRecordDataExt(objMode)
 {
-	//create module
-	m_moduleObject = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectModule>(objectModule);
-	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
 }
+
 
 CMetaObjectReport::~CMetaObjectReport()
 {
@@ -73,7 +68,7 @@ IRecordDataObjectExt* CMetaObjectReport::CreateObjectExtValue()
 			}
 		}
 		else {
-			return moduleManager->GetObjectValue();
+			return dynamic_cast<IRecordDataObjectExt*>(moduleManager->GetObjectValue());
 		}
 	}
 	else {
@@ -85,7 +80,7 @@ IRecordDataObjectExt* CMetaObjectReport::CreateObjectExtValue()
 			}
 		}
 		else {
-			return moduleManager->GetObjectValue();
+			return dynamic_cast<IRecordDataObjectExt*>(moduleManager->GetObjectValue());
 		}
 	}
 
@@ -127,18 +122,17 @@ IBackendValueForm* CMetaObjectReport::GetObjectForm(const wxString& formName, IB
 	return defList->GenerateFormAndRun();
 }
 
-OptionList* CMetaObjectReport::GetFormObject(PropertyOption*)
+bool CMetaObjectReport::GetFormObject(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList;
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 
 	for (auto formObject : GetObjectForms()) {
 		if (eFormReport == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
 
-	return optlist;
+	return true; 
 }
 
 //***************************************************************************

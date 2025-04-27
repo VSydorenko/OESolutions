@@ -18,7 +18,7 @@ ISourceObject* CValueCheckbox::GetSourceObject() const
 //*                              Checkbox                                    *
 //****************************************************************************
 
-CValueCheckbox::CValueCheckbox() : IValueWindow(), ITypeControlAttribute(eValueTypes::TYPE_BOOLEAN)
+CValueCheckbox::CValueCheckbox() : IValueWindow(), ITypeControlFactory()//(eValueTypes::TYPE_BOOLEAN)
 {
 }
 
@@ -50,19 +50,28 @@ void CValueCheckbox::Update(wxObject* wxobject, IVisualHost* visualHost)
 
 	if (checkbox != nullptr) {
 		wxString textCaption = wxEmptyString;
-		if (m_dataSource.isValid()) {
-			ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
+		//if (m_dataSource.isValid()) {
+		//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
+		//	if (srcObject != nullptr) {
+		//		IMetaObjectGenericData* objMetaValue = srcObject->GetSourceMetaObject();
+		//		IMetaObject* metaObject = objMetaValue->FindMetaObjectByID(m_dataSource);
+		//		if (metaObject != nullptr) {
+		//			textCaption = metaObject->GetSynonym() + wxT(":");
+		//		}
+		//		srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
+		//	}
+		//}
+
+		if (!m_propertySource->IsEmptyProperty()) {
+			const ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
 			if (srcObject != nullptr) {
-				IMetaObjectGenericData* objMetaValue = srcObject->GetSourceMetaObject();
-				IMetaObject* metaObject = objMetaValue->FindMetaObjectByID(m_dataSource);
-				if (metaObject != nullptr) {
-					textCaption = metaObject->GetSynonym() + wxT(":");
-				}
-				srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
+				const IMetaObject* metaObject = m_propertySource->GetSourceAttributeObject();
+				if (metaObject != nullptr)  textCaption = metaObject->GetSynonym() + wxT(":");	
+				srcObject->GetValueByMetaID(m_propertySource->GetValueAsSource(), m_selValue);
 			}
 		}
 
-		checkbox->SetCheckBoxLabel(!m_propertyCaption->IsOk() ?
+		checkbox->SetCheckBoxLabel(m_propertyCaption->IsEmptyProperty() ?
 			textCaption : m_propertyCaption->GetValueAsString());
 		checkbox->SetCheckBoxValue(m_selValue.GetBoolean());
 		checkbox->SetWindowStyle(
@@ -80,7 +89,7 @@ void CValueCheckbox::Update(wxObject* wxobject, IVisualHost* visualHost)
 void CValueCheckbox::Cleanup(wxObject* obj, IVisualHost* visualHost)
 {
 	CCheckBox* checkbox = dynamic_cast<CCheckBox*>(obj);
-	if (checkbox) {
+	if (checkbox != nullptr) {
 		checkbox->UnbindCheckBoxCtrl(&CValueCheckbox::OnClickedCheckbox, this);
 	}
 }
@@ -91,26 +100,38 @@ void CValueCheckbox::Cleanup(wxObject* obj, IVisualHost* visualHost)
 
 bool CValueCheckbox::GetControlValue(CValue& pvarControlVal) const
 {
-	CValueForm* ownerForm = GetOwnerForm();
-	if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
-		ISourceDataObject* srcObject = ownerForm->GetSourceObject();
-		if (srcObject != nullptr) {
-			return srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), pvarControlVal);
-		}
+	//if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
+	//	ISourceDataObject* srcObject = ownerForm->GetSourceObject();
+	//	if (srcObject != nullptr) {
+	//		return srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), pvarControlVal);
+	//	}
+	//}
+
+	if (!m_propertySource->IsEmptyProperty() && m_formOwner->GetSourceObject()) {
+		ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
+		if (srcObject != nullptr)
+			return srcObject->GetValueByMetaID(m_propertySource->GetValueAsSource(), pvarControlVal);
 	}
+
 	pvarControlVal = m_selValue;
-	return true; 
+	return true;
 }
 
-#include "backend/compiler/value/valueType.h"
+#include "backend/system/value/valueType.h"
 
 bool CValueCheckbox::SetControlValue(const CValue& varControlVal)
 {
-	if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
+	//if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
+	//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
+	//	if (srcObject != nullptr) {
+	//		srcObject->SetValueByMetaID(GetIdByGuid(m_dataSource), varControlVal);
+	//	}
+	//}
+
+	if (!m_propertySource->IsEmptyProperty() && m_formOwner->GetSourceObject()) {
 		ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
-		if (srcObject != nullptr) {
-			srcObject->SetValueByMetaID(GetIdByGuid(m_dataSource), varControlVal);
-		}
+		if (srcObject != nullptr)
+			srcObject->SetValueByMetaID(m_propertySource->GetValueAsSource(), varControlVal);
 	}
 
 	m_selValue = varControlVal.GetBoolean();
@@ -132,10 +153,8 @@ bool CValueCheckbox::LoadData(CMemoryReader& reader)
 	wxString caption; reader.r_stringZ(caption);
 	m_propertyCaption->SetValue(caption);
 	m_propertyTitle->SetValue(reader.r_s32());
-
-	if (!ITypeControlAttribute::LoadTypeData(reader))
+	if (!m_propertySource->LoadData(reader))
 		return false;
-
 	return IValueWindow::LoadData(reader);
 }
 
@@ -143,10 +162,8 @@ bool CValueCheckbox::SaveData(CMemoryWriter& writer)
 {
 	writer.w_stringZ(m_propertyCaption->GetValueAsString());
 	writer.w_s32(m_propertyTitle->GetValueAsInteger());
-
-	if (!ITypeControlAttribute::SaveTypeData(writer))
+	if (!m_propertySource->SaveData(writer))
 		return false;
-
 	return IValueWindow::SaveData(writer);
 }
 

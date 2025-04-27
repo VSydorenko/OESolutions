@@ -5,7 +5,7 @@
 
 #include "metaModuleObject.h"
 #include "backend/databaseLayer/databaseLayer.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "backend/appData.h"
 
 //***********************************************************************
@@ -95,7 +95,7 @@ bool CMetaObjectModule::OnAfterCloseMetaObject()
 
 void CMetaObjectModule::SetDefaultProcedure(const wxString& procname, const eContentHelper& contentHelper, std::vector<wxString> args)
 {
-	m_contentHelper.insert_or_assign(procname, ContentData{ contentHelper , args });
+	m_contentHelper.insert_or_assign(procname, CContentData{ contentHelper , args });
 }
 
 //***********************************************************************
@@ -110,29 +110,29 @@ CMetaObjectCommonModule::CMetaObjectCommonModule(const wxString& name, const wxS
 bool CMetaObjectCommonModule::LoadData(CMemoryReader& reader)
 {
 	reader.r_stringZ(m_moduleData);
-	m_properyGlobalModule->SetValue(reader.r_u8());
+	m_propertyGlobalModule->SetValue(reader.r_u8());
 	return true;
 }
 
 bool CMetaObjectCommonModule::SaveData(CMemoryWriter& writer)
 {
 	writer.w_stringZ(m_moduleData);
-	writer.w_u8(m_properyGlobalModule->GetValueAsBoolean());
+	writer.w_u8(m_propertyGlobalModule->GetValueAsBoolean());
 	return true;
 }
 
-bool CMetaObjectCommonModule::OnPropertyChanging(Property* property, const wxVariant& newValue)
+bool CMetaObjectCommonModule::OnPropertyChanging(IProperty* property, const wxVariant& newValue)
 {
-	if (m_properyGlobalModule == property) {
+	if (m_propertyGlobalModule == property) {
 		return CMetaObjectCommonModule::OnAfterCloseMetaObject();
 	}
 
 	return CMetaObjectModule::OnPropertyChanging(property, newValue);
 }
 
-void CMetaObjectCommonModule::OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue)
+void CMetaObjectCommonModule::OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue)
 {
-	if (m_properyGlobalModule == property) {
+	if (m_propertyGlobalModule == property) {
 		CMetaObjectCommonModule::OnBeforeRunMetaObject(newObjectFlag);
 	}
 

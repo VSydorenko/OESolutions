@@ -7,7 +7,6 @@
 #include "form.h"
 #include "backend/compiler/procUnit.h"
 
-
 wxIMPLEMENT_ABSTRACT_CLASS(IValueFrame, CValue);
 
 //*************************************************************************
@@ -90,7 +89,7 @@ bool IValueFrame::LoadEvent(CMemoryReader& dataReader)
 		wxString eventName, eventValue;
 		dataReader.r_stringZ(eventName);
 		dataReader.r_stringZ(eventValue);
-		Event* objEvent = GetEvent(eventName);
+		IEvent* objEvent = GetEvent(eventName);
 		if (objEvent) {
 			objEvent->SetValue(eventValue);
 		}
@@ -136,10 +135,10 @@ bool IValueFrame::SaveEvent(CMemoryWriter& dataWritter)
 	dataWritter.w_u32(eventCount);
 	// ...and the event handlers
 	for (unsigned i = 0; i < eventCount; i++) {
-		Event* objEvent = GetEvent(i);
+		IEvent* objEvent = GetEvent(i);
 		wxASSERT(objEvent);
 		dataWritter.w_stringZ(objEvent->GetName());
-		dataWritter.w_stringZ(objEvent->GetValue());
+		dataWritter.w_stringZ(objEvent->GetValue().GetString());
 	}
 
 	return true;
@@ -155,7 +154,7 @@ bool IValueFrame::Init()
 
 bool IValueFrame::Init(CValue** paParams, const long lSizeArray)
 {
-	if (lSizeArray < 2) 
+	if (lSizeArray < 2)
 		return false;
 	CValueForm* ownerForm = nullptr;
 	IValueFrame* controlParent = nullptr;
@@ -204,6 +203,13 @@ bool IValueFrame::HasQuickChoice() const {
 
 //*******************************************************************
 
+IBackendValueForm* IValueFrame::GetBackendForm() const
+{
+	return GetOwnerForm();
+}
+
+//*******************************************************************
+
 CVisualDocument* IValueFrame::GetVisualDocument() const
 {
 	CValueForm* const valueForm = GetOwnerForm();
@@ -247,14 +253,7 @@ wxObject* IValueFrame::GetWxObject() const
 	return visualView->GetWxObject((IValueFrame*)this);
 }
 
-#include "backend/metaCollection/partial/object.h"
-#include "backend/srcExplorer.h"
-#include "frame.h"
-
-bool IValueFrame::FilterSource(const CSourceExplorer& src, const meta_identifier_t& id)
-{
-	return !src.IsTableSection();
-}
+#include "backend/metaCollection/partial/commonObject.h"
 
 //****************************************************************************
 //*                              Support methods                             *
@@ -264,7 +263,7 @@ void IValueFrame::PrepareNames() const
 {
 	m_methodHelper->ClearHelper();
 	for (unsigned int idx = 0; idx < IPropertyObject::GetPropertyCount(); idx++) {
-		Property* property = IPropertyObject::GetProperty(idx);
+		IProperty* property = IPropertyObject::GetProperty(idx);
 		if (property == nullptr)
 			continue;
 		m_methodHelper->AppendProp(property->GetName(), idx, eProperty);
@@ -273,7 +272,7 @@ void IValueFrame::PrepareNames() const
 	IValueFrame* sizeritem = GetParent();
 	if (sizeritem != nullptr && sizeritem->GetComponentType() == COMPONENT_TYPE_SIZERITEM) {
 		for (unsigned int idx = 0; idx < sizeritem->GetPropertyCount(); idx++) {
-			Property* property = sizeritem->GetProperty(idx);
+			IProperty* property = sizeritem->GetProperty(idx);
 			if (property == nullptr)
 				continue;
 			m_methodHelper->AppendProp(property->GetName(), idx, eSizerItem);
@@ -290,7 +289,7 @@ bool IValueFrame::SetPropVal(const long lPropNum, const CValue& varPropVal)
 	const long lPropAlias = m_methodHelper->GetPropAlias(lPropNum);
 	if (lPropAlias == eProperty) {
 		unsigned int idx = m_methodHelper->GetPropData(lPropNum);
-		Property* property = GetPropertyByIndex(idx);
+		IProperty* property = GetPropertyByIndex(idx);
 		if (property != nullptr)
 			property->SetDataValue(varPropVal);
 	}
@@ -299,7 +298,7 @@ bool IValueFrame::SetPropVal(const long lPropNum, const CValue& varPropVal)
 		IValueFrame* sizerItem = GetParent();
 		if (sizerItem != nullptr &&
 			sizerItem->GetComponentType() == COMPONENT_TYPE_SIZERITEM) {
-			Property* property = sizerItem->GetPropertyByIndex(lPropNum);
+			IProperty* property = sizerItem->GetPropertyByIndex(lPropNum);
 			if (property != nullptr)
 				property->SetDataValue(varPropVal);
 		}
@@ -347,10 +346,10 @@ bool IValueFrame::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 		if (sizerItem != nullptr &&
 			sizerItem->GetComponentType() == COMPONENT_TYPE_SIZERITEM) {
 			unsigned int idx = m_methodHelper->GetPropData(lPropNum);
-			Property* property = sizerItem->GetPropertyByIndex(idx);
+			IProperty* property = sizerItem->GetPropertyByIndex(idx);
 			if (property != nullptr)
-				pvarPropVal = property->GetDataValue();
-			return true;
+				return property->GetDataValue(pvarPropVal);
+			return false;
 		}
 	}
 	else if (lPropAlias == eEvent) {
@@ -359,10 +358,10 @@ bool IValueFrame::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 	}
 	else {
 		unsigned int idx = m_methodHelper->GetPropData(lPropNum);
-		Property* property = GetPropertyByIndex(idx);
+		IProperty* property = GetPropertyByIndex(idx);
 		if (property != nullptr)
-			pvarPropVal = property->GetDataValue();
-		return true;
+			return property->GetDataValue(pvarPropVal);
+		return false;
 	}
 
 	return false;

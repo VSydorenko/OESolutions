@@ -15,13 +15,7 @@ public:
 	static wxIcon GetIconGroup();
 
 	//get data selector 
-	virtual eSelectorDataType GetSelectorDataType() const {
-		IMetaObject* metaObject = GetParent();
-		wxASSERT(metaObject);
-		if (metaObject->GetClassType() == g_metaInformationRegisterCLSID)
-			return m_parent->GetSelectorDataType();
-		return eSelectorDataType::eSelectorDataType_resource;
-	}
+	virtual eSelectorDataType GetFilterDataType() const;
 };
 
 #endif

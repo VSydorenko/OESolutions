@@ -1,8 +1,7 @@
-#ifndef _INFORMATION_REGISTER_H__
-#define _INFORMATION_REGISTER_H__
+#ifndef __INFORMATION_REGISTER_H__
+#define __INFORMATION_REGISTER_H__
 
-#include "object.h"
-
+#include "commonObject.h"
 #include "informationRegisterEnum.h"
 
 class CMetaObjectInformationRegister : public IMetaObjectRegisterData {
@@ -14,12 +13,11 @@ private:
 		eFormList,
 	};
 
-	virtual OptionList* GetFormType() override
-	{
-		OptionList* optionlist = new OptionList;
-		optionlist->AddOption(wxT("formRecord"), _("Form record"), eFormRecord);
-		optionlist->AddOption(wxT("formList"), _("Form list"), eFormList);
-		return optionlist;
+	virtual CFormTypeList GetFormType() const override {
+		CFormTypeList formList;
+		formList.AppendItem(wxT("formRecord"), _("Form record"), eFormRecord);
+		formList.AppendItem(wxT("formList"), _("Form list"), eFormList);
+		return formList;
 	}
 
 	enum
@@ -28,8 +26,8 @@ private:
 		ID_METATREE_OPEN_MANAGER = 19001,
 	};
 
-	CMetaObjectModule* m_moduleObject;
-	CMetaObjectCommonModule* m_moduleManager;
+	CMetaObjectModule* m_moduleObject = IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("recordSetModule"));
+	CMetaObjectCommonModule* m_moduleManager = IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(wxT("managerModule"));
 
 public:
 	class CMetaObjectRecordManager : public IMetaObject {
@@ -42,47 +40,28 @@ private:
 
 protected:
 
-	PropertyCategory* m_categoryForm = IPropertyObject::CreatePropertyCategory({ "defaultForms", "default forms" });
-	Property* m_propertyDefFormRecord = IPropertyObject::CreateProperty(m_categoryForm, { "default_record", "default record" }, &CMetaObjectInformationRegister::GetFormRecord, wxNOT_FOUND);
-	Property* m_propertyDefFormList = IPropertyObject::CreateProperty(m_categoryForm, { "default_list", "default list" }, &CMetaObjectInformationRegister::GetFormList, wxNOT_FOUND);
+	CPropertyCategory* m_categoryForm = IPropertyObject::CreatePropertyCategory(wxT("defaultForms"), _("default forms"));
+	CPropertyList* m_propertyDefFormRecord = IPropertyObject::CreateProperty<CPropertyList>(m_categoryForm, wxT("defaultFormRecord"), _("default record"), &CMetaObjectInformationRegister::GetFormRecord, wxNOT_FOUND);
+	CPropertyList* m_propertyDefFormList = IPropertyObject::CreateProperty<CPropertyList>(m_categoryForm, wxT("defaultFormList"), _("default list"), &CMetaObjectInformationRegister::GetFormList, wxNOT_FOUND);
 
-	PropertyCategory* m_categoryData = IPropertyObject::CreatePropertyCategory("data");
-	Property* m_propertyPeriodicity = IPropertyObject::CreateProperty(m_categoryData, { "periodicity", "periodicity" }, &CMetaObjectInformationRegister::GetPeriodicity, ePeriodicity::eNonPeriodic);
-	Property* m_propertyWriteMode = IPropertyObject::CreateProperty(m_categoryData, { "write_mode", "write mode" }, &CMetaObjectInformationRegister::GetWriteMode, eWriteRegisterMode::eIndependent);
+	CPropertyCategory* m_categoryData = IPropertyObject::CreatePropertyCategory(wxT("data"), _("data"));
+	CPropertyEnum<CValueEnumPeriodicity>* m_propertyPeriodicity = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumPeriodicity>>(m_categoryData, wxT("periodicity"), _("periodicity"), ePeriodicity::eNonPeriodic);
+	CPropertyEnum<CValueEnumWriteRegisterMode>* m_propertyWriteMode = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumWriteRegisterMode>>(m_categoryData, wxT("writeMode"), _("write mode"), eWriteRegisterMode::eIndependent);
 
 private:
-
-	OptionList* GetPeriodicity(PropertyOption*) {
-		OptionList* optionlist = new OptionList;
-		optionlist->AddOption(_("non-periodic"), eNonPeriodic);
-		optionlist->AddOption(_("within a second"), eWithinSecond);
-		optionlist->AddOption(_("within a day"), eWithinDay);
-
-		return optionlist;
-	}
-
-	OptionList* GetWriteMode(PropertyOption*) {
-		OptionList* optionlist = new OptionList;
-		optionlist->AddOption(_("independent"), eIndependent);
-		optionlist->AddOption(_("subordinate to recorder"), eSubordinateRecorder);
-
-		return optionlist;
-	}
-
-	OptionList* GetFormRecord(PropertyOption*);
-	OptionList* GetFormList(PropertyOption*);
-
+	bool GetFormRecord(CPropertyList* prop);
+	bool GetFormList(CPropertyList* prop);
 public:
 
 	CMetaObjectInformationRegister();
 	virtual ~CMetaObjectInformationRegister();
 
 	eWriteRegisterMode GetWriteRegisterMode() const {
-		return (eWriteRegisterMode)m_propertyWriteMode->GetValueAsInteger();
+		return m_propertyWriteMode->GetValueAsEnum();
 	}
 
 	ePeriodicity GetPeriodicity() const {
-		return (ePeriodicity)m_propertyPeriodicity->GetValueAsInteger();
+		return m_propertyPeriodicity->GetValueAsEnum();
 	}
 
 	bool CreateAndUpdateSliceFirstTableDB(IMetaDataConfiguration* srcMetaData, IMetaObject* srcMetaObject, int flags);
@@ -119,27 +98,15 @@ public:
 	virtual std::vector<IMetaObjectAttribute*> GetGenericDimensions() const;
 
 	//has record manager 
-	virtual bool HasRecordManager() const {
-		return GetWriteRegisterMode() == eWriteRegisterMode::eIndependent;
-	}
+	virtual bool HasRecordManager() const { return GetWriteRegisterMode() == eWriteRegisterMode::eIndependent; }
 
 	//has recorder and period 
-	virtual bool HasPeriod() const {
-		return GetPeriodicity() != ePeriodicity::eNonPeriodic;
-	}
-
-	virtual bool HasRecorder() const {
-		return GetWriteRegisterMode() == eWriteRegisterMode::eSubordinateRecorder;
-	}
+	virtual bool HasPeriod() const { return GetPeriodicity() != ePeriodicity::eNonPeriodic; }
+	virtual bool HasRecorder() const { return GetWriteRegisterMode() == eWriteRegisterMode::eSubordinateRecorder; }
 
 	//get module object in compose object 
-	virtual CMetaObjectModule* GetModuleObject() const {
-		return m_moduleObject;
-	}
-
-	virtual CMetaObjectCommonModule* GetModuleManager() const {
-		return m_moduleManager;
-	}
+	virtual CMetaObjectModule* GetModuleObject() const { return m_moduleObject; }
+	virtual CMetaObjectCommonModule* GetModuleManager() const { return m_moduleManager; }
 
 	//create associate value 
 	virtual CMetaObjectForm* GetDefaultFormByID(const form_identifier_t& id);
@@ -168,7 +135,7 @@ public:
 	/**
 	* Property events
 	*/
-	virtual void OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue);
+	virtual void OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue);
 
 protected:
 

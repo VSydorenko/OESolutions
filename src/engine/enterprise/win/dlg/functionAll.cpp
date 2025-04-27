@@ -100,7 +100,7 @@ void CDialogFunctionAll::OnTreeCtrlElementsOnLeftDClick(wxMouseEvent& event)
 
 	CMetaDataItem* itemData = dynamic_cast<CMetaDataItem*>(m_treeCtrlElements->GetItemData(selItem));
 	if (itemData != nullptr) {
-		IMetaCommandData* metaObject = dynamic_cast<IMetaCommandData*>(itemData->GetMetaObject());
+		IBackendCommandData* metaObject = dynamic_cast<IBackendCommandData*>(itemData->GetMetaObject());
 		if (metaObject != nullptr) {
 			IBackendValueForm* valueForm = nullptr;
 			try {

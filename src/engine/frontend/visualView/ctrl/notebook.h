@@ -18,105 +18,91 @@ const class_identifier_t g_controlNotebookPageCLSID = string_to_clsid("CT_NTPG")
 //*                                 Value Notebook                                           *
 //********************************************************************************************
 
-#include "frontend/visualView/special/enums/valueOrient.h"
-
 class CValueNotebook : public IValueWindow {
-	wxDECLARE_DYNAMIC_CLASS(CValueNotebook);
+    wxDECLARE_DYNAMIC_CLASS(CValueNotebook);
 protected:
 
-	friend class CValueNotebookPage;
+    friend class CValueNotebookPage;
 
-	OptionList* GetOrientPage(PropertyOption* property) {
-		OptionList* optList = new OptionList();
-		optList->AddOption(_("top"), wxAUI_NB_TOP);
-		//optList->AddOption(_("Left", wxAUI_NB_LEFT);
-		//optList->AddOption(_("Right", wxAUI_NB_RIGHT);
-		optList->AddOption(_("bottom"), wxAUI_NB_BOTTOM);
-		return optList;
-	}
-
-	PropertyCategory* m_categoryNotebook = IPropertyObject::CreatePropertyCategory("Notebook");
-	Property* m_propertyOrient = IPropertyObject::CreateProperty(m_categoryNotebook, "orient_page", &CValueNotebook::GetOrientPage, wxAUI_NB_TOP);
-	PropertyCategory* m_categoryEvent = IPropertyObject::CreatePropertyCategory("Event");
-	Event* m_eventOnPageChanged = IPropertyObject::CreateEvent(m_categoryEvent, "onPageChanged", { "page" });
+    CPropertyCategory* m_categoryNotebook = IPropertyObject::CreatePropertyCategory(wxT("notebook"), _("notebook"));
+    CPropertyEnum<CValueEnumOrientNotebookPage>* m_propertyOrient = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumOrientNotebookPage>>(m_categoryNotebook, wxT("orientPage"), _("orient page"), wxAUI_NB_TOP);
+    CPropertyCategory* m_categoryEvent = IPropertyObject::CreatePropertyCategory(wxT("event"), _("event"));
+    CEventControl* m_eventOnPageChanged = IPropertyObject::CreateEvent<CEventControl>(m_categoryEvent, wxT("onPageChanged"), wxArrayString{wxT("page")});
 
 private:
-	CValueNotebookPage* m_activePage;
-	std::vector< CValueNotebookPage*> m_aPages;
+    CValueNotebookPage* m_activePage;
+    std::vector< CValueNotebookPage*> m_aPages;
 public:
 
-	CValueNotebook();
+    CValueNotebook();
 
-	virtual wxObject* Create(wxWindow* wxparent, IVisualHost* visualHost) override;
-	virtual void OnCreated(wxObject* wxobject, wxWindow* wxparent, IVisualHost* visualHost, bool first—reated) override;
-	virtual void OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVisualHost* visualHost) override;
-	virtual void OnSelected(wxObject* wxobject) override;
-	virtual void Update(wxObject* wxobject, IVisualHost* visualHost) override;
-	virtual void Cleanup(wxObject* obj, IVisualHost* visualHost) override;
+    virtual wxObject* Create(wxWindow* wxparent, IVisualHost* visualHost) override;
+    virtual void OnCreated(wxObject* wxobject, wxWindow* wxparent, IVisualHost* visualHost, bool first—reated) override;
+    virtual void OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVisualHost* visualHost) override;
+    virtual void OnSelected(wxObject* wxobject) override;
+    virtual void Update(wxObject* wxobject, IVisualHost* visualHost) override;
+    virtual void Cleanup(wxObject* obj, IVisualHost* visualHost) override;
 
-	//methods 
-	virtual void PrepareNames() const;                          // this method is automatically called to initialize attribute and method names.
-	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray) override;       //method call
+    //methods 
+    virtual void PrepareNames() const;                          // this method is automatically called to initialize attribute and method names.
+    virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray) override;       //method call
 
-	/**
-	* Support default menu
-	*/
-	virtual void PrepareDefaultMenu(wxMenu* m_menu);
-	virtual void ExecuteMenu(IVisualHost* visualHost, int id);
+    /**
+    * Support default menu
+    */
+    virtual void PrepareDefaultMenu(wxMenu* m_menu);
+    virtual void ExecuteMenu(IVisualHost* visualHost, int id);
 
-	void AddNotebookPage();
+    void AddNotebookPage();
 
-	//support icons
-	virtual wxIcon GetIcon() const;
-	static wxIcon GetIconGroup();
+    //support icons
+    virtual wxIcon GetIcon() const;
+    static wxIcon GetIconGroup();
 
-	//load & save object in control 
-	virtual bool LoadData(CMemoryReader& reader);
-	virtual bool SaveData(CMemoryWriter& writer = CMemoryWriter());
+    //load & save object in control 
+    virtual bool LoadData(CMemoryReader& reader);
+    virtual bool SaveData(CMemoryWriter& writer = CMemoryWriter());
 
 protected:
 
-	//Events
-	void OnPageChanged(wxAuiNotebookEvent& event);
-	void OnBGDClick(wxAuiNotebookEvent& event);
-	void OnEndDrag(wxAuiNotebookEvent& event);
+    //Events
+    void OnPageChanged(wxAuiNotebookEvent& event);
+    void OnBGDClick(wxAuiNotebookEvent& event);
+    void OnEndDrag(wxAuiNotebookEvent& event);
 };
 
 class CValueNotebookPage : public IValueControl {
-	wxDECLARE_DYNAMIC_CLASS(CValueNotebookPage);
+    wxDECLARE_DYNAMIC_CLASS(CValueNotebookPage);
 protected:
-	PropertyCategory* m_categoryPage = IPropertyObject::CreatePropertyCategory("Page");
-	Property* m_propertyCaption = IPropertyObject::CreateProperty(m_categoryPage, "caption", PropertyType::PT_WXSTRING, _("New page"));
-	Property* m_propertyVisible = IPropertyObject::CreateProperty(m_categoryPage, "visible", PropertyType::PT_BOOL, true);
-	Property* m_propertyIcon = IPropertyObject::CreateProperty(m_categoryPage, "icon", PropertyType::PT_BITMAP);
-
-	PropertyCategory* m_categorySizer = IPropertyObject::CreatePropertyCategory("Sizer");
-	Property* m_propertyOrient = IPropertyObject::CreateProperty(m_categorySizer, "orient", &CValueNotebookPage::GetOrient, wxVERTICAL);
+    CPropertyCategory* m_categoryPage = IPropertyObject::CreatePropertyCategory(wxT("page"), _("page"));
+    CPropertyCaption* m_propertyCaption = IPropertyObject::CreateProperty<CPropertyCaption>(m_categoryPage, wxT("caption"), _("caption"), _("New page"));
+    CPropertyBoolean* m_propertyVisible = IPropertyObject::CreateProperty<CPropertyBoolean>(m_categoryPage, wxT("visible"), _("visible"), true);
+    CPropertyPicture* m_propertyIcon = IPropertyObject::CreateProperty<CPropertyPicture>(m_categoryPage, wxT("icon"), _("icon"));
+    CPropertyCategory* m_categorySizer = IPropertyObject::CreatePropertyCategory(wxT("sizer"), _("sizer"));
+    CPropertyEnum<CValueEnumOrient>* m_propertyOrient = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumOrient>>(m_categorySizer, wxT("orient"), _("orient"), wxVERTICAL);
 public:
 
-	CValueNotebookPage();
+    CValueNotebookPage();
 
-	virtual wxObject* Create(wxWindow* wxparent, IVisualHost* visualHost) override;
-	virtual void OnCreated(wxObject* wxobject, wxWindow* wxparent, IVisualHost* visualHost, bool first—reated) override;
-	virtual void OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVisualHost* visualHost) override;
-	virtual void OnSelected(wxObject* wxobject) override;
-	virtual void Cleanup(wxObject* obj, IVisualHost* visualHost) override;
+    virtual wxObject* Create(wxWindow* wxparent, IVisualHost* visualHost) override;
+    virtual void OnCreated(wxObject* wxobject, wxWindow* wxparent, IVisualHost* visualHost, bool first—reated) override;
+    virtual void OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVisualHost* visualHost) override;
+    virtual void OnSelected(wxObject* wxobject) override;
+    virtual void Cleanup(wxObject* obj, IVisualHost* visualHost) override;
 
-	virtual bool CanDeleteControl() const;
+    virtual bool CanDeleteControl() const;
 
-	virtual int GetComponentType() const {
-		return COMPONENT_TYPE_WINDOW;
-	}
+    virtual int GetComponentType() const { return COMPONENT_TYPE_WINDOW; }
 
-	//support icons
-	virtual wxIcon GetIcon() const;
-	static wxIcon GetIconGroup();
+    //support icons
+    virtual wxIcon GetIcon() const;
+    static wxIcon GetIconGroup();
 
-	//load & save object in control 
-	virtual bool LoadData(CMemoryReader& reader);
-	virtual bool SaveData(CMemoryWriter& writer = CMemoryWriter());
+    //load & save object in control 
+    virtual bool LoadData(CMemoryReader& reader);
+    virtual bool SaveData(CMemoryWriter& writer = CMemoryWriter());
 
-	friend class CValueNotebook;
+    friend class CValueNotebook;
 };
 
 #endif 

@@ -9,7 +9,6 @@
 
 void CListDataObjectEnumRef::RefreshModel(const wxDataViewItem& topItem, const int countPerPage)
 {
-
 	if (db_query != nullptr && !db_query->IsOpen())
 		CBackendException::Error(_("database is not open!"));
 	else if (db_query == nullptr)
@@ -738,6 +737,7 @@ void CListRegisterObject::RefreshModel(const wxDataViewItem& topItem, const int 
 			const wxString& operation = sort.m_sortAscending ? "ASC" : "DESC";
 			IMetaObjectAttribute* attribute = dynamic_cast<IMetaObjectAttribute*>(m_metaObject->FindMetaObjectByID(sort.m_sortModel));
 			wxASSERT(attribute);
+			const CTypeDescription& typeDesc = attribute->GetTypeDesc();
 			if (firstOrder)
 				orderText += " ORDER BY ";
 			for (auto& field : IMetaObjectAttribute::GetSQLFieldData(attribute)) {
@@ -746,7 +746,7 @@ void CListRegisterObject::RefreshModel(const wxDataViewItem& topItem, const int 
 					if (firstOrder) firstOrder = false;
 				}
 				else if (field.m_type == IMetaObjectAttribute::eFieldTypes_String) {
-					orderText += (firstOrder ? " " : ", ") + wxString::Format("LPAD(%s, %i, ' ') %s", field.m_field.m_fieldName, attribute->GetStringQualifier().m_length, operation);
+					orderText += (firstOrder ? " " : ", ") + wxString::Format("LPAD(%s, %i, ' ') %s", field.m_field.m_fieldName, typeDesc.GetStringQualifier().m_length, operation);
 					if (firstOrder) firstOrder = false;
 				}
 				else {
@@ -828,6 +828,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 				const wxString& operation_compare = (!sort.m_sortAscending) ? ">=" : "<=";
 				IMetaObjectAttribute* attribute = dynamic_cast<IMetaObjectAttribute*>(m_metaObject->FindMetaObjectByID(sort.m_sortModel));
 				wxASSERT(attribute);
+				const CTypeDescription& typeDesc = attribute->GetTypeDesc();
 				if (firstOrder)
 					orderText += " ORDER BY ";
 				for (auto& field : IMetaObjectAttribute::GetSQLFieldData(attribute)) {
@@ -837,7 +838,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 							firstOrder = false;
 					}
 					else if (field.m_type == IMetaObjectAttribute::eFieldTypes_String) {
-						orderText += (firstOrder ? " " : ", ") + wxString::Format("LPAD(%s, %i, ' ') %s", field.m_field.m_fieldName, attribute->GetStringQualifier().m_length, operation_sort);
+						orderText += (firstOrder ? " " : ", ") + wxString::Format("LPAD(%s, %i, ' ') %s", field.m_field.m_fieldName, typeDesc.GetStringQualifier().m_length, operation_sort);
 						if (firstOrder) firstOrder = false;
 					}
 					else {
@@ -854,7 +855,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 						whereText += (firstWhere ? " " : " AND ") + wxString::Format("%s %s ?", field.m_field.m_fieldRefName.m_fieldRefName, operation_compare);
 					}
 					else if (field.m_type == IMetaObjectAttribute::eFieldTypes_String) {
-						whereText += (firstWhere ? " " : " AND ") + wxString::Format("LPAD(%s, %i, ' ') %s LPAD(?, %i, ' ')", field.m_field.m_fieldName, attribute->GetStringQualifier().m_length, operation_compare, attribute->GetStringQualifier().m_length);
+						whereText += (firstWhere ? " " : " AND ") + wxString::Format("LPAD(%s, %i, ' ') %s LPAD(?, %i, ' ')", field.m_field.m_fieldName, typeDesc.GetStringQualifier().m_length, operation_compare, typeDesc.GetStringQualifier().m_length);
 					}
 					else {
 						whereText += (firstWhere ? " " : " AND ") + wxString::Format("%s %s ?", field.m_field.m_fieldName, operation_compare);
@@ -949,6 +950,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 				const wxString& operation_compare = (sort.m_sortAscending) ? ">=" : "<=";
 				IMetaObjectAttribute* attribute = dynamic_cast<IMetaObjectAttribute*>(m_metaObject->FindMetaObjectByID(sort.m_sortModel));
 				wxASSERT(attribute);
+				const CTypeDescription& typeDesc = attribute->GetTypeDesc();
 				if (firstOrder)
 					orderText += " ORDER BY ";
 				for (auto& field : IMetaObjectAttribute::GetSQLFieldData(attribute)) {
@@ -958,7 +960,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 							firstOrder = false;
 					}
 					else if (field.m_type == IMetaObjectAttribute::eFieldTypes_String) {
-						orderText += (firstOrder ? " " : ", ") + wxString::Format("LPAD(%s, %i, ' ') %s", field.m_field.m_fieldName, attribute->GetStringQualifier().m_length, operation_sort);
+						orderText += (firstOrder ? " " : ", ") + wxString::Format("LPAD(%s, %i, ' ') %s", field.m_field.m_fieldName, typeDesc.GetStringQualifier().m_length, operation_sort);
 						if (firstOrder) firstOrder = false;
 					}
 					else {
@@ -975,7 +977,7 @@ void CListRegisterObject::RefreshItemModel(const wxDataViewItem& topItem, const 
 						whereText += (firstWhere ? " " : " AND ") + wxString::Format("%s %s ?", field.m_field.m_fieldRefName.m_fieldRefName, operation_compare);
 					}
 					else if (field.m_type == IMetaObjectAttribute::eFieldTypes_String) {
-						whereText += (firstWhere ? " " : " AND ") + wxString::Format("LPAD(%s, %i, ' ') %s LPAD(?, %i, ' ')", field.m_field.m_fieldName, attribute->GetStringQualifier().m_length, operation_compare, attribute->GetStringQualifier().m_length);
+						whereText += (firstWhere ? " " : " AND ") + wxString::Format("LPAD(%s, %i, ' ') %s LPAD(?, %i, ' ')", field.m_field.m_fieldName, typeDesc.GetStringQualifier().m_length, operation_compare, typeDesc.GetStringQualifier().m_length);
 					}
 					else {
 						whereText += (firstWhere ? " " : " AND ") + wxString::Format("%s %s ?", field.m_field.m_fieldName, operation_compare);

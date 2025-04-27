@@ -1,7 +1,8 @@
-#ifndef _METAOBJECT_METADATA_H__
-#define _METAOBJECT_METADATA_H__
+#ifndef __METAOBJECT_METADATA_H__
+#define __METAOBJECT_METADATA_H__
 
 #include "metaObject.h"
+#include "metaObjectMetadataEnum.h"
 
 //*****************************************************************************************
 //*                                  metaData object                                      *
@@ -13,32 +14,24 @@
 class BACKEND_API CMetaObjectModule;
 ///////////////////////////////////////////////////////////////////////////
 
-class BACKEND_API CMetaObject : public IMetaObject {
-	wxDECLARE_DYNAMIC_CLASS(CMetaObject);
+class BACKEND_API CMetaObjectConfiguration : public IMetaObject {
+	wxDECLARE_DYNAMIC_CLASS(CMetaObjectConfiguration);
 private:
-	Role* m_roleAdministration = IMetaObject::CreateRole({ "administration", _("administration") });
-	Role* m_roleDataAdministration = IMetaObject::CreateRole({ "dataAdministration", _("data administration") });
-	Role* m_roleUpdateDatabaseConfiguration = IMetaObject::CreateRole({ "updateDatabaseConfiguration", _("update database configuration") });
-	Role* m_roleActiveUsers = IMetaObject::CreateRole({ "activeUsers", _("active users") });
-	Role* m_roleExclusiveMode = IMetaObject::CreateRole({ "exclusiveMode", _("exclusive mode") });
-	Role* m_roleModeAllFunction = IMetaObject::CreateRole({ "modeAllFunctions", _("mode \"All functions\"") });
-
+	Role* m_roleAdministration = IMetaObject::CreateRole("administration", _("administration"));
+	Role* m_roleDataAdministration = IMetaObject::CreateRole("dataAdministration", _("data administration"));
+	Role* m_roleUpdateDatabaseConfiguration = IMetaObject::CreateRole("updateDatabaseConfiguration", _("update database configuration"));
+	Role* m_roleActiveUsers = IMetaObject::CreateRole("activeUsers", _("active users"));
+	Role* m_roleExclusiveMode = IMetaObject::CreateRole("exclusiveMode", _("exclusive mode"));
+	Role* m_roleModeAllFunction = IMetaObject::CreateRole("modeAllFunctions", _("mode \"All functions\""));
 protected:
+	
 	enum
 	{
 		ID_METATREE_OPEN_INIT_MODULE = 19000,
 	};
 
-	OptionList* GetVersion(PropertyOption* prop) {
-
-		OptionList* opt = new OptionList;
-		opt->AddOption(_("oes 1_0_0"), version_oes_1_0_0);
-		opt->AddOption(_("oes last"), version_oes_last);
-		return opt;
-	}
-
-	PropertyCategory* m_compatibilityCategory = IPropertyObject::CreatePropertyCategory({ "compatibility", _("compatibility") });
-	Property* m_propertyVersion = IPropertyObject::CreateProperty(m_compatibilityCategory, { "version", _("version")}, &CMetaObject::GetVersion, version_oes_last);
+	CPropertyCategory* m_compatibilityCategory = IPropertyObject::CreatePropertyCategory(wxT("compatibility"), _("compatibility"));
+	CPropertyEnum<CValueEnumVersion>* m_propertyVersion = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumVersion>>(m_compatibilityCategory, wxT("version"), _("version"), version_oes_last);
 
 public:
 
@@ -65,15 +58,15 @@ public:
 	}
 
 	virtual void SetVersion(const version_identifier_t& version) {
-		m_propertyVersion->SetValue(version);
+		m_propertyVersion->SetValue(static_cast<eProgramVersion>(version));
 	}
 
 	version_identifier_t GetVersion() const {
 		return m_propertyVersion->GetValueAsInteger();
 	}
 
-	CMetaObject();
-	virtual ~CMetaObject();
+	CMetaObjectConfiguration();
+	virtual ~CMetaObjectConfiguration();
 
 	virtual wxString GetFullName() const {
 		return configurationDefaultName;
@@ -118,7 +111,7 @@ protected:
 
 private:
 
-	CMetaObjectModule* m_commonModule;
+	CMetaObjectModule* m_commonModule = IMetaObject::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("configurationModule"));
 };
 
 #endif 

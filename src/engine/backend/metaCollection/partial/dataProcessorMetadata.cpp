@@ -6,9 +6,6 @@
 #include "dataProcessor.h"
 #include "backend/metaData.h"
 
-#define objectModule wxT("objectModule")
-#define managerModule wxT("managerModule")
-
 wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectDataProcessor, IMetaObjectRecordDataExt)
 wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectDataProcessorExternal, CMetaObjectDataProcessor)
 
@@ -18,9 +15,6 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectDataProcessorExternal, CMetaObjectDataProce
 
 CMetaObjectDataProcessor::CMetaObjectDataProcessor(int objMode) : IMetaObjectRecordDataExt(objMode)
 {
-	//create module
-	m_moduleObject = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectModule>(objectModule);
-	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
 }
 
 CMetaObjectDataProcessor::~CMetaObjectDataProcessor()
@@ -67,7 +61,7 @@ IRecordDataObjectExt* CMetaObjectDataProcessor::CreateObjectExtValue()
 				return m_metaData->CreateAndConvertObjectValueRef<CRecordDataObjectDataProcessor>(this);
 		}
 		else {
-			return moduleManager->GetObjectValue();
+			return dynamic_cast<IRecordDataObjectExt*>(moduleManager->GetObjectValue());
 		}
 	}
 	else {
@@ -75,7 +69,7 @@ IRecordDataObjectExt* CMetaObjectDataProcessor::CreateObjectExtValue()
 			pDataRef = m_metaData->CreateAndConvertObjectValueRef<CRecordDataObjectDataProcessor>(this);
 		}
 		else {
-			return moduleManager->GetObjectValue();
+			return dynamic_cast<IRecordDataObjectExt*>(moduleManager->GetObjectValue());
 		}
 	}
 
@@ -118,18 +112,15 @@ IBackendValueForm* CMetaObjectDataProcessor::GetObjectForm(const wxString& formN
 	return defList->GenerateFormAndRun();
 }
 
-OptionList* CMetaObjectDataProcessor::GetFormObject(PropertyOption*)
+bool CMetaObjectDataProcessor::GetFormObject(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList;
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormDataProcessor == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true;
 }
 
 //***************************************************************************

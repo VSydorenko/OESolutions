@@ -23,7 +23,7 @@ private:
 
 private:
 
-	bool m_initialize;
+	bool m_initialized;
 
 protected:
 
@@ -220,9 +220,7 @@ public:
 
 public:
 
-	virtual IMetaData* GetMetaData() const {
-		return m_metaData;
-	}
+	virtual IMetaData* GetMetaData() const { return m_metaData; }
 
 	CDataReportTree() { }
 	CDataReportTree(CMetaDocument* docParent, wxWindow* parent, wxWindowID id = wxID_ANY);

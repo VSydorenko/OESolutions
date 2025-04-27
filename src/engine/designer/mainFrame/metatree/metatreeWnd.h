@@ -313,9 +313,7 @@ public:
 
 	bool RenameMetaObject(IMetaObject* metaObject, const wxString& newName);
 
-	virtual IMetaData* GetMetaData() const {
-		return m_metaData;
-	}
+	virtual IMetaData* GetMetaData() const { return m_metaData; }
 
 	CMetadataTree();
 	CMetadataTree(wxWindow* parent, int id = wxID_ANY);

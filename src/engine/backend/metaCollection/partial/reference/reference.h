@@ -1,8 +1,8 @@
 #ifndef _REFERENCE_H__
 #define _REFERENCE_H__
 
-#include "backend/compiler/value/value.h"
-#include "backend/wrapper/valueInfo.h"
+#include "backend/compiler/value.h"
+#include "backend/valueInfo.h"
 
 //********************************************************************************************
 //*                                     Defines                                              *
@@ -18,7 +18,7 @@ class BACKEND_API IRecordDataObjectRef;
 //********************************************************************************************
 
 class BACKEND_API CReferenceDataObject : public CValue,
-	public IObjectValueInfo {
+	public IObjectDataValue {
 	wxDECLARE_DYNAMIC_CLASS(CReferenceDataObject);
 private:
 	enum helperAlias {

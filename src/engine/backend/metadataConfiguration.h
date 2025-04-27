@@ -126,7 +126,7 @@ protected:
 	bool m_configOpened;
 	wxString m_md5Hash;
 	//common meta object
-	CMetaObject* m_commonObject;
+	CMetaObjectConfiguration* m_commonObject;
 	CModuleManagerConfiguration* m_moduleManager;
 };
 

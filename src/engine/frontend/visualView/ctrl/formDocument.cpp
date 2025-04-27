@@ -4,7 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "form.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "frontend/visualView/visualHost.h"
 //#include "window/visualView/printout/formPrintOut.h"
 #include "frontend/mainFrame/mainFrame.h"
@@ -208,16 +208,6 @@ bool CValueForm::UpdateFormUniqueKey(const CUniquePairKey& formKey)
 	return false;
 }
 
-ISourceDataObject* CValueForm::GetSourceObject() const
-{
-	return m_sourceObject;
-}
-
-IMetaObjectForm* CValueForm::GetFormMetaObject() const
-{
-	return m_metaFormObject;
-}
-
 IMetaObjectGenericData* CValueForm::GetMetaObject() const
 {
 	return m_sourceObject ?
@@ -316,7 +306,7 @@ bool CValueForm::CreateDocForm(CMetaDocument* docParent, bool demoRun)
 
 		CValue bCancel = false;
 		if (m_procUnit != nullptr) {
-			m_procUnit->CallAsProc("beforeOpen", bCancel);
+			m_procUnit->CallAsProc(wxT("beforeOpen"), bCancel);
 		}
 		if (bCancel.GetBoolean()) {
 			ms_formOpened.erase(m_formKey);
@@ -324,7 +314,7 @@ bool CValueForm::CreateDocForm(CMetaDocument* docParent, bool demoRun)
 			return false;
 		}
 		if (m_procUnit != nullptr) {
-			m_procUnit->CallAsProc("onOpen");
+			m_procUnit->CallAsProc(wxT("onOpen"));
 		}
 	}
 
@@ -372,12 +362,12 @@ bool CValueForm::CloseDocForm()
 
 	CValue bCancel = false;
 	if (m_procUnit != nullptr)
-		m_procUnit->CallAsProc("beforeClose", bCancel);
+		m_procUnit->CallAsProc(wxT("beforeClose"), bCancel);
 	if (bCancel.GetBoolean())
 		return false;
 
 	if (m_procUnit != nullptr)
-		m_procUnit->CallAsProc("onClose");
+		m_procUnit->CallAsProc(wxT("onClose"));
 
 	if (m_controlOwner != nullptr) {
 		IBackendValueForm* ownerForm = m_controlOwner->GetOwnerForm();

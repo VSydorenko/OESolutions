@@ -1,6 +1,6 @@
 #include "informationRegister.h"
 
-void CMetaObjectInformationRegister::OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue)
+void CMetaObjectInformationRegister::OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue)
 {
 	if (GetWriteRegisterMode() == eWriteRegisterMode::eSubordinateRecorder) {
 		m_attributeLineActive->ClearFlag(metaDisableFlag);

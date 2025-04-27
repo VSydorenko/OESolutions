@@ -39,7 +39,7 @@ void CPropertyObjectGrid::ShowProperty()
 	objectInspector->SelectObject(this);
 }
 
-void CPropertyObjectGrid::OnPropertyCreated(Property* property, const wxGridBlockCoords& coords)
+void CPropertyObjectGrid::OnPropertyCreated(IProperty* property, const wxGridBlockCoords& coords)
 {
 	if (m_propertyName == property) {
 		if (coords.GetTopLeft() != coords.GetBottomRight()) {
@@ -100,7 +100,7 @@ void CPropertyObjectGrid::OnPropertyCreated(Property* property, const wxGridBloc
 	}
 }
 
-void CPropertyObjectGrid::OnPropertyChanged(Property* property, const wxGridBlockCoords& coords)
+void CPropertyObjectGrid::OnPropertyChanged(IProperty* property, const wxGridBlockCoords& coords)
 {
 	for (int col = coords.GetLeftCol(); col <= coords.GetRightCol(); col++) {
 		for (int row = coords.GetTopRow(); row <= coords.GetBottomRow(); row++) {
@@ -147,14 +147,14 @@ CPropertyObjectGrid::~CPropertyObjectGrid()
 	}
 }
 
-void CPropertyObjectGrid::OnPropertyCreated(Property* property)
+void CPropertyObjectGrid::OnPropertyCreated(IProperty* property)
 {
 	for (auto& coords : m_currentBlocks) {
 		CPropertyObjectGrid::OnPropertyCreated(property, coords);
 	}
 }
 
-void CPropertyObjectGrid::OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue)
+void CPropertyObjectGrid::OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue)
 {
 	int maxRow = m_ownerGrid->GetGridCursorRow(), maxCol = m_ownerGrid->GetGridCursorCol();
 	for (auto& coords : m_currentBlocks) {

@@ -13,7 +13,7 @@ CValueStaticBoxSizer::CValueStaticBoxSizer() : IValueSizer()
 
 wxObject* CValueStaticBoxSizer::Create(wxWindow* wxparent, IVisualHost* visualHost)
 {
-	wxStaticBox* m_staticBox = new wxStaticBox(wxparent, wxID_ANY, m_propertyLabel->GetValueAsString());
+	wxStaticBox* m_staticBox = new wxStaticBox(wxparent, wxID_ANY, m_propertyCaption->GetValueAsString());
 	return new wxStaticBoxSizer(m_staticBox, m_propertyOrient->GetValueAsInteger());
 }
 
@@ -34,7 +34,7 @@ void CValueStaticBoxSizer::Update(wxObject* wxobject, IVisualHost* visualHost)
 	wxStaticBox* m_wndBox = m_staticboxsizer->GetStaticBox();
 	wxASSERT(m_wndBox);
 	if (m_staticboxsizer != nullptr) {
-		m_wndBox->SetLabel(m_propertyLabel->GetValueAsString());
+		m_wndBox->SetLabel(m_propertyCaption->GetValueAsString());
 		m_wndBox->SetMinSize(m_propertyMinSize->GetValueAsSize());
 
 		m_wndBox->SetFont(m_propertyFont->GetValueAsFont());
@@ -77,7 +77,7 @@ bool CValueStaticBoxSizer::LoadData(CMemoryReader& reader)
 	m_propertyOrient->SetValue(reader.r_u16());	
 	wxString propValue = wxEmptyString;
 	reader.r_stringZ(propValue);
-	m_propertyLabel->SetValue(propValue);
+	m_propertyCaption->SetValue(propValue);
 	reader.r_stringZ(propValue);
 	m_propertyFont->SetValue(typeConv::StringToFont(propValue));
 	reader.r_stringZ(propValue);
@@ -100,7 +100,7 @@ bool CValueStaticBoxSizer::LoadData(CMemoryReader& reader)
 bool CValueStaticBoxSizer::SaveData(CMemoryWriter& writer)
 {
 	writer.w_u16(m_propertyOrient->GetValueAsInteger());
-	writer.w_stringZ(m_propertyLabel->GetValueAsString());
+	writer.w_stringZ(m_propertyCaption->GetValueAsString());
 	writer.w_stringZ(m_propertyFont->GetValueAsString());
 	writer.w_stringZ(m_propertyFG->GetValueAsString());
 	writer.w_stringZ(m_propertyBG->GetValueAsString());

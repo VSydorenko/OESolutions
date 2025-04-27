@@ -2,7 +2,7 @@
 
 #include "backend/appData.h"
 #include "backend/databaseLayer/databaseLayer.h"
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -24,7 +24,7 @@ bool CRecordSetObjectInformationRegister::WriteRecordSet(bool replace, bool clea
 
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("BeforeWrite", cancel);
+					m_procUnit->CallAsProc(wxT("BeforeWrite"), cancel);
 
 					if (cancel.GetBoolean()) {
 						db_query->RollBack(); CSystemFunction::Raise(_("failed to write object in db!"));
@@ -39,7 +39,7 @@ bool CRecordSetObjectInformationRegister::WriteRecordSet(bool replace, bool clea
 
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("OnWrite", cancel);
+					m_procUnit->CallAsProc(wxT("OnWrite"), cancel);
 					if (cancel.GetBoolean()) {
 						db_query->RollBack(); CSystemFunction::Raise(_("failed to write object in db!"));
 						return false;
@@ -72,7 +72,7 @@ bool CRecordSetObjectInformationRegister::DeleteRecordSet()
 
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("BeforeWrite", cancel);
+					m_procUnit->CallAsProc(wxT("BeforeWrite"), cancel);
 
 					if (cancel.GetBoolean()) {
 						db_query->RollBack(); CSystemFunction::Raise(_("failed to write object in db!"));
@@ -87,7 +87,7 @@ bool CRecordSetObjectInformationRegister::DeleteRecordSet()
 
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("OnWrite", cancel);
+					m_procUnit->CallAsProc(wxT("OnWrite"), cancel);
 					if (cancel.GetBoolean()) {
 						db_query->RollBack(); CSystemFunction::Raise(_("failed to write object in db!"));
 						return false;

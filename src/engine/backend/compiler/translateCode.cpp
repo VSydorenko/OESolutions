@@ -18,7 +18,7 @@ std::map<wxString, void*>	CTranslateCode::ms_listHashKeyWord;//список кл
 //////////////////////////////////////////////////////////////////////
 // Global array
 //////////////////////////////////////////////////////////////////////
-struct aKeyWordsDef s_listKeyWord[] =
+struct СKeyWords s_listKeyWord[] =
 {
 	{"if"},
 	{"then"},
@@ -207,12 +207,12 @@ void CTranslateCode::LoadKeyWords()
 	for (unsigned int i = 0; i < sizeof(s_listKeyWord) / sizeof(s_listKeyWord[0]); i++)
 #endif
 	{
-		const wxString& strEng = stringUtils::MakeUpper(s_listKeyWord[i].Eng);
+		const wxString& strEng = stringUtils::MakeUpper(s_listKeyWord[i].m_strKeyWord);
 		ms_listHashKeyWord[strEng] = (void*)(i + 1);
 
 		//add to array for parser
 		s_listHashKeyword[strEng] = (void*)1;
-		s_listHelpDescription[strEng] = &s_listKeyWord[i].strShortDescription;
+		s_listHelpDescription[strEng] = &s_listKeyWord[i].m_strShortDescription;
 	}
 }
 

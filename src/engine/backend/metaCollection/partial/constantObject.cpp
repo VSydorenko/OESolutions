@@ -5,7 +5,7 @@
 
 #include "constant.h"
 #include "backend/metaData.h"
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 
 #include "backend/appData.h"
 
@@ -254,7 +254,7 @@ bool CRecordDataObjectConstant::SetConstValue(const CValue& cValue)
 			db_query->BeginTransaction();
 			{
 				CValue cancel = false;
-				m_procUnit->CallAsProc("BeforeWrite", cancel);
+				m_procUnit->CallAsProc(wxT("BeforeWrite"), cancel);
 
 				if (cancel.GetBoolean()) {
 					db_query->RollBack(); CSystemFunction::Raise("failed to write object in db!"); return false;
@@ -323,7 +323,7 @@ bool CRecordDataObjectConstant::SetConstValue(const CValue& cValue)
 
 			{
 				CValue cancel = false;
-				m_procUnit->CallAsProc("OnWrite", cancel);
+				m_procUnit->CallAsProc(wxT("OnWrite"), cancel);
 				if (cancel.GetBoolean()) {
 					db_query->RollBack(); CSystemFunction::Raise("failed to write object in db!"); return false;
 				}

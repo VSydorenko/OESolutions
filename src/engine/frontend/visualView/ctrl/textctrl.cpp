@@ -9,20 +9,22 @@ wxIMPLEMENT_DYNAMIC_CLASS(CValueTextCtrl, IValueWindow)
 #include "backend/metaData.h"
 #include "backend/objCtor.h"
 
-OptionList* CValueTextCtrl::GetChoiceForm(PropertyOption* property)
+bool CValueTextCtrl::GetChoiceForm(CPropertyList* property)
 {
-	OptionList* optList = new OptionList;
-	optList->AddOption(_("default"), wxNOT_FOUND);
-
+	property->AppendItem(_("default"), wxNOT_FOUND, wxEmptyValue);
 	IMetaData* metaData = GetMetaData();
 	if (metaData != nullptr) {
 		IMetaObjectRecordDataRef* metaObject = nullptr;
-		if (m_dataSource.isValid()) {
-			IMetaObjectGenericData* metaObjectValue =
+		//if (m_dataSource.isValid()) {
+		if (!m_propertySource->IsEmptyProperty()) {
+			const IMetaObjectGenericData* metaObjectValue =
 				m_formOwner->GetMetaObject();
-			if (metaObjectValue) {
+			if (metaObjectValue != nullptr) {
+				//IMetaObjectAttribute* metaAttribute = wxDynamicCast(
+				//	metaObjectValue->FindMetaObjectByID(m_dataSource), IMetaObjectAttribute
+				//);
 				IMetaObjectAttribute* metaAttribute = wxDynamicCast(
-					metaObjectValue->FindMetaObjectByID(m_dataSource), IMetaObjectAttribute
+					metaObjectValue->FindMetaObjectByID(m_propertySource->GetValueAsSource()), IMetaObjectAttribute
 				);
 				wxASSERT(metaAttribute);
 				IMetaValueTypeCtor* so = metaData->GetTypeCtor(metaAttribute->GetFirstClsid());
@@ -32,7 +34,7 @@ OptionList* CValueTextCtrl::GetChoiceForm(PropertyOption* property)
 			}
 		}
 		else {
-			IMetaValueTypeCtor* so = metaData->GetTypeCtor(ITypeControlAttribute::GetFirstClsid());
+			IMetaValueTypeCtor* so = metaData->GetTypeCtor(ITypeControlFactory::GetFirstClsid());
 			if (so != nullptr) {
 				metaObject = wxDynamicCast(so->GetMetaObject(), IMetaObjectRecordDataRef);
 			}
@@ -40,15 +42,16 @@ OptionList* CValueTextCtrl::GetChoiceForm(PropertyOption* property)
 
 		if (metaObject != nullptr) {
 			for (auto form : metaObject->GetObjectForms()) {
-				optList->AddOption(
+				property->AppendItem(
 					form->GetSynonym(),
-					form->GetMetaID()
+					form->GetMetaID(),
+					form
 				);
 			}
 		}
 	}
 
-	return optList;
+	return true;
 }
 
 ISourceObject* CValueTextCtrl::GetSourceObject() const
@@ -62,7 +65,7 @@ ISourceObject* CValueTextCtrl::GetSourceObject() const
 //****************************************************************************
 
 CValueTextCtrl::CValueTextCtrl() :
-	IValueWindow(), ITypeControlAttribute(), m_textModified(false)
+	IValueWindow(), ITypeControlFactory(), m_textModified(false)
 {
 }
 
@@ -79,14 +82,24 @@ wxObject* CValueTextCtrl::Create(wxWindow* wxparent, IVisualHost* visualHost)
 		wxDefaultPosition,
 		wxDefaultSize);
 
-	if (m_dataSource.isValid()) {
+	//if (m_dataSource.isValid()) {
+	//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
+	//	if (srcObject != nullptr) {
+	//		srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
+	//	}
+	//}
+	//else {
+	//	m_selValue = ITypeControlFactory::CreateValue();
+	//}
+
+	if (!m_propertySource->IsEmptyProperty()) {
 		ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
 		if (srcObject != nullptr) {
-			srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
+			srcObject->GetValueByMetaID(m_propertySource->GetValueAsSource(), m_selValue);
 		}
 	}
 	else {
-		m_selValue = ITypeControlAttribute::CreateValue();
+		m_selValue = ITypeControlFactory::CreateValue();
 	}
 
 	return textEditor;
@@ -104,19 +117,30 @@ void CValueTextCtrl::Update(wxObject* wxobject, IVisualHost* visualHost)
 
 	if (textEditor != nullptr) {
 		wxString textCaption = wxEmptyString;
-		if (m_dataSource.isValid()) {
-			IMetaObject* metaObject = GetMetaSource();
-			if (metaObject != nullptr)
-				textCaption = metaObject->GetSynonym() + wxT(":");
+		//if (m_dataSource.isValid()) {
+		//	IMetaObject* metaObject = GetMetaSource();
+		//	if (metaObject != nullptr) textCaption = metaObject->GetSynonym() + wxT(":");
+		//}
+
+		if (!m_propertySource->IsEmptyProperty()) {
+			const IMetaObject* metaObject = m_propertySource->GetSourceAttributeObject();
+			if (metaObject != nullptr) textCaption = metaObject->GetSynonym() + wxT(":");
 		}
 
-		textEditor->SetTextLabel(!m_propertyCaption->IsOk() ?
+		textEditor->SetTextLabel(m_propertyCaption->IsEmptyProperty() ?
 			textCaption : m_propertyCaption->GetValueAsString());
 
-		if (m_dataSource.isValid()) {
+		//if (m_dataSource.isValid()) {
+		//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
+		//	if (srcObject != nullptr) {
+		//		srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
+		//	}
+		//}
+
+		if (!m_propertySource->IsEmptyProperty()) {
 			ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
 			if (srcObject != nullptr) {
-				srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
+				srcObject->GetValueByMetaID(m_propertySource->GetValueAsSource(), m_selValue);
 			}
 		}
 
@@ -176,32 +200,49 @@ void CValueTextCtrl::Cleanup(wxObject* wxobject, IVisualHost* visualHost)
 
 bool CValueTextCtrl::GetControlValue(CValue& pvarControlVal) const
 {
-	CValueForm* ownerForm = GetOwnerForm();
-	if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
-		ISourceDataObject* srcObject = ownerForm->GetSourceObject();
-		if (srcObject != nullptr) {
-			return srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), pvarControlVal);
-		}
+	//if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
+	//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
+	//	if (srcObject != nullptr) {
+	//		return srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), pvarControlVal);
+	//	}
+	//}
+
+	const ISourceDataObject* sourceObject = m_formOwner->GetSourceObject();
+	if (!m_propertySource->IsEmptyProperty() && sourceObject != nullptr) {
+		return sourceObject->GetValueByMetaID(m_propertySource->GetValueAsSource(), pvarControlVal);
 	}
+
 	pvarControlVal = m_selValue;
 	return true;
 }
 
 bool CValueTextCtrl::SetControlValue(const CValue& varControlVal)
 {
-	if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
-		IMetaObjectAttribute* metaObject = wxDynamicCast(
-			GetMetaSource(), IMetaObjectAttribute
-		);
+	//if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
+	//	IMetaObjectAttribute* metaObject = wxDynamicCast(
+	//		GetMetaSource(), IMetaObjectAttribute
+	//	);
+	//	wxASSERT(metaObject);
+	//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
+	//	if (srcObject != nullptr) {
+	//		srcObject->SetValueByMetaID(GetIdByGuid(m_dataSource), varControlVal);
+	//	}
+	//	m_selValue = metaObject->AdjustValue(varControlVal);
+	//}
+	//else {
+	//	m_selValue = ITypeControlFactory::AdjustValue(varControlVal);
+	//}
+
+	ISourceDataObject* sourceObject = m_formOwner->GetSourceObject();
+	if (!m_propertySource->IsEmptyProperty() && sourceObject != nullptr) {
+		//IMetaObjectAttribute* metaObject = wxDynamicCast(GetMetaSource(), IMetaObjectAttribute);
+		IMetaObjectAttribute* metaObject = m_propertySource->GetSourceAttributeObject();
 		wxASSERT(metaObject);
-		ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
-		if (srcObject != nullptr) {
-			srcObject->SetValueByMetaID(GetIdByGuid(m_dataSource), varControlVal);
-		}
+		sourceObject->SetValueByMetaID(m_propertySource->GetValueAsSource(), varControlVal);
 		m_selValue = metaObject->AdjustValue(varControlVal);
 	}
 	else {
-		m_selValue = ITypeAttribute::AdjustValue(varControlVal);
+		m_selValue = ITypeControlFactory::AdjustValue(varControlVal);
 	}
 
 	m_formOwner->RefreshForm();
@@ -212,7 +253,7 @@ bool CValueTextCtrl::SetControlValue(const CValue& varControlVal)
 		textEditor->SetInsertionPointEnd();
 	}
 
-	return true; 
+	return true;
 }
 
 //*******************************************************************
@@ -234,7 +275,7 @@ bool CValueTextCtrl::LoadData(CMemoryReader& reader)
 
 	m_propertyChoiceForm->SetValue(reader.r_s32());
 
-	if (!ITypeControlAttribute::LoadTypeData(reader))
+	if (!m_propertySource->LoadData(reader))
 		return false;
 
 	return IValueWindow::LoadData(reader);
@@ -254,7 +295,7 @@ bool CValueTextCtrl::SaveData(CMemoryWriter& writer)
 
 	writer.w_s32(m_propertyChoiceForm->GetValueAsInteger());
 
-	if (!ITypeControlAttribute::SaveTypeData(writer))
+	if (!m_propertySource->SaveData(writer))
 		return false;
 
 	return IValueWindow::SaveData(writer);

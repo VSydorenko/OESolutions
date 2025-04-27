@@ -1,261 +1,9 @@
 ﻿#include "typeControl.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "backend/objCtor.h"
 #include "backend/metaData.h"
-#include "form.h"
 
 ////////////////////////////////////////////////////////////////////////////
-
-void wxVariantSourceAttributeData::UpdateSourceAttribute()
-{
-	if (m_metaData != nullptr) {
-		std::set<class_identifier_t> clsids;
-		for (auto clsid : GetClsids()) {
-			if (!m_metaData->IsRegisterCtor(clsid)) {
-				clsids.insert(clsid);
-			}
-		}
-		for (auto clsid : clsids) {
-			ClearMetatype(clsid);
-		}
-	}
-}
-
-void wxVariantSourceAttributeData::DoSetFromMetaId(const meta_identifier_t& id)
-{
-	if (m_metaData != nullptr && id != wxNOT_FOUND) {
-		ISourceObject* srcData = m_formCollectionData->GetSourceObject();
-		if (srcData != nullptr) {
-			IMetaObjectGenericData* metaObject = srcData->GetSourceMetaObject();
-			if (metaObject != nullptr && metaObject->IsAllowed() && id == metaObject->GetMetaID()) {
-				ITypeWrapper::SetDefaultMetatype(srcData->GetSourceClassType());
-				return;
-			}
-		}
-	}
-
-	wxVariantAttributeData::DoSetFromMetaId(id);
-}
-
-wxString wxVariantSourceData::MakeString() const
-{
-	if (m_srcId == wxNOT_FOUND) {
-		return _("<not selected>");
-	}
-
-	if (m_metaData != nullptr) {
-		IMetaObject* metaObject = m_metaData->GetMetaObject(m_srcId);
-		if (metaObject != nullptr &&
-			!metaObject->IsAllowed()) {
-			return _("<not selected>");
-		}
-		return metaObject->GetName();
-	}
-
-	return _("<not selected>");
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-meta_identifier_t ITypeControlAttribute::GetIdByGuid(const Guid& guid) const
-{
-	if (guid.isValid() && GetSourceObject()) {
-		ISourceObject* srcObject = GetSourceObject();
-		if (srcObject != nullptr) {
-			IMetaObjectGenericData* objMetaValue =
-				srcObject->GetSourceMetaObject();
-			//wxASSERT(objMetaValue);
-			IMetaObject* metaObject = objMetaValue ?
-				objMetaValue->FindMetaObjectByID(guid) : nullptr;
-			//wxASSERT(metaObject);
-			return metaObject ? metaObject->GetMetaID() : wxNOT_FOUND;
-		}
-	}
-	return wxNOT_FOUND;
-}
-
-Guid ITypeControlAttribute::GetGuidByID(const meta_identifier_t& id) const
-{
-	if (id != wxNOT_FOUND && GetSourceObject()) {
-		ISourceObject* srcObject = GetSourceObject();
-		if (srcObject != nullptr) {
-			IMetaObjectGenericData* objMetaValue =
-				srcObject->GetSourceMetaObject();
-			//wxASSERT(objMetaValue);
-			IMetaObject* metaObject = objMetaValue ?
-				objMetaValue->FindMetaObjectByID(id) : nullptr;
-			//wxASSERT(metaObject);
-			return metaObject ? metaObject->GetGuid() : wxNullGuid;
-		}
-	}
-	return wxNullGuid;
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-bool ITypeControlAttribute::LoadTypeData(CMemoryReader& dataReader)
-{
-	ClearAllMetatype();
-	m_dataSource = dataReader.r_stringZ();
-	return ITypeAttribute::LoadTypeData(dataReader);
-}
-
-bool ITypeControlAttribute::SaveTypeData(CMemoryWriter& dataWritter)
-{
-	dataWritter.w_stringZ(m_dataSource);
-	return ITypeAttribute::SaveTypeData(dataWritter);;
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-bool ITypeControlAttribute::LoadFromVariant(const wxVariant& variant)
-{
-	wxVariantSourceData* srcData =
-		dynamic_cast<wxVariantSourceData*>(variant.GetData());
-	if (srcData == nullptr)
-		return false;
-	wxVariantSourceAttributeData* attrData = srcData->GetAttributeData();
-	if (attrData == nullptr)
-		return false;
-	m_dataSource = GetGuidByID(srcData->GetSourceId());
-	if (!m_dataSource.isValid()) {
-		SetDefaultMetatype(attrData->GetTypeDescription());
-	}
-	return true;
-}
-
-void ITypeControlAttribute::SaveToVariant(wxVariant& variant, IMetaData* metaData) const
-{
-	wxVariantSourceData* srcData = new wxVariantSourceData(metaData, GetOwnerForm(), GetIdByGuid(m_dataSource));
-	wxVariantSourceAttributeData* attrData = srcData->GetAttributeData();
-	if (!m_dataSource.isValid()) {
-		for (auto clsid : GetClsids()) {
-			attrData->SetMetatype(clsid);
-		}
-		attrData->SetTypeDescription(GetTypeDescription());
-	}
-	variant = srcData;
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-void ITypeControlAttribute::DoSetFromMetaId(const meta_identifier_t& id)
-{
-	IMetaData* metaData = GetMetaData();
-	if (metaData != nullptr && id != wxNOT_FOUND) {
-		ISourceObject* srcData = GetSourceObject();
-		if (srcData != nullptr) {
-			IMetaObjectGenericData* metaObject = srcData->GetSourceMetaObject();
-			if (metaObject != nullptr && metaObject->IsAllowed() && id == metaObject->GetMetaID()) {
-				ITypeWrapper::SetDefaultMetatype(srcData->GetSourceClassType());
-				return;
-			}
-		}
-		IMetaObjectAttribute* metaAttribute = nullptr;
-		if (metaData->GetMetaObject(metaAttribute, id)) {
-			if (metaAttribute != nullptr && metaAttribute->IsAllowed()) {
-				ITypeWrapper::SetDefaultMetatype(
-					metaAttribute->GetTypeDescription()
-				);
-				return;
-			}
-		}
-		CMetaObjectTableData* metaTable = nullptr;
-		if (metaData->GetMetaObject(metaTable, id)) {
-			if (metaTable != nullptr && metaTable->IsAllowed()) {
-				ITypeWrapper::SetDefaultMetatype(
-					metaTable->GetTypeDescription()
-				);
-				return;
-			}
-		}
-
-		ITypeWrapper::SetDefaultMetatype(eValueTypes::TYPE_STRING);
-	}
-}
-
-eSelectMode ITypeControlAttribute::GetSelectMode() const
-{
-	IMetaObjectAttribute* srcValue =
-		dynamic_cast<IMetaObjectAttribute*>(GetMetaSource());
-	if (srcValue != nullptr)
-		return srcValue->GetSelectMode();
-	return eSelectMode::eSelectMode_Items;
-}
-
-class_identifier_t ITypeControlAttribute::GetFirstClsid() const
-{
-	return ITypeAttribute::GetFirstClsid();
-}
-
-std::set<class_identifier_t> ITypeControlAttribute::GetClsids() const
-{
-	return ITypeAttribute::GetClsids();
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-IMetaObject* ITypeControlAttribute::GetMetaSource() const
-{
-	if (m_dataSource.isValid() && GetSourceObject()) {
-		ISourceObject* srcObject = GetSourceObject();
-		if (srcObject != nullptr) {
-			IMetaObjectGenericData* objMetaValue =
-				srcObject->GetSourceMetaObject();
-			//wxASSERT(objMetaValue);
-			return objMetaValue ? objMetaValue->FindMetaObjectByID(m_dataSource) : nullptr;
-		}
-	}
-
-	return nullptr;
-}
-
-IMetaObject* ITypeControlAttribute::GetMetaObjectById(const class_identifier_t& clsid) const
-{
-	if (clsid == 0)
-		return nullptr;
-	IMetaData* metaData = GetMetaData();
-	wxASSERT(metaData);
-	IMetaValueTypeCtor* singleValue = metaData->GetTypeCtor(clsid);
-	if (singleValue != nullptr)
-		return singleValue->GetMetaObject();
-	return nullptr;
-}
-
-void ITypeControlAttribute::SetSourceId(const meta_identifier_t& id)
-{
-	if (id != wxNOT_FOUND && GetSourceObject()) {
-		ISourceObject* srcObject = GetSourceObject();
-		if (srcObject != nullptr) {
-			IMetaObjectGenericData* objMetaValue =
-				srcObject->GetSourceMetaObject();
-			wxASSERT(objMetaValue);
-			IMetaObject* metaObject = objMetaValue->FindMetaObjectByID(id);
-			wxASSERT(objMetaValue);
-			m_dataSource = metaObject->GetGuid();
-		}
-	}
-	else {
-		m_dataSource.reset();
-	}
-
-	DoSetFromMetaId(id);
-}
-
-meta_identifier_t ITypeControlAttribute::GetSourceId() const
-{
-	return GetIdByGuid(m_dataSource);
-}
-
-void ITypeControlAttribute::ResetSource()
-{
-	if (m_dataSource.isValid()) {
-		wxASSERT(GetClsidCount() > 0);
-		m_dataSource.reset();
-	}
-}
-
-//////////////////////////////////////////////////////////////////////
 
 #include <wx/calctrl.h>
 #include <wx/timectrl.h>
@@ -264,7 +12,7 @@ void ITypeControlAttribute::ResetSource()
 #include "frontend/win/ctrls/dynamicBorder.h"
 #include "frontend/visualView/ctrl/frame.h"
 
-bool ITypeControlAttribute::SimpleChoice(IControlFrame* ownerValue, const class_identifier_t& clsid, wxWindow* parent) {
+bool ITypeControlFactory::SimpleChoice(IControlFrame* ownerValue, const class_identifier_t& clsid, wxWindow* parent) {
 
 	eValueTypes valType = CValue::GetVTByID(clsid);
 
@@ -380,12 +128,12 @@ bool ITypeControlAttribute::SimpleChoice(IControlFrame* ownerValue, const class_
 	return false;
 }
 
-bool ITypeControlAttribute::QuickChoice(IControlFrame* ownerValue, const class_identifier_t& clsid, wxWindow* parent)
+bool ITypeControlFactory::QuickChoice(IControlFrame* ownerValue, const class_identifier_t& clsid, wxWindow* parent)
 {
 	if (!ownerValue->HasQuickChoice())
 		return false;
 
-	if (ITypeControlAttribute::SimpleChoice(ownerValue, clsid, parent))
+	if (ITypeControlFactory::SimpleChoice(ownerValue, clsid, parent))
 		return true;
 
 	class wxPopupQuickSelectWindow : public wxPopupTransientWindow {
@@ -532,7 +280,7 @@ bool ITypeControlAttribute::QuickChoice(IControlFrame* ownerValue, const class_i
 	return false;
 }
 
-void ITypeControlAttribute::QuickChoice(IControlFrame* controlValue, CValue& newValue, wxWindow* parent, const wxString& strData)
+void ITypeControlFactory::QuickChoice(IControlFrame* controlValue, CValue& newValue, wxWindow* parent, const wxString& strData)
 {
 	class wxPopupQuickSelectWindow : public wxPopupTransientWindow {
 
@@ -596,7 +344,7 @@ void ITypeControlAttribute::QuickChoice(IControlFrame* controlValue, CValue& new
 				wxPopupTransientWindow::Dismiss();
 				int answer = wxMessageBox(
 					_("Incorrect data entered into field. Do you want to cancel?"),
-					_("Enterprise"),
+					wxTheApp->GetAppName(),
 					wxYES_NO | wxCENTRE | wxICON_QUESTION, m_parent
 				);
 				if (m_controlValue != nullptr && answer == wxYES) {
@@ -712,62 +460,39 @@ void ITypeControlAttribute::QuickChoice(IControlFrame* controlValue, CValue& new
 
 /////////////////////////////////////////////////////////////////////
 
-IMetaObjectGenericData* ITypeControlAttribute::GetMetaObject() const
+eSelectMode ITypeControlFactory::GetSelectMode() const
 {
-	ISourceObject* sourceObject = GetSourceObject();
-	return sourceObject != nullptr ?
-		sourceObject->GetSourceMetaObject() : nullptr;
+	IMetaObjectAttribute* sourceObject = GetSourceAttributeObject();
+	if (sourceObject != nullptr) return sourceObject->GetSelectMode();
+	return eSelectMode::eSelectMode_Items;
 }
 
-CValue ITypeControlAttribute::CreateValue() const
+CValue ITypeControlFactory::CreateValue() const
 {
-	return ITypeControlAttribute::CreateValueRef();
+	return ITypeControlFactory::CreateValueRef();
 }
 
-CValue* ITypeControlAttribute::CreateValueRef() const
+CValue* ITypeControlFactory::CreateValueRef() const
 {
-	if (m_dataSource.isValid() && GetSourceObject()) {
-		IMetaObjectGenericData* metaObjectValue = GetMetaObject();
-		if (metaObjectValue != nullptr) {
-			IMetaObjectAttribute* metaObject = wxDynamicCast(
-				metaObjectValue->FindMetaObjectByID(m_dataSource), IMetaObjectAttribute
-			);
-			if (metaObject != nullptr)
-				return metaObject->CreateValueRef();
-		}
-	}
-
-	return ITypeAttribute::CreateValueRef();
+	IMetaObjectAttribute* sourceObject = GetSourceAttributeObject();
+	if (sourceObject != nullptr) return sourceObject->CreateValueRef();
+	return IBackendTypeSourceFactory::CreateValueRef();
 }
 
-class_identifier_t ITypeControlAttribute::GetDataType() const
+class_identifier_t ITypeControlFactory::GetDataType() const
 {
-	if (m_dataSource.isValid() && GetSourceObject()) {
-		IMetaObjectGenericData* metaObjectValue = GetMetaObject();
-		if (metaObjectValue != nullptr) {
-			IMetaObjectAttribute* metaObject = wxDynamicCast(
-				metaObjectValue->FindMetaObjectByID(m_dataSource), IMetaObjectAttribute
-			);
-			if (metaObject != nullptr) {
-				return ShowSelectType(metaObject->GetMetaData(),
-					metaObject->GetTypeDescription()
-				);
-			}
-		}
-	}
-
-	return ShowSelectType(GetMetaData(), ITypeAttribute::GetTypeDescription());
+	IMetaObjectAttribute* sourceObject = GetSourceAttributeObject();
+	if (sourceObject != nullptr) return ShowSelectType(sourceObject->GetMetaData(), sourceObject->GetTypeDesc());
+	return ShowSelectType(GetMetaData(), GetTypeDesc());
 }
 
 #include "frontend/win/dlgs/selectData.h"
 
-class_identifier_t ITypeControlAttribute::ShowSelectType(IMetaData* metaData, const typeDescription_t& typeDescription)
+class_identifier_t ITypeControlFactory::ShowSelectType(IMetaData* metaData, const CTypeDescription& typeDescription)
 {
-	if (typeDescription.GetClsidCount() < 2)
-		return typeDescription.GetFirstClsid();
+	if (typeDescription.GetClsidCount() < 2) return typeDescription.GetFirstClsid();
 	
-	CDialogSelectDataType *selectDataType =
-		new CDialogSelectDataType(metaData, typeDescription.GetClsids());
+	CDialogSelectDataType *selectDataType = new CDialogSelectDataType(metaData, typeDescription.GetClsidList());
 
 	class_identifier_t clsid = 0;	
 	if (selectDataType->ShowModal(clsid)) {

@@ -2,18 +2,17 @@
 #include "backend/metaData.h"
 #include "frontend/mainFrame/mainFrame.h"
 
-bool CDialogGeneration::ShowModal(meta_identifier_t& clsid)
+bool CDialogGeneration::ShowModal(meta_identifier_t& id)
 {
 	const int res = wxDialog::ShowModal();
 	if (res == wxID_OK) {
 		const long lSelectedItem = m_listData->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (lSelectedItem != wxNOT_FOUND) {
-			auto& it = m_clsids.begin();
-			std::advance(it, (size_t)lSelectedItem);
-			clsid = *it;
+			id = m_metaDesc.GetByIdx((size_t)lSelectedItem);
 			wxDialog::Destroy();
 			return true;
 		}
+
 	}
 	wxDialog::Destroy();
 	return false;
@@ -21,8 +20,8 @@ bool CDialogGeneration::ShowModal(meta_identifier_t& clsid)
 
 #define ICON_SIZE 16
 
-CDialogGeneration::CDialogGeneration(IMetaData* metaData, std::set<meta_identifier_t>& clsids) :
-	wxDialog(CDocMDIFrame::GetFrame(), wxID_ANY, _("Select data type"), wxDefaultPosition, wxSize(315, 300), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), m_clsids(clsids)
+CDialogGeneration::CDialogGeneration(IMetaData* metaData, const CMetaDescription& metaDesc) :
+	wxDialog(CDocMDIFrame::GetFrame(), wxID_ANY, _("Select data type"), wxDefaultPosition, wxSize(315, 300), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), m_metaDesc(metaDesc)
 {
 	wxDialog::SetSizeHints(wxDefaultSize, wxDefaultSize);
 
@@ -37,12 +36,12 @@ CDialogGeneration::CDialogGeneration(IMetaData* metaData, std::set<meta_identifi
 		new wxImageList(ICON_SIZE, ICON_SIZE), wxIMAGE_LIST_SMALL
 	);
 
-	for (auto clsid : clsids) {
-		IMetaObject* typeCtor = metaData->GetMetaObject(clsid);
+	for (unsigned int idx = 0; idx < m_metaDesc.GetTypeCount(); idx++) {
+		const IMetaObject* typeCtor = metaData->GetMetaObject(m_metaDesc.GetByIdx(idx));
 		wxASSERT(typeCtor);
 		wxImageList* imageList = m_listData->GetImageList(wxIMAGE_LIST_SMALL);
 		long lSelectedItem = m_listData->InsertItem(m_listData->GetItemCount(), typeCtor->GetSynonym(), imageList->Add(typeCtor->GetIcon()));
-		m_listData->SetItemData(lSelectedItem, clsid);
+		m_listData->SetItemData(lSelectedItem, typeCtor->GetMetaID());
 	}
 
 	// Connect Events

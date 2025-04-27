@@ -13,7 +13,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(CValueGridBox, IValueWindow);
 CValueGridBox::CValueGridBox() : IValueWindow()
 {	
 	//set default params
-	*m_propertyMinSize = wxSize(300, 100);
+	m_propertyMinSize->SetValue(wxSize(300, 100));
 }
 
 wxObject* CValueGridBox::Create(wxWindow* wxparent, IVisualHost *visualHost)

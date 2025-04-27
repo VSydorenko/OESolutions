@@ -1,5 +1,5 @@
-#ifndef _TRANSLATEMODULE_H__
-#define _TRANSLATEMODULE_H__
+#ifndef __TRANSLATE_CODE_H__
+#define __TRANSLATE_CODE_H__
 
 #include <string.h>
 #include <stdlib.h>
@@ -8,19 +8,18 @@
 #include <map>
 #include <vector>
 
-#include "codeDef.h"
 #include "backend/backend_exception.h"
 
-#include "value/value.h"
+#include "codeDef.h"
+#include "value.h"
 
 //List of keywords
-struct aKeyWordsDef {
-	//char *Rus;
-	char* Eng;
-	char* strShortDescription;
+struct ÑKeyWords {
+	wxString m_strKeyWord;
+	wxString m_strShortDescription;
 };
 
-extern BACKEND_API struct aKeyWordsDef s_listKeyWord[];
+extern BACKEND_API struct ÑKeyWords s_listKeyWord[];
 
 enum {
 	LEXEM_ADD = 0,

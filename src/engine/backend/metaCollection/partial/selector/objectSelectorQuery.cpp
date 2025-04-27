@@ -24,18 +24,18 @@ void CSelectorDataObject::Reset()
 	}
 	for (auto& obj : m_metaObject->GetObjectAttributes()) {
 		if (!appData->DesignerMode()) {
-			m_objectValues.insert_or_assign(obj->GetMetaID(), eValueTypes::TYPE_NULL);
+			m_listObjectValue.insert_or_assign(obj->GetMetaID(), eValueTypes::TYPE_NULL);
 		}
 		else {
-			m_objectValues.insert_or_assign(obj->GetMetaID(), obj->CreateValue());
+			m_listObjectValue.insert_or_assign(obj->GetMetaID(), obj->CreateValue());
 		}
 	}
 	for (auto& obj : m_metaObject->GetObjectTables()) {
 		if (!appData->DesignerMode()) {
-			m_objectValues.insert_or_assign(obj->GetMetaID(), eValueTypes::TYPE_NULL);
+			m_listObjectValue.insert_or_assign(obj->GetMetaID(), eValueTypes::TYPE_NULL);
 		}
 		else {
-			m_objectValues.insert_or_assign(obj->GetMetaID(), new CTabularSectionDataObjectRef(this, obj));
+			m_listObjectValue.insert_or_assign(obj->GetMetaID(), new CTabularSectionDataObjectRef(this, obj));
 		}
 	}
 }
@@ -45,7 +45,7 @@ bool CSelectorDataObject::Read()
 	if (!m_objGuid.isValid())
 		return false;
 
-	m_objectValues.clear();
+	m_listObjectValue.clear();
 
 	IPreparedStatement* statement = nullptr;
 	if (db_query->GetDatabaseLayerType() == DATABASELAYER_POSTGRESQL)
@@ -59,20 +59,20 @@ bool CSelectorDataObject::Read()
 	IDatabaseResultSet* resultSet = statement->RunQueryWithResults();
 	if (resultSet->Next()) {
 
-		m_objectValues.insert_or_assign(m_metaObject->GetMetaID(), CReferenceDataObject::CreateFromResultSet(resultSet, m_metaObject, m_objGuid));
+		m_listObjectValue.insert_or_assign(m_metaObject->GetMetaID(), CReferenceDataObject::CreateFromResultSet(resultSet, m_metaObject, m_objGuid));
 
 		//load attributes 
 		for (auto& obj : m_metaObject->GetObjectAttributes()) {
 			if (m_metaObject->IsDataReference(obj->GetMetaID()))
 				continue;
 			IMetaObjectAttribute::GetValueAttribute(
-				obj, m_objectValues[obj->GetMetaID()], resultSet);
+				obj, m_listObjectValue[obj->GetMetaID()], resultSet);
 		}
 		for (auto& obj : m_metaObject->GetObjectTables()) {
 			CTabularSectionDataObjectRef* tabularSection = CValue::CreateAndConvertObjectValueRef<CTabularSectionDataObjectRef>(this, obj);
 			if (!tabularSection->LoadData(m_objGuid))
 				isLoaded = false;
-			m_objectValues.insert_or_assign(obj->GetMetaID(), tabularSection);
+			m_listObjectValue.insert_or_assign(obj->GetMetaID(), tabularSection);
 		}
 
 		isLoaded = true;
@@ -118,7 +118,7 @@ bool CSelectorRegisterObject::Read()
 	if (m_keyValues.empty())
 		return false;
 
-	m_objectValues.clear(); 
+	m_listObjectValue.clear(); 
 	
 	int position = 1;
 	
@@ -176,7 +176,7 @@ bool CSelectorRegisterObject::Read()
 			IMetaObjectAttribute::GetValueAttribute(obj, keyTable[obj->GetMetaID()], resultSet);
 		for (auto& obj : m_metaObject->GetGenericAttributes())
 			IMetaObjectAttribute::GetValueAttribute(obj, rowTable[obj->GetMetaID()], resultSet);
-		m_objectValues.insert_or_assign(keyTable, rowTable);
+		m_listObjectValue.insert_or_assign(keyTable, rowTable);
 	}
 	db_query->CloseResultSet(resultSet);
 	db_query->CloseStatement(statement);

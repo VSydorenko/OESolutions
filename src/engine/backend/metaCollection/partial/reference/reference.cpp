@@ -5,7 +5,7 @@
 
 #include "reference.h"
 #include "backend/metaData.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "backend/metaCollection/partial/tabularSection/tabularSection.h"
 #include "backend/databaseLayer/databaseLayer.h"
 
@@ -30,14 +30,14 @@ void CReferenceDataObject::PrepareRef(bool createData)
 			if (obj->IsDeleted()) 
 				continue;
 			if (!m_metaObject->IsDataReference(obj->GetMetaID())) {
-				m_objectValues.insert_or_assign(obj->GetMetaID(), obj->CreateValue());
+				m_listObjectValue.insert_or_assign(obj->GetMetaID(), obj->CreateValue());
 			}
 		}
 		// table is collection values 
 		for (auto& obj : m_metaObject->GetObjectTables()) {
 			if (obj->IsDeleted())
 				continue;
-			m_objectValues.insert_or_assign(obj->GetMetaID(),
+			m_listObjectValue.insert_or_assign(obj->GetMetaID(),
 				m_metaObject->GetMetaData()->CreateObjectValue<CTabularSectionDataObjectRef>(this, obj));
 		}
 	}
@@ -52,7 +52,7 @@ void CReferenceDataObject::PrepareRef(bool createData)
 	PrepareNames();
 }
 
-CReferenceDataObject::CReferenceDataObject(IMetaObjectRecordDataRef* metaObject, const Guid& objGuid) : CValue(eValueTypes::TYPE_VALUE, true), IObjectValueInfo(objGuid, !objGuid.isValid()),
+CReferenceDataObject::CReferenceDataObject(IMetaObjectRecordDataRef* metaObject, const Guid& objGuid) : CValue(eValueTypes::TYPE_VALUE, true), IObjectDataValue(objGuid, !objGuid.isValid()),
 m_metaObject(metaObject), m_methodHelper(new CMethodHelper()), m_initializedRef(false), m_reference_impl(nullptr), m_foundedRef(false)
 {
 	m_reference_impl = new reference_t(m_metaObject->GetMetaID(), m_objGuid);
@@ -154,7 +154,7 @@ CReferenceDataObject* CReferenceDataObject::CreateFromResultSet(IDatabaseResultS
 			continue;
 		IMetaObjectAttribute::GetValueAttribute(
 			obj,
-			refData->m_objectValues[obj->GetMetaID()],
+			refData->m_listObjectValue[obj->GetMetaID()],
 			rs,
 			false
 		);
@@ -164,7 +164,7 @@ CReferenceDataObject* CReferenceDataObject::CreateFromResultSet(IDatabaseResultS
 	for (auto& obj : metaObject->GetObjectTables()) {
 		if (obj->IsDeleted())
 			continue;
-		refData->m_objectValues.insert_or_assign(obj->GetMetaID(),
+		refData->m_listObjectValue.insert_or_assign(obj->GetMetaID(),
 			metaObject->GetMetaData()->CreateObjectValue<CTabularSectionDataObjectRef>(refData, obj, true));
 	}
 
@@ -187,9 +187,9 @@ bool CReferenceDataObject::GetValueByMetaID(const meta_identifier_t& id, CValue&
 		pvarMetaVal = CReferenceDataObject::Create(m_metaObject);
 		return true;
 	}
-	auto& it = m_objectValues.find(id);
-	//wxASSERT(it != m_objectValues.end());
-	if (it != m_objectValues.end()) {
+	auto& it = m_listObjectValue.find(id);
+	//wxASSERT(it != m_listObjectValue.end());
+	if (it != m_listObjectValue.end()) {
 		pvarMetaVal = it->second;
 		return true;
 	}
@@ -317,7 +317,7 @@ bool CReferenceDataObject::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 	const meta_identifier_t& id = m_methodHelper->GetPropData(lPropNum);
 	if (!m_metaObject->IsDataReference(id)) {
 		if (lPropAlias == eTable && !GetValueByMetaID(id, pvarPropVal)) {
-			m_objectValues.insert_or_assign(id,
+			m_listObjectValue.insert_or_assign(id,
 				GetMetaObjectRef()->GetMetaData()->CreateObjectValueRef<CTabularSectionDataObjectRef>(this, m_metaObject->FindTableById(id), !m_newObject)
 			);
 		}	

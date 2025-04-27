@@ -2,7 +2,7 @@
 #include "backend/objCtor.h"
 #include "backend/appData.h"
 
-CValue* IMetaData::CreateObjectRef(const class_identifier_t& clsid, CValue** paParams, const long lSizeArray)
+CValue* IMetaData::CreateObjectRef(const class_identifier_t& clsid, CValue** paParams, const long lSizeArray) const
 {
 	auto it = std::find_if(m_factoryCtors.begin(), m_factoryCtors.end(), [clsid](IAbstractTypeCtor* typeCtor) {
 		return clsid == typeCtor->GetClassType();
@@ -14,7 +14,7 @@ CValue* IMetaData::CreateObjectRef(const class_identifier_t& clsid, CValue** paP
 		wxASSERT(typeCtor);
 		CValue* newObject = typeCtor->CreateObject();
 		wxASSERT(newObject);
-
+		if (newObject == nullptr) return nullptr;
 		bool succes = true;
 		if (lSizeArray > 0)
 			succes = newObject->Init(paParams, lSizeArray);

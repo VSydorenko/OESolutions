@@ -1,6 +1,6 @@
 #include "widgets.h"
 #include "frontend/win/ctrls/textEditor.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "backend/metaData.h"
 
 bool CValueTextCtrl::TextProcessing(wxTextCtrl* textCtrl, const wxString& strData)
@@ -101,7 +101,7 @@ void CValueTextCtrl::OnSelectButtonPressed(wxCommandEvent& event)
 			wxWindow* textCtrl = wxDynamicCast(
 				GetWxObject(), wxWindow
 			);
-			if (!ITypeControlAttribute::QuickChoice(this, clsid, textCtrl)) {
+			if (!ITypeControlFactory::QuickChoice(this, clsid, textCtrl)) {
 				IMetaData* metaData = GetMetaData();
 				wxASSERT(metaData);
 				IMetaValueTypeCtor *so = metaData->GetTypeCtor(clsid);

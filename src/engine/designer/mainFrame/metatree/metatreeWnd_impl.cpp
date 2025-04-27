@@ -54,13 +54,11 @@ form_identifier_t IMetaDataTree::SelectFormType(CMetaObjectForm* metaObject) con
 	IMetaObjectGenericData* parent = wxDynamicCast(
 		metaObject->GetParent(), IMetaObjectGenericData
 	);
-	OptionList* optList = parent->GetFormType();
-	wxASSERT(optList);
+	CFormTypeList optList = parent->GetFormType();
 	CDialogSelectTypeForm* selectTypeForm = new CDialogSelectTypeForm(parent, metaObject);
-	for (auto option : optList->GetOptions()) {
-		selectTypeForm->AppendTypeForm(option.m_name, option.m_label, option.m_intVal);
+	for (unsigned int idx = 0; idx < optList.GetItemCount(); idx++) {
+		selectTypeForm->AppendTypeForm(optList.GetItemName(idx), optList.GetItemLabel(idx), optList.GetItemId(idx));
 	}
-	wxDELETE(optList);
 	selectTypeForm->CreateSelector();
 	const form_identifier_t& sel_id = selectTypeForm->ShowModal();
 	selectTypeForm->Destroy();
@@ -765,7 +763,7 @@ bool CMetadataTree::RenameMetaObject(IMetaObject* metaObject, const wxString& ne
 	return false;
 }
 
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "backend/metaCollection/table/metaTableObject.h"
 
 void CMetadataTree::AddCatalogItem(IMetaObject* metaObject, const wxTreeItemId& hParentID)

@@ -1,7 +1,7 @@
 #ifndef _OBJECT_LIST_H__
 #define _OBJECT_LIST_H__
 
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 #include "backend/metaCollection/partial/reference/reference.h"
 
 //base list class 
@@ -59,8 +59,8 @@ public:
 				return m_metaAttribute->GetSynonym();
 			}
 
-			virtual typeDescription_t GetColumnType() const {
-				return m_metaAttribute->GetTypeDescription();
+			virtual const CTypeDescription GetColumnType() const {
+				return m_metaAttribute->GetTypeDesc();
 			}
 
 			CDataObjectListColumnInfo();
@@ -76,7 +76,7 @@ public:
 		CDataObjectListColumnCollection(IListDataObject* ownerTable, IMetaObjectGenericData* metaObject);
 		virtual ~CDataObjectListColumnCollection();
 
-		virtual typeDescription_t GetColumnType(unsigned int col) const {
+		virtual const CTypeDescription GetColumnType(unsigned int col) const {
 			CDataObjectListColumnInfo* columnInfo = m_listColumnInfo.at(col);
 			wxASSERT(columnInfo);
 			return columnInfo->GetColumnType();
@@ -179,35 +179,24 @@ public:
 	//****************************************************************************
 
 	//get metaData from object 
-	virtual IMetaObjectGenericData* GetSourceMetaObject() const final {
-		return GetMetaObject();
-	}
+	virtual IMetaObjectGenericData* GetSourceMetaObject() const final { return GetMetaObject(); }
 
 	//Get ref class 
-	virtual class_identifier_t GetSourceClassType() const final {
-		return GetClassType();
-	};
+	virtual class_identifier_t GetSourceClassType() const final { return GetClassType(); }
+
+	virtual bool IsNewObject() const { return false; }
 
 	//get unique identifier 
-	virtual CUniqueKey GetGuid() const {
-		return m_objGuid;
-	};
+	virtual CUniqueKey GetGuid() const { return m_objGuid; };
 
 	//get metaData from object 
 	virtual IMetaObjectGenericData* GetMetaObject() const = 0;
 
 	//counter
-	virtual void IncrRef() {
-		CValue::IncrRef();
-	}
+	virtual void IncrRef() { CValue::IncrRef(); }
+	virtual void DecrRef() { CValue::DecrRef(); }
 
-	virtual void DecrRef() {
-		CValue::DecrRef();
-	}
-
-	virtual inline bool IsEmpty() const {
-		return false;
-	}
+	virtual inline bool IsEmpty() const { return false; }
 
 	//Get ref class 
 	virtual class_identifier_t GetClassType() const = 0;
@@ -216,9 +205,7 @@ public:
 	virtual wxString GetString() const = 0;
 
 	//operator 
-	virtual operator CValue() const {
-		return this;
-	};
+	virtual operator CValue() const { return this; };
 
 protected:
 	Guid m_objGuid;
@@ -568,8 +555,8 @@ public:
 				return m_metaAttribute->GetSynonym();
 			}
 
-			virtual typeDescription_t GetColumnType() const {
-				return m_metaAttribute->GetTypeDescription();
+			virtual const CTypeDescription GetColumnType() const {
+				return m_metaAttribute->GetTypeDesc();
 			}
 
 			CDataObjectTreeColumnInfo();
@@ -585,7 +572,7 @@ public:
 		CDataObjectTreeColumnCollection(ITreeDataObject* ownerTable, IMetaObjectGenericData* metaObject);
 		virtual ~CDataObjectTreeColumnCollection();
 
-		virtual typeDescription_t GetColumnType(unsigned int col) const {
+		virtual const CTypeDescription GetColumnType(unsigned int col) const {
 			CDataObjectTreeColumnInfo* columnInfo = m_listColumnInfo.at(col);
 			wxASSERT(columnInfo);
 			return columnInfo->GetColumnType();
@@ -686,19 +673,15 @@ public:
 	//****************************************************************************
 
 	//get metaData from object 
-	virtual IMetaObjectGenericData* GetSourceMetaObject() const final {
-		return GetMetaObject();
-	}
+	virtual IMetaObjectGenericData* GetSourceMetaObject() const final { return GetMetaObject(); }
 
 	//Get ref class 
-	virtual class_identifier_t GetSourceClassType() const final {
-		return GetClassType();
-	};
+	virtual class_identifier_t GetSourceClassType() const final { return GetClassType(); }
+
+	virtual bool IsNewObject() const { return false; }
 
 	//get unique identifier 
-	virtual CUniqueKey GetGuid() const {
-		return m_objGuid;
-	};
+	virtual CUniqueKey GetGuid() const { return m_objGuid; }
 
 	//get metaData from object 
 	virtual IMetaObjectGenericData* GetMetaObject() const = 0;
@@ -716,9 +699,7 @@ public:
 	virtual wxString GetString() const = 0;
 
 	//operator 
-	virtual operator CValue() const {
-		return this;
-	};
+	virtual operator CValue() const { return this; }
 
 protected:
 

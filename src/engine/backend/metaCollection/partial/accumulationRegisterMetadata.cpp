@@ -3,9 +3,6 @@
 #include "backend/metadataConfiguration.h"
 #include "backend/moduleManager/moduleManager.h"
 
-#define objectModule wxT("recordSetModule")
-#define managerModule wxT("managerModule")
-
 //***********************************************************************
 //*                         metaData                                    * 
 //***********************************************************************
@@ -16,17 +13,9 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectAccumulationRegister, IMetaObjectRegisterDa
 
 CMetaObjectAccumulationRegister::CMetaObjectAccumulationRegister() : IMetaObjectRegisterData()
 {
-	//create default attributes
-	m_attributeRecordType = IMetaObjectContextData::CreateSpecialType(wxT("recordType"), _("Record type"), wxEmptyString, g_enumRecordTypeCLSID, false, CValueEnumAccumulationRegisterRecordType::CreateDefEnumValue());
-
-	//create module
-	m_moduleObject = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectModule>(objectModule);
-
 	//set default proc
 	m_moduleObject->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, { "cancel" });
 	m_moduleObject->SetDefaultProcedure("onWrite", eContentHelper::eProcedureHelper, { "cancel" });
-
-	m_moduleManager = IMetaObjectContextData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(managerModule);
 }
 
 CMetaObjectAccumulationRegister::~CMetaObjectAccumulationRegister()
@@ -86,18 +75,15 @@ IBackendValueForm* CMetaObjectAccumulationRegister::GetListForm(const wxString& 
 
 /////////////////////////////////////////////////////////////////////////////
 
-OptionList* CMetaObjectAccumulationRegister::GetFormList(PropertyOption*)
+bool CMetaObjectAccumulationRegister::GetFormList(CPropertyList* prop)
 {
-	OptionList* optlist = new OptionList();
-	optlist->AddOption(_("<not selected>"), wxNOT_FOUND);
-
+	prop->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
 	for (auto formObject : GetObjectForms()) {
 		if (eFormList == formObject->GetTypeForm()) {
-			optlist->AddOption(formObject->GetName(), formObject->GetMetaID());
+			prop->AppendItem(formObject->GetName(), formObject->GetMetaID(), formObject);
 		}
 	}
-
-	return optlist;
+	return true; 
 }
 
 //***************************************************************************

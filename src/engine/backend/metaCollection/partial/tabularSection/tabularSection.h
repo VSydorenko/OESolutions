@@ -1,7 +1,7 @@
 #ifndef _VALUETABLEPART_H__
 
-#include "backend/wrapper/tableInfo.h"
-#include "backend/wrapper/valueInfo.h"
+#include "backend/tableInfo.h"
+#include "backend/valueInfo.h"
 
 #include "backend/metaCollection/table/metaTableObject.h"
 
@@ -74,8 +74,8 @@ public:
 				return m_metaAttribute->GetSynonym();
 			}
 
-			virtual typeDescription_t GetColumnType() const {
-				return m_metaAttribute->GetTypeDescription();
+			virtual const CTypeDescription GetColumnType() const {
+				return m_metaAttribute->GetTypeDesc();
 			}
 
 			CValueTabularSectionColumnInfo();
@@ -91,7 +91,7 @@ public:
 		CTabularSectionDataObjectColumnCollection(ITabularSectionDataObject* ownerTable);
 		virtual ~CTabularSectionDataObjectColumnCollection();
 
-		virtual typeDescription_t GetColumnType(unsigned int col) const {
+		virtual const CTypeDescription GetColumnType(unsigned int col) const {
 			CValueTabularSectionColumnInfo* columnInfo = m_listColumnInfo.at(col);
 			wxASSERT(columnInfo);
 			return columnInfo->GetColumnType();
@@ -160,19 +160,24 @@ public:
 		CMethodHelper* m_methodHelper;
 	};
 
-	CMetaObjectTableData* GetMetaObject() const {
-		return m_metaTable;
-	}
+	CMetaObjectTableData* GetMetaObject() const { return m_metaTable; }
+	meta_identifier_t GetMetaID() const { return m_metaTable ? m_metaTable->GetMetaID() : wxNOT_FOUND; }
 
-	meta_identifier_t GetMetaID() const {
-		return m_metaTable ? m_metaTable->GetMetaID() : wxNOT_FOUND;
-	}
+#pragma region _source_data_
+
+	//get metaData from object 
+	virtual IMetaObjectSourceData* GetSourceMetaObject() const { return m_metaTable; }
+
+	//Get ref class 
+	virtual class_identifier_t GetSourceClassType() const { return GetClassType(); }
+
+#pragma endregion 
 
 	ITabularSectionDataObject() :
 		m_objectValue(nullptr), m_metaTable(nullptr), m_dataColumnCollection(nullptr), m_methodHelper(nullptr), m_readOnly(false) {
 	}
 
-	ITabularSectionDataObject(IObjectValueInfo* objectValue, CMetaObjectTableData* tableObject, bool readOnly = false) :
+	ITabularSectionDataObject(IObjectDataValue* objectValue, CMetaObjectTableData* tableObject, bool readOnly = false) :
 		m_objectValue(objectValue), m_metaTable(tableObject), m_dataColumnCollection(nullptr), m_methodHelper(new CMethodHelper()), m_readOnly(readOnly) {
 		m_dataColumnCollection = new CTabularSectionDataObjectColumnCollection(this);
 		m_dataColumnCollection->IncrRef();
@@ -235,9 +240,7 @@ public:
 	virtual wxString GetString() const;
 
 	//Working with iterators
-	virtual bool HasIterator() const override {
-		return true;
-	}
+	virtual bool HasIterator() const override { return true; }
 
 	virtual CValue GetIteratorEmpty() override {
 		return new CTabularSectionDataObjectReturnLine(this, wxDataViewItem(nullptr));
@@ -249,14 +252,12 @@ public:
 		return new CTabularSectionDataObjectReturnLine(this, GetItem(idx));
 	}
 
-	virtual unsigned int GetIteratorCount() const override {
-		return GetRowCount();
-	}
+	virtual unsigned int GetIteratorCount() const override { return GetRowCount(); }
 
 protected:
 	bool m_readOnly;
 	CMethodHelper* m_methodHelper;
-	IObjectValueInfo* m_objectValue;
+	IObjectDataValue* m_objectValue;
 	CTabularSectionDataObjectColumnCollection* m_dataColumnCollection;
 	CMetaObjectTableData* m_metaTable;
 };
@@ -274,9 +275,7 @@ class BACKEND_API CTabularSectionDataObjectRef : public ITabularSectionDataObjec
 	wxDECLARE_DYNAMIC_CLASS(CTabularSectionDataObjectRef);
 public:
 
-	bool IsReadAfter() const {
-		return m_readAfter;
-	}
+	bool IsReadAfter() const { return m_readAfter;	}
 
 	CTabularSectionDataObjectRef();
 	CTabularSectionDataObjectRef(class CReferenceDataObject* reference, CMetaObjectTableData* tableObject, bool readAfter = false);

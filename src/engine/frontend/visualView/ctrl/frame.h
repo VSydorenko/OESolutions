@@ -7,63 +7,58 @@ class CProcUnit;
 
 #include "frontend/frontend.h"
 
-#include "backend/compiler/value/value.h"
-#include "backend/wrapper/propertyInfo.h"
-#include "backend/wrapper/typeInfo.h"
+#include "backend/compiler/value.h"
+#include "backend/propertyManager/propertyManager.h"
 
+#include "backend/backend_type.h"
 #include "backend/backend_form.h"
 
 #include "frontend/visualView/formdefs.h"
 #include "frontend/visualView/controlCtor.h"
 #include "frontend/visualView/visual.h"
 
-class ISourceDataObject;
-class BACKEND_API IRecordDataObject;
+class BACKEND_API CSourceExplorer;
+
+class BACKEND_API IMetaObjectForm;
+
+class BACKEND_API ISourceDataObject;
 class BACKEND_API IListDataObject;
+class BACKEND_API IRecordDataObject;
 
 class FRONTEND_API CValueForm;
 
 class FRONTEND_API CVisualEditorHost;
 class FRONTEND_API CVisualHost;
 
-class BACKEND_API IMetaObjectForm;
-
-#include "backend/wrapper/actionInfo.h"
-#include "backend/wrapper/moduleInfo.h"
+#include "backend/actionInfo.h"
+#include "backend/moduleInfo.h"
 
 #include "backend/fileSystem/fs.h"
 
 class FRONTEND_API CVisualDocument;
-class CSourceExplorer;
 
-#include "frontend/visualView/special/enums/valueOrient.h"
+#include "frontend/visualView/special/enum/valueEnum.h"
 
 class FRONTEND_API IControlFrame : public IBackendControlFrame {
 public:
 
-	virtual bool GetControlValue(CValue& pvarControlVal) const {
-		return false;
-	}
+	virtual bool GetControlValue(CValue& pvarControlVal) const { return false; }
+	virtual Guid GetControlGuid() const { return Guid::newGuid(); }
 
-	virtual Guid GetControlGuid() const {
-		return Guid::newGuid();
-	};
+	virtual CValueForm* GetOwnerForm() const { return nullptr; }
+
+	//Get ref class 
+	virtual class_identifier_t GetClassType() const { return 0; }
 
 	//get visual document
-	virtual CVisualDocument* GetVisualDocument() const {
-		return nullptr;
-	};
-
-	virtual CValueForm* GetOwnerForm() const {
-		return nullptr;
-	};
+	virtual CVisualDocument* GetVisualDocument() const { return nullptr; }
 
 	virtual bool HasQuickChoice() const = 0;
 	virtual void ChoiceProcessing(CValue& vSelected) = 0;
 };
 
 class FRONTEND_API IValueFrame : public CValue,
-	public IPropertyObject, public IControlFrame, public IActionSource {
+	public IPropertyObject, public IControlFrame, public IActionDataObject {
 	wxDECLARE_ABSTRACT_CLASS(IValueFrame);
 protected:
 
@@ -82,15 +77,6 @@ private:
 	IValueFrame* DoFindControlByID(const form_identifier_t& id, IValueFrame* control);
 	IValueFrame* DoFindControlByName(const wxString& controlName, IValueFrame* control);
 	void DoGenerateNewID(form_identifier_t& id, IValueFrame* top);
-
-public:
-
-	OptionList* GetOrient(PropertyEnumOption<CValueEnumOrient>* property) {
-		OptionList* optList = new OptionList();
-		optList->AddOption(_("vertical"), wxVERTICAL);
-		optList->AddOption(_("horizontal"), wxHORIZONTAL);
-		return optList;
-	}
 
 public:
 
@@ -166,9 +152,7 @@ public:
 		wxASSERT(!m_controlGuid.isValid()); m_controlGuid = wxNewUniqueGuid;
 	}
 
-	virtual Guid GetControlGuid() const {
-		return m_controlGuid;
-	}
+	virtual Guid GetControlGuid() const { return m_controlGuid; }
 
 	/**
 	* Find by control id
@@ -196,16 +180,12 @@ public:
 	/**
 	Sets whether the object is expanded in the object tree or not.
 	*/
-	void SetExpanded(bool expanded) {
-		m_expanded = expanded;
-	}
+	void SetExpanded(bool expanded) { m_expanded = expanded; }
 
 	/**
 	Gets whether the object is expanded in the object tree or not.
 	*/
-	bool GetExpanded() const {
-		return m_expanded;
-	}
+	bool GetExpanded() const { return m_expanded; }
 
 	//get metaData
 	virtual IMetaData* GetMetaData() const = 0;
@@ -214,9 +194,6 @@ public:
 	* Can delete object
 	*/
 	virtual bool CanDeleteControl() const = 0;
-
-	// filter data 
-	virtual bool FilterSource(const CSourceExplorer& src, const meta_identifier_t& id);
 
 public:
 
@@ -267,7 +244,7 @@ public:
 
 	// call current event
 	template <typename ...Types>
-	bool CallAsEvent(const Event* event, Types&... args) {
+	bool CallAsEvent(const IEvent* event, Types&... args) {
 		if (event == nullptr)
 			return false;
 		const wxString& eventValue = event->GetValue();
@@ -309,6 +286,8 @@ public:
 	}
 
 public:
+
+	virtual IBackendValueForm* GetBackendForm() const;
 
 	//get visual doc
 	virtual CVisualDocument* GetVisualDocument() const;
@@ -367,11 +346,11 @@ public:
 	/**
 	* Property events
 	*/
-	virtual bool OnPropertyChanging(Property* property, const wxVariant& newValue);
-	virtual void OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue);
+	virtual bool OnPropertyChanging(IProperty* property, const wxVariant& newValue);
+	virtual void OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue);
 
-	virtual bool OnEventChanging(Event* event, const wxString& newValue);
-	virtual void OnEventChanged(Event* event, const wxVariant& oldValue, const wxVariant& newValue);
+	virtual bool OnEventChanging(IEvent* event, const wxString& newValue);
+	virtual void OnEventChanged(IEvent* event, const wxVariant& oldValue, const wxVariant& newValue);
 
 public:
 
@@ -401,6 +380,11 @@ public:
 
 	virtual bool Init() final override;
 	virtual bool Init(CValue** paParams, const long lSizeArray) final override;
+
+	//Get ref class 
+	virtual class_identifier_t GetClassType() const {
+		return CValue::GetClassType();
+	}
 
 public:
 

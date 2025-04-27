@@ -1,7 +1,7 @@
 #ifndef __UNIQUE_KEY_H__
 #define __UNIQUE_KEY_H__
 
-#include "backend/compiler/value/value.h"
+#include "backend/compiler/value.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

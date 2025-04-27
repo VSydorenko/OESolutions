@@ -67,7 +67,7 @@ wxString wxFrameEvent::GetString()
 	return m_string;
 }
 
-wxFramePropertyEvent::wxFramePropertyEvent(wxEventType commandType, Property* property, const wxVariant& oldValue)
+wxFramePropertyEvent::wxFramePropertyEvent(wxEventType commandType, IProperty* property, const wxVariant& oldValue)
 	: wxFrameEvent(commandType), m_strValue(oldValue), m_property(property)
 {
 }

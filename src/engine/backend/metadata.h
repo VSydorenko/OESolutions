@@ -1,13 +1,12 @@
-#ifndef _METADATA_H__
-#define _METADATA_H__
+#ifndef __METADATA_H__
+#define __METADATA_H__
 
 #include "backend/moduleManager/moduleManager.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-
-class IMetaValueTypeCtor;
 class BACKEND_API IBackendMetadataTree;
-
+///////////////////////////////////////////////////////////////////////////////
+class BACKEND_API IMetaValueTypeCtor;
 ///////////////////////////////////////////////////////////////////////////////
 
 #define wxOES_Data wxT("OES_Data")
@@ -20,7 +19,7 @@ private:
 	void DoGenerateNewID(meta_identifier_t& id, IMetaObject* top) const;
 	//Get metaobjects 
 	void DoGetMetaObject(std::vector<IMetaObject*>& metaObjects, const IMetaObject* top) const;
-	void DoGetMetaObject(const class_identifier_t& clsid, 
+	void DoGetMetaObject(const class_identifier_t& clsid,
 		std::vector<IMetaObject*>& metaObjects, const IMetaObject* top) const;
 	//find object
 	IMetaObject* DoFindByName(const wxString& fullName, IMetaObject* top) const;
@@ -37,9 +36,7 @@ public:
 
 	virtual IModuleManager* GetModuleManager() const = 0;
 
-	virtual bool IsModified() const {
-		return m_metaModify;
-	}
+	virtual bool IsModified() const { return m_metaModify; }
 
 	virtual void Modify(bool modify = true) {
 		if (m_metaTree != nullptr)
@@ -50,50 +47,45 @@ public:
 	virtual void SetVersion(const version_identifier_t& version) = 0;
 	virtual version_identifier_t GetVersion() const = 0;
 
-	virtual wxString GetFileName() const {
-		return wxEmptyString;
-	}
-
-	virtual IMetaObject* GetCommonMetaObject() const {
-		return nullptr;
-	}
+	virtual wxString GetFileName() const { return wxEmptyString; }
+	virtual IMetaObject* GetCommonMetaObject() const { return nullptr; }
 
 	//runtime support:
-	inline CValue CreateObject(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0) {
+	inline CValue CreateObject(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0) const {
 		return CreateObjectRef(clsid, paParams, lSizeArray);
 	}
-	inline CValue CreateObject(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) {
+	inline CValue CreateObject(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) const {
 		return CreateObjectRef(className, paParams, lSizeArray);
 	}
-	
+
 	template<typename T, typename... Args>
-	inline CValue CreateObjectValue(Args&&... args) {
+	inline CValue CreateObjectValue(Args&&... args) const {
 		return CreateObjectValueRef<T>(std::forward<Args>(args)...);
 	}
 
-	virtual CValue* CreateObjectRef(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0);
-	virtual CValue* CreateObjectRef(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) {
+	virtual CValue* CreateObjectRef(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0) const;
+	virtual CValue* CreateObjectRef(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) const {
 		const class_identifier_t& clsid = GetIDObjectFromString(className);
 		return CreateObjectRef(clsid, paParams, lSizeArray);
 	}
 	template<typename T, typename... Args>
-	inline CValue* CreateObjectValueRef(Args&&... args) {
+	inline CValue* CreateObjectValueRef(Args&&... args) const {
 		return CreateAndConvertObjectValueRef<T>(std::forward<Args>(args)...);
 	}
 
 	template<class retType = CValue>
-	inline retType* CreateAndConvertObjectRef(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0) {
+	inline retType* CreateAndConvertObjectRef(const class_identifier_t& clsid, CValue** paParams = nullptr, const long lSizeArray = 0) const {
 		return value_cast<retType>(CreateObjectRef(clsid, paParams, lSizeArray));
 	}
 	template<class retType = CValue>
-	inline retType* CreateAndConvertObjectRef(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) {
+	inline retType* CreateAndConvertObjectRef(const wxString& className, CValue** paParams = nullptr, const long lSizeArray = 0) const {
 		return value_cast<retType>(CreateObjectRef(className, paParams, lSizeArray));
 	}
 	template<typename T, typename... Args>
-	inline T* CreateAndConvertObjectValueRef(Args&&... args) {
+	inline T* CreateAndConvertObjectValueRef(Args&&... args) const {
 		auto ptr = static_cast<T*>(malloc(sizeof(T)));
 		T* created_value = ::new (ptr) T(std::forward<Args>(args)...);
-		if (created_value == nullptr) 
+		if (created_value == nullptr)
 			return nullptr;
 		if (!IsRegisterCtor(created_value->GetClassType())) {
 			wxDELETE(created_value);
@@ -138,7 +130,7 @@ public:
 	//metaobject
 	IMetaObject* CreateMetaObject(const class_identifier_t& clsid, IMetaObject* parentMetaObj);
 
-	bool RenameMetaObject(IMetaObject* obj, const wxString& sNewName);
+	bool RenameMetaObject(IMetaObject* obj, const wxString& newName);
 	void RemoveMetaObject(IMetaObject* obj, IMetaObject* objParent = nullptr);
 
 	//Get metaobjects 
@@ -166,13 +158,8 @@ public:
 	virtual IMetaObject* GetMetaObject(const Guid& guid, IMetaObject* top = nullptr) const;
 
 	//Associate this metaData with 
-	virtual IBackendMetadataTree* GetMetaTree() const {
-		return m_metaTree;
-	}
-
-	virtual void SetMetaTree(IBackendMetadataTree* metaTree) {
-		m_metaTree = metaTree;
-	}
+	virtual IBackendMetadataTree* GetMetaTree() const { return m_metaTree; }
+	virtual void SetMetaTree(IBackendMetadataTree* metaTree) { m_metaTree = metaTree; }
 
 	//ID's 
 	virtual meta_identifier_t GenerateNewID() const;

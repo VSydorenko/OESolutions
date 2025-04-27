@@ -65,7 +65,7 @@ void CPrecompileModule::Clear() //—брос данных дл€ повторного использовани€ объе
 
 void CPrecompileModule::PrepareModuleData()
 {
-	IModuleInfo* contextVariable = nullptr;
+	IModuleDataObject* contextVariable = nullptr;
 
 	if (m_moduleObject) {
 		IMetaData* metaData = m_moduleObject->GetMetaData();

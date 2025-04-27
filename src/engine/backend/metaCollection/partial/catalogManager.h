@@ -2,7 +2,7 @@
 #define _MANAGER_CATALOG_H__
 
 #include "catalog.h"
-#include "backend/wrapper/managerInfo.h"
+#include "backend/managerInfo.h"
 
 class CCatalogManager : public CValue,
 	public IMetaManagerInfo {

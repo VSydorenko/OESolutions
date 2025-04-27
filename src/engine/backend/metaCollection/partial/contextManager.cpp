@@ -5,7 +5,7 @@
 
 #include "contextManager.h"
 
-#include "backend/compiler/value/valueMap.h"
+#include "backend/system/value/valueMap.h"
 #include "backend/metaCollection/metaObject.h"
 
 wxIMPLEMENT_DYNAMIC_CLASS(CContextSystemManager, CValue);

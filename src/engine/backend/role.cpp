@@ -3,5 +3,6 @@
 
 void Role::InitRole(IMetaObject* metaObject, const bool& value)
 {
-	m_object->AddRole(this);
+	m_owner->AddRole(this);
+	m_defValue = value;
 }

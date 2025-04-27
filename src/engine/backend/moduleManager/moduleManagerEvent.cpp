@@ -16,7 +16,7 @@ bool CModuleManagerConfiguration::BeforeStart()
 		try {
 			CValue bCancel = false;
 			if (m_procUnit != nullptr) {
-				m_procUnit->CallAsProc("beforeStart", bCancel);
+				m_procUnit->CallAsProc(wxT("beforeStart"), bCancel);
 			}
 			return !bCancel.GetBoolean();
 		}
@@ -34,7 +34,7 @@ void CModuleManagerConfiguration::OnStart()
 	if (!appData->DesignerMode()) {
 		try {
 			if (m_procUnit != nullptr) {
-				m_procUnit->CallAsProc("onStart");
+				m_procUnit->CallAsProc(wxT("onStart"));
 			}
 		}
 		catch (...) {
@@ -48,7 +48,7 @@ bool CModuleManagerConfiguration::BeforeExit()
 		try {
 			CValue bCancel = false;
 			if (m_procUnit != nullptr) {
-				m_procUnit->CallAsProc("beforeExit", bCancel);
+				m_procUnit->CallAsProc(wxT("beforeExit"), bCancel);
 			}
 			return !bCancel.GetBoolean();
 		}
@@ -65,7 +65,7 @@ void CModuleManagerConfiguration::OnExit()
 	if (!appData->DesignerMode()) {
 		try {
 			if (m_procUnit != nullptr) {
-				m_procUnit->CallAsProc("onExit");
+				m_procUnit->CallAsProc(wxT("onExit"));
 			}
 		}
 		catch (...) {

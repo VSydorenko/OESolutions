@@ -41,7 +41,7 @@ class CRoleEditor : public wxSplitterWindow {
 	class wxTreeItemRoleData : public wxTreeItemMetaData {
 		Role* m_role; //тип элемента
 	public:
-		wxTreeItemRoleData(Role* role) : wxTreeItemMetaData(role->GetObject()), m_role(role) {}
+		wxTreeItemRoleData(Role* role) : wxTreeItemMetaData(role->GetRoleObject()), m_role(role) {}
 		Role* GetRole() const {
 			return m_role;
 		}

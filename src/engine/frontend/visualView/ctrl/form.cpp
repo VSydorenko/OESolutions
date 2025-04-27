@@ -4,8 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "form.h"
-#include "frontend/visualView/special/enums/valueOrient.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 
 wxIMPLEMENT_DYNAMIC_CLASS(CValueForm, IValueFrame);
 
@@ -14,7 +13,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(CValueForm, IValueFrame);
 //****************************************************************************
 
 CValueForm::CValueForm(IControlFrame* ownerControl, IMetaObjectForm* metaForm,
-	ISourceDataObject* ownerSrc, const CUniqueKey& formGuid, bool readOnly) : IValueFrame(), IModuleInfo(),
+	ISourceDataObject* ownerSrc, const CUniqueKey& formGuid, bool readOnly) : IValueFrame(), IModuleDataObject(),
 	m_controlOwner(nullptr), m_sourceObject(nullptr), m_metaFormObject(nullptr), m_valueFormDocument(nullptr),
 	m_defaultFormType(defaultFormType), m_formModified(false)
 {
@@ -182,7 +181,7 @@ void CValueForm::PrepareNames() const
 
 	//from property 
 	for (unsigned int idx = 0; idx < IPropertyObject::GetPropertyCount(); idx++) {
-		Property* property = IPropertyObject::GetProperty(idx);
+		IProperty* property = IPropertyObject::GetProperty(idx);
 		if (property == nullptr)
 			continue;
 		m_methodHelper->AppendProp(property->GetName(), idx, eProperty);
@@ -292,7 +291,7 @@ bool CValueForm::CallAsProc(const long lMethodNum, CValue** paParams, const long
 		return true;
 	}
 
-	return IModuleInfo::ExecuteProc(
+	return IModuleDataObject::ExecuteProc(
 		GetMethodName(lMethodNum), paParams, lSizeArray
 	);
 }
@@ -309,7 +308,7 @@ bool CValueForm::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue*
 		return true;
 	}
 
-	return IModuleInfo::ExecuteFunc(
+	return IModuleDataObject::ExecuteFunc(
 		GetMethodName(lMethodNum), pvarRetValue, paParams, lSizeArray
 	);
 }
@@ -318,4 +317,4 @@ bool CValueForm::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue*
 //*                       Register in runtime                           *
 //***********************************************************************
 
-S_CONTROL_TYPE_REGISTER(CValueForm, "form", "form", g_controlFormCLSID);
+S_CONTROL_TYPE_REGISTER(CValueForm, "frontendForm", "form", g_controlFormCLSID);

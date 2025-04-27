@@ -1,23 +1,24 @@
-#ifndef _MODULE_MANAGER_H__
-#define _MODULE_MANAGER_H__
+#ifndef __MODULE_MANAGER_H__
+#define __MODULE_MANAGER_H__
 
-#include "backend/wrapper/moduleInfo.h"
+#include "backend/moduleInfo.h"
 
 #include "backend/metaCollection/metaObjectMetadata.h"
 #include "backend/metaCollection/metaModuleObject.h"
-#include "backend/metaCollection/partial/dataProcessor.h"
-#include "backend/metaCollection/partial/dataReport.h"
+#include "backend/metaCollection/partial/commonObject.h"
 
-class BACKEND_API IModuleManager : public CValue,
-	public IModuleInfo {
+class BACKEND_API IModuleManager :
+	public IModuleDataObject,
+	public CValue {
 protected:
 	enum helperAlias {
 		eProcUnit
 	};
 public:
-	
-	class BACKEND_API CModuleUnit : public CValue,
-		public IModuleInfo {
+
+	class BACKEND_API CModuleUnit :
+		public IModuleDataObject,
+		public CValue {
 		wxDECLARE_DYNAMIC_CLASS(CModuleUnit);
 	protected:
 		enum helperAlias {
@@ -112,7 +113,8 @@ public:
 		CMetaObjectModule* m_moduleObject;
 	};
 
-	class BACKEND_API CMetadataUnit : public CValue {
+	class BACKEND_API CMetadataUnit : 
+		public CValue {
 		wxDECLARE_DYNAMIC_CLASS(CMetadataUnit);
 	private:
 		CMethodHelper* m_methodHelper;
@@ -123,7 +125,7 @@ public:
 		virtual ~CMetadataUnit();
 
 		//get common module 
-		IMetaData* GetMetaData() const { 
+		IMetaData* GetMetaData() const {
 			return m_metaData;
 		}
 
@@ -154,10 +156,11 @@ public:
 		}
 
 		// these methods need to be overridden in your aggregate objects:
-		virtual CMethodHelper* GetPMethods() const { 
+		virtual CMethodHelper* GetPMethods() const {
 			//PrepareNames();  
-			return m_methodHelper; }
-		
+			return m_methodHelper;
+		}
+
 		virtual void PrepareNames() const; // this method is automatically called to initialize attribute and method names.
 
 		//****************************************************************************
@@ -199,7 +202,7 @@ public:
 	// these methods need to be overridden in your aggregate objects:
 	virtual CMethodHelper* GetPMethods() const { // get a reference to the class helper for parsing attribute and method names
 		//PrepareNames(); 
-		return m_methodHelper; 
+		return m_methodHelper;
 	}
 	// this method is automatically called to initialize attribute and method names.
 	virtual void PrepareNames() const;
@@ -268,7 +271,7 @@ public:
 	}
 
 	//return external module
-	virtual IRecordDataObjectExt* GetObjectValue() const {
+	virtual CValue* GetObjectValue() const {
 		return nullptr;
 	}
 
@@ -296,7 +299,8 @@ protected:
 	CMethodHelper* m_methodHelper;
 };
 
-class BACKEND_API CModuleManagerConfiguration : public IModuleManager {
+class BACKEND_API CModuleManagerConfiguration : 
+	public IModuleManager {
 	//system events:
 	bool BeforeStart();
 	void OnStart();
@@ -305,7 +309,7 @@ class BACKEND_API CModuleManagerConfiguration : public IModuleManager {
 public:
 
 	//metaData and external variant
-	CModuleManagerConfiguration(IMetaData* metaData = nullptr, CMetaObject* metaObject = nullptr);
+	CModuleManagerConfiguration(IMetaData* metaData = nullptr, CMetaObjectConfiguration* metaObject = nullptr);
 
 	//Create common module
 	virtual bool CreateMainModule();
@@ -318,87 +322,6 @@ public:
 
 	//exit common module
 	virtual bool ExitMainModule(bool force = false);
-};
-
-class BACKEND_API CModuleManagerExternalDataProcessor : public IModuleManager {
-	CRecordDataObjectDataProcessor* m_objectValue;
-public:
-
-	virtual CCompileModule* GetCompileModule() const;
-	virtual CProcUnit* GetProcUnit() const;
-
-	virtual std::map<wxString, CValue*>& GetContextVariables();
-
-	//metaData and external variant
-	CModuleManagerExternalDataProcessor(IMetaData* metaData = nullptr, CMetaObjectDataProcessor* metaObject = nullptr);
-	virtual ~CModuleManagerExternalDataProcessor();
-
-	//return external module
-	virtual IRecordDataObjectExt* GetObjectValue() const {
-		return m_objectValue;
-	}
-
-	//Create common module
-	virtual bool CreateMainModule();
-
-	//destroy common module
-	virtual bool DestroyMainModule();
-
-	//start common module
-	virtual bool StartMainModule(bool force = false);
-
-	//exit common module
-	virtual bool ExitMainModule(bool force = false);
-
-	// this method is automatically called to initialize attribute and method names.
-	virtual void PrepareNames() const;
-	//method call
-	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);
-
-	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //setting attribute
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //attribute value
-
-	virtual long FindProp(const wxString& strName) const;
-};
-
-class BACKEND_API CModuleManagerExternalReport : public IModuleManager {
-	CRecordDataObjectReport* m_objectValue;
-public:
-
-	virtual CCompileModule* GetCompileModule() const;
-	virtual CProcUnit* GetProcUnit() const;
-
-	virtual std::map<wxString, CValue*>& GetContextVariables();
-
-	//metaData and external variant
-	CModuleManagerExternalReport(IMetaData* metaData = nullptr, CMetaObjectReport* metaObject = nullptr);
-	virtual ~CModuleManagerExternalReport();
-
-	//return external module
-	virtual IRecordDataObjectExt* GetObjectValue() const {
-		return m_objectValue;
-	}
-
-	//Create common module
-	virtual bool CreateMainModule();
-
-	//destroy common module
-	virtual bool DestroyMainModule();
-
-	//start common module
-	virtual bool StartMainModule(bool force = false);
-
-	//exit common module
-	virtual bool ExitMainModule(bool force = false);
-
-	// this method is automatically called to initialize attribute and method names.
-	virtual void PrepareNames() const;
-	//method call
-	virtual bool CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray);
-
-	virtual bool SetPropVal(const long lPropNum, const CValue& varPropVal);        //setting attribute
-	virtual bool GetPropVal(const long lPropNum, CValue& pvarPropVal);                   //attribute value
-	virtual long FindProp(const wxString& strName) const;
 };
 
 #endif

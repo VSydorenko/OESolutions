@@ -20,7 +20,7 @@ m_formOwner(ownerFrame), m_methodHelper(new CMethodHelper())
 {
 }
 
-#include "backend/compiler/value/valueMap.h"
+#include "backend/system/value/valueMap.h"
 
 CValueForm::CValueFormCollectionControl::~CValueFormCollectionControl()
 {
@@ -109,7 +109,7 @@ bool CValueForm::CValueFormCollectionControl::GetPropVal(const long lPropNum, CV
 	return !pvarPropVal.IsEmpty();
 }
 
-#include "backend/compiler/value/valueType.h"
+#include "backend/system/value/valueType.h"
 
 bool CValueForm::CValueFormCollectionControl::CallAsProc(const long lMethodNum, CValue** paParams, const long lSizeArray)
 {

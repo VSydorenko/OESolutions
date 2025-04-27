@@ -6,22 +6,18 @@
 #include "metaObjectMetadata.h"
 #include "metaModuleObject.h"
 
-#define initModuleName wxT("configurationModule")
-
 //*****************************************************************************************
 //*                         metaData													  * 
 //*****************************************************************************************
 
-wxIMPLEMENT_DYNAMIC_CLASS(CMetaObject, IMetaObject);
+wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectConfiguration, IMetaObject);
 
 //*****************************************************************************************
 //*                                  MetadataObject                                       *
 //*****************************************************************************************
 
-CMetaObject::CMetaObject() : IMetaObject(configurationDefaultName)
+CMetaObjectConfiguration::CMetaObjectConfiguration() : IMetaObject(configurationDefaultName)
 {
-	m_commonModule = IMetaObject::CreateMetaObjectAndSetParent<CMetaObjectModule>(initModuleName);
-
 	//set default proc
 	m_commonModule->SetDefaultProcedure("beforeStart", eContentHelper::eProcedureHelper, { "cancel" });
 	m_commonModule->SetDefaultProcedure("onStart", eContentHelper::eProcedureHelper);
@@ -32,18 +28,18 @@ CMetaObject::CMetaObject() : IMetaObject(configurationDefaultName)
 	m_metaId = defaultMetaID;
 }
 
-CMetaObject::~CMetaObject()
+CMetaObjectConfiguration::~CMetaObjectConfiguration()
 {
 	wxDELETE(m_commonModule);
 }
 
-bool CMetaObject::LoadData(CMemoryReader& dataReader)
+bool CMetaObjectConfiguration::LoadData(CMemoryReader& dataReader)
 {
 	m_propertyVersion->SetValue(dataReader.r_s32());
 	return m_commonModule->LoadMeta(dataReader);
 }
 
-bool CMetaObject::SaveData(CMemoryWriter& dataWritter)
+bool CMetaObjectConfiguration::SaveData(CMemoryWriter& dataWritter)
 {
 	dataWritter.w_s32(m_propertyVersion->GetValueAsInteger());
 	return m_commonModule->SaveMeta(dataWritter);
@@ -55,7 +51,7 @@ bool CMetaObject::SaveData(CMemoryWriter& dataWritter)
 
 #include "backend/metaData.h"
 
-bool CMetaObject::OnCreateMetaObject(IMetaData* metaData)
+bool CMetaObjectConfiguration::OnCreateMetaObject(IMetaData* metaData)
 {
 	if (!m_commonModule->OnCreateMetaObject(metaData)) {
 		return false;
@@ -64,7 +60,7 @@ bool CMetaObject::OnCreateMetaObject(IMetaData* metaData)
 	return IMetaObject::OnCreateMetaObject(metaData);
 }
 
-bool CMetaObject::OnLoadMetaObject(IMetaData* metaData)
+bool CMetaObjectConfiguration::OnLoadMetaObject(IMetaData* metaData)
 {
 	if (!m_commonModule->OnLoadMetaObject(metaData)) {
 		return false;
@@ -73,7 +69,7 @@ bool CMetaObject::OnLoadMetaObject(IMetaData* metaData)
 	return IMetaObject::OnLoadMetaObject(metaData);
 }
 
-bool CMetaObject::OnSaveMetaObject()
+bool CMetaObjectConfiguration::OnSaveMetaObject()
 {
 	if (!m_commonModule->OnSaveMetaObject()) {
 		return false;
@@ -82,7 +78,7 @@ bool CMetaObject::OnSaveMetaObject()
 	return IMetaObject::OnSaveMetaObject();
 }
 
-bool CMetaObject::OnDeleteMetaObject()
+bool CMetaObjectConfiguration::OnDeleteMetaObject()
 {
 	if (!m_commonModule->OnDeleteMetaObject()) {
 		return false;
@@ -91,7 +87,7 @@ bool CMetaObject::OnDeleteMetaObject()
 	return IMetaObject::OnDeleteMetaObject();
 }
 
-bool CMetaObject::OnBeforeRunMetaObject(int flags)
+bool CMetaObjectConfiguration::OnBeforeRunMetaObject(int flags)
 {
 	if (!m_commonModule->OnBeforeRunMetaObject(flags))
 		return false;
@@ -105,7 +101,7 @@ bool CMetaObject::OnBeforeRunMetaObject(int flags)
 	return IMetaObject::OnBeforeRunMetaObject(flags);
 }
 
-bool CMetaObject::OnAfterCloseMetaObject()
+bool CMetaObjectConfiguration::OnAfterCloseMetaObject()
 {
 	if (!m_commonModule->OnAfterCloseMetaObject())
 		return false;
@@ -123,4 +119,4 @@ bool CMetaObject::OnAfterCloseMetaObject()
 //*                       Register in runtime                           *
 //***********************************************************************
 
-METADATA_TYPE_REGISTER(CMetaObject, "commonMetadata", g_metaCommonMetadataCLSID);
+METADATA_TYPE_REGISTER(CMetaObjectConfiguration, "commonMetadata", g_metaCommonMetadataCLSID);

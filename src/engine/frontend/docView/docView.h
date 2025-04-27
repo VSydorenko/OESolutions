@@ -2,6 +2,7 @@
 #define __OBJ_INFO_H__
 
 #include <wx/app.h>
+#include <wx/cmdproc.h>
 #include <wx/docview.h>
 #include <wx/msgdlg.h>
 

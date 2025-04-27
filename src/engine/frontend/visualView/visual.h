@@ -15,9 +15,9 @@
 
 #include <map>
 
-class IValueFrame;
-
 #include "frontend/frontend.h"
+
+class FRONTEND_API IValueFrame;
 
 class FRONTEND_API IVisualHost : public wxScrolledWindow {
 	wxDECLARE_ABSTRACT_CLASS(IVisualHost);
@@ -156,8 +156,8 @@ public:
 	virtual void ExpandControl(IValueFrame* obj, bool expand) = 0;
 	virtual void SelectControl(IValueFrame* obj) = 0;
 
-	virtual void ModifyEvent(class Event* event, const wxVariant& oldValue, const wxVariant& newValue) = 0;
-	virtual void ModifyProperty(class Property* prop, const wxVariant& oldValue, const wxVariant& newValue) = 0;
+	virtual void ModifyEvent(class IEvent* event, const wxVariant& oldValue, const wxVariant& newValue) = 0;
+	virtual void ModifyProperty(class IProperty* prop, const wxVariant& oldValue, const wxVariant& newValue) = 0;
 
 	virtual IValueFrame* GetValueForm() const = 0;
 

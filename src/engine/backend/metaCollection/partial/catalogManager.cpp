@@ -6,7 +6,7 @@
 #include "catalogManager.h"
 #include "backend/metaData.h"
 
-#include "object.h"
+#include "commonObject.h"
 
 wxIMPLEMENT_DYNAMIC_CLASS(CCatalogManager, CValue);
 

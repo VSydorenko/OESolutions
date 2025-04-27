@@ -1,25 +1,24 @@
-#ifndef _CONSTANTS_H__
-#define _CONSTANTS_H__
+#ifndef __CONSTANTS_H__
+#define __CONSTANTS_H__
 
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 
-class CRecordDataObjectConstant;
+class BACKEND_API CRecordDataObjectConstant;
 
-class CMetaObjectConstant : public CMetaObjectAttribute,
-	public IMetaCommandData {
+class BACKEND_API CMetaObjectConstant : public CMetaObjectAttribute, public IBackendCommandData {
 	wxDECLARE_DYNAMIC_CLASS(CMetaObjectConstant);
 private:
-	Role* m_roleRead = IMetaObject::CreateRole({ "read", _("read") });
-	Role* m_roleInsert = IMetaObject::CreateRole({ "insert", _("insert") });
-	Role* m_roleUpdate = IMetaObject::CreateRole({ "update", _("update") });
-	Role* m_roleDelete = IMetaObject::CreateRole({ "delete", _("delete") });
+	Role* m_roleRead = IMetaObject::CreateRole("read", _("read"));
+	Role* m_roleInsert = IMetaObject::CreateRole("insert", _("insert"));
+	Role* m_roleUpdate = IMetaObject::CreateRole("update", _("update"));
+	Role* m_roleDelete = IMetaObject::CreateRole("delete", _("delete"));
 protected:
 	enum
 	{
 		ID_METATREE_OPEN_CONSTANT_MANAGER = 19000,
 	};
 
-	CMetaObjectModule* m_moduleObject;
+	CMetaObjectModule* m_moduleObject = IMetaObject::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("objectModule"));
 
 public:
 
@@ -43,22 +42,16 @@ public:
 	virtual bool OnAfterCloseMetaObject();
 
 	//get table name
-	static wxString GetTableNameDB() {
-		return wxT("_const");
-	}
+	static wxString GetTableNameDB() { return wxT("_const"); }
 
 	//get module object in compose object 
-	virtual CMetaObjectModule* GetModuleObject() const {
-		return m_moduleObject;
-	}
+	virtual CMetaObjectModule* GetModuleObject() const { return m_moduleObject; }
 
 	//create empty object
 	virtual CRecordDataObjectConstant* CreateObjectValue();
 
 	//get default form 
-	virtual IBackendValueForm* GetDefaultCommandForm() {
-		return GetObjectForm();
-	};
+	virtual IBackendValueForm* GetDefaultCommandForm() { return GetObjectForm(); };
 
 	//support form 
 	virtual IBackendValueForm* GetObjectForm();
@@ -88,32 +81,26 @@ protected:
 	virtual void ProcessCommand(unsigned int id);
 };
 
-#include "backend/wrapper/moduleInfo.h"
+#include "backend/moduleInfo.h"
 
-class CRecordDataObjectConstant : public CValue, public IActionSource,
-	public ISourceDataObject, public IModuleInfo {
+class BACKEND_API CRecordDataObjectConstant : public CValue, public IActionDataObject,
+	public ISourceDataObject, public IModuleDataObject {
 	virtual bool InitializeObject(const CRecordDataObjectConstant* source = nullptr);
 protected:
 	CRecordDataObjectConstant(CMetaObjectConstant* metaObject);
 	CRecordDataObjectConstant(const CRecordDataObjectConstant& source);
 public:
-	
+
 	CValue GetConstValue() const;
 	bool SetConstValue(const CValue& cValue);
 
-	inline virtual bool IsEmpty() const {
-		return false;
-	}
+	inline virtual bool IsEmpty() const { return false; }
 
 	//get metaData from object 
-	virtual IMetaObjectGenericData* GetSourceMetaObject() const final {
-		return GetMetaObject();
-	}
+	virtual IMetaObjectGenericData* GetSourceMetaObject() const final { return GetMetaObject(); }
 
 	//Get ref class 
-	virtual class_identifier_t GetSourceClassType() const final {
-		return GetClassType();
-	};
+	virtual class_identifier_t GetSourceClassType() const final { return GetClassType(); };
 
 	//support source data 
 	virtual CSourceExplorer GetSourceExplorer() const;
@@ -132,14 +119,11 @@ public:
 		return (IMetaObjectGenericData*)m_metaObject;
 	};
 
-	//get unique identifier 
-	virtual CUniqueKey GetGuid() const {
-		return m_metaObject->GetGuid();
-	}
+	virtual bool IsNewObject() const { return false; }
 
-	virtual bool SaveModify() override {
-		return SetConstValue(m_constVal);
-	}
+	//get unique identifier 
+	virtual CUniqueKey GetGuid() const { return m_metaObject->GetGuid(); }
+	virtual bool SaveModify() override { return SetConstValue(m_constVal); }
 
 	//get frame
 	virtual IBackendValueForm* GetForm() const;

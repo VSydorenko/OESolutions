@@ -31,12 +31,12 @@ static const char *s_metadata_xpm[] = {
 	"      ........  "
 };
 
-wxIcon CMetaObject::GetIcon() const
+wxIcon CMetaObjectConfiguration::GetIcon() const
 {
 	return wxIcon(s_metadata_xpm);
 }
 
-wxIcon CMetaObject::GetIconGroup()
+wxIcon CMetaObjectConfiguration::GetIconGroup()
 {
 	return wxIcon(s_metadata_xpm);
 }

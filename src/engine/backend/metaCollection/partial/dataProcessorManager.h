@@ -2,7 +2,7 @@
 #define _MANAGER_DATAPROCESSOR_H__
 
 #include "dataProcessor.h"
-#include "backend/wrapper/managerInfo.h"
+#include "backend/managerInfo.h"
 
 class CDataProcessorManager : public CValue,
 	public IMetaManagerInfo {

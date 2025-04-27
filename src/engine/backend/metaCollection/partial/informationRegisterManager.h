@@ -2,7 +2,7 @@
 #define _INFO_REGISTER_MANAGER_H__
 
 #include "informationRegister.h"
-#include "backend/wrapper/managerInfo.h"
+#include "backend/managerInfo.h"
 
 class CInformationRegisterManager : public CValue,
 	public IMetaManagerInfo {

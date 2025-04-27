@@ -2,7 +2,7 @@
 #define _MANAGER_REPORT_H__
 
 #include "dataReport.h"
-#include "backend/wrapper/managerInfo.h"
+#include "backend/managerInfo.h"
 
 class CReportManager : public CValue,
 	public IMetaManagerInfo {

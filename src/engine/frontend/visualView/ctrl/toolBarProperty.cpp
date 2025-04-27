@@ -1,15 +1,17 @@
 #include "toolBar.h"
 #include "frontend/visualView/visualHost.h"
 
-void CValueToolbar::OnPropertyCreated(Property* property)
+void CValueToolbar::OnPropertyCreated(IProperty* property)
 {
+	IValueWindow::OnPropertyCreated(property);
 }
 
-void CValueToolbar::OnPropertySelected(Property* property)
+void CValueToolbar::OnPropertySelected(IProperty* property)
 {
+	IValueWindow::OnPropertySelected(property);
 }
 
-void CValueToolbar::OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue)
+void CValueToolbar::OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue)
 {
 	if (m_actSource == property) {
 
@@ -24,8 +26,8 @@ void CValueToolbar::OnPropertyChanged(Property* property, const wxVariant& oldVa
 				g_visualHostContext->CutControl(GetChild(0), true);
 			}
 
-			IValueFrame* sourceElement = property->GetValueAsInteger() != wxNOT_FOUND ?
-				FindControlByID(property->GetValueAsInteger()) : nullptr;
+			IValueFrame* sourceElement = m_actSource->GetValueAsInteger() != wxNOT_FOUND ?
+				FindControlByID(m_actSource->GetValueAsInteger()) : nullptr;
 
 			if (sourceElement != nullptr) {
 				CActionCollection actionData =
@@ -58,4 +60,6 @@ void CValueToolbar::OnPropertyChanged(Property* property, const wxVariant& oldVa
 			g_visualHostContext->RefreshEditor();
 		}
 	}
+
+	IValueWindow::OnPropertyChanged(property, oldValue, newValue);
 }

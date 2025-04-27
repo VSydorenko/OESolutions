@@ -171,7 +171,7 @@ void CDesignerApp::OnUnhandledException()
 	wxApp::OnUnhandledException();
 }
 
-#include "backend/compiler/value/valueOLE.h"
+#include "backend/system/value/valueOLE.h"
 
 void CDesignerApp::OnFatalException()
 {

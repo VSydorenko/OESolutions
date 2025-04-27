@@ -26,17 +26,17 @@ class BACKEND_API CDebuggerClient {
 
 protected:
 
-	class CDebuggerAdaptourClient : public wxEvtHandler {
+	class CDebuggerAdapterClient : public wxEvtHandler {
 		IDebuggerClientBridge* m_debugBridge;
 	public:
 
-		CDebuggerAdaptourClient() : m_debugBridge(nullptr) {}
+		CDebuggerAdapterClient() : m_debugBridge(nullptr) {}
 		void SetBridge(IDebuggerClientBridge* bridge) {
 			if (m_debugBridge != nullptr)
 				wxDELETE(m_debugBridge);
 			m_debugBridge = bridge;
 		}
-		virtual ~CDebuggerAdaptourClient() { wxDELETE(m_debugBridge); }
+		virtual ~CDebuggerAdapterClient() { wxDELETE(m_debugBridge); }
 
 		//commands 
 		void OnSessionStart(wxSocketClient* sock);
@@ -114,7 +114,7 @@ protected:
 			m_verifiedConnection(false),
 			m_connectionType(ConnectionType::ConnectionType_Scanner),
 			m_socketClient(nullptr) {
-			if (debugClient != nullptr) debugClient->AppendConnection(this);		
+			if (debugClient != nullptr) debugClient->AppendConnection(this);
 		}
 
 		CDebuggerClient::CDebuggerThreadClient::~CDebuggerThreadClient() {
@@ -144,24 +144,24 @@ protected:
 	};
 
 	CDebuggerClient() :
-		m_activeSocket(nullptr), m_adaptour(new CDebuggerAdaptourClient), m_enterLoop(false) {
+		m_activeSocket(nullptr), m_adapter(new CDebuggerAdapterClient), m_enterLoop(false) {
 	}
 
 	CDebuggerThreadClient* m_activeSocket = nullptr;
-	CDebuggerAdaptourClient* m_adaptour = nullptr;
+	CDebuggerAdapterClient* m_adapter = nullptr;
 	std::vector<CDebuggerThreadClient*>	m_listConnection;
 
 public:
 
 	void SetBridge(IDebuggerClientBridge* bridge) {
-		m_adaptour->SetBridge(bridge);
+		m_adapter->SetBridge(bridge);
 	}
 
 	virtual ~CDebuggerClient() {
 		while (m_listConnection.size()) {
 			m_listConnection[m_listConnection.size() - 1]->Kill();
 		}
-		wxDELETE(m_adaptour);
+		wxDELETE(m_adapter);
 	}
 
 	static CDebuggerClient* Get() {
@@ -178,9 +178,7 @@ public:
 	CDebuggerThreadClient* FindConnection(const wxString& hostName, unsigned short port);
 	CDebuggerThreadClient* FindDebugger(const wxString& hostName, unsigned short port);
 	void SearchDebugger(const wxString& hostName = defaultHost, unsigned short startPort = defaultDebuggerPort);
-	std::vector<CDebuggerThreadClient*>& GetConnections() {
-		return m_listConnection;
-	}
+	std::vector<CDebuggerThreadClient*>& GetListConnection() { return m_listConnection; }
 
 	//special public function:
 #if _USE_64_BIT_POINT_IN_DEBUGGER == 1
@@ -237,29 +235,29 @@ public:
 
 	template <typename T>
 	void CallAfter(void (T::* method)()) {
-		if (m_adaptour != nullptr) {
-			wxQueueEvent(m_adaptour, new wxAsyncMethodCallEvent0<T>(static_cast<T*>(m_adaptour), method));
+		if (m_adapter != nullptr) {
+			wxQueueEvent(m_adapter, new wxAsyncMethodCallEvent0<T>(static_cast<T*>(m_adapter), method));
 		}
 	}
 
 	template <typename T, typename T1, typename P1>
 	void CallAfter(void (T::* method)(T1 x1), P1 x1) {
-		if (m_adaptour != nullptr) {
-			wxQueueEvent(m_adaptour, new wxAsyncMethodCallEvent1<T, T1>(static_cast<T*>(m_adaptour), method, x1));
+		if (m_adapter != nullptr) {
+			wxQueueEvent(m_adapter, new wxAsyncMethodCallEvent1<T, T1>(static_cast<T*>(m_adapter), method, x1));
 		}
 	}
 
 	template <typename T, typename T1, typename T2, typename P1, typename P2>
 	void CallAfter(void (T::* method)(T1 x1, T2 x2), P1 x1, P2 x2) {
-		if (m_adaptour != nullptr) {
-			wxQueueEvent(m_adaptour, new wxAsyncMethodCallEvent2<T, T1, T2>(static_cast<T*>(m_adaptour), method, x1, x2));
+		if (m_adapter != nullptr) {
+			wxQueueEvent(m_adapter, new wxAsyncMethodCallEvent2<T, T1, T2>(static_cast<T*>(m_adapter), method, x1, x2));
 		}
 	}
 
 	template <typename T>
 	void CallAfter(const T& fn) {
-		if (m_adaptour != nullptr) {
-			wxQueueEvent(m_adaptour, new wxAsyncMethodCallEventFunctor<T>(m_adaptour, fn));
+		if (m_adapter != nullptr) {
+			wxQueueEvent(m_adapter, new wxAsyncMethodCallEventFunctor<T>(m_adapter, fn));
 		}
 	}
 

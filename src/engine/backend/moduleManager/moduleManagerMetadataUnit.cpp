@@ -6,7 +6,7 @@
 #include "moduleManager.h"
 #include "backend/metaData.h"
 
-#include "backend/compiler/value/valueMap.h"
+#include "backend/system/value/valueMap.h"
 
 wxIMPLEMENT_DYNAMIC_CLASS(IModuleManager::CMetadataUnit, CValue);
 

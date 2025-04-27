@@ -1,7 +1,7 @@
 #ifndef _AUTOCOMPLETE_COMPILE_H__
 #define _AUTOCOMPLETE_COMPILE_H__
 
-#include "backend/wrapper/moduleInfo.h"
+#include "backend/moduleInfo.h"
 #include "backend/compiler/compileCode.h"
 
 struct CParamValue {

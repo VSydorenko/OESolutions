@@ -5,7 +5,7 @@
 
 #include "dataProcessorManager.h"
 #include "backend/metaData.h"
-#include "object.h"
+#include "commonObject.h"
 
 wxIMPLEMENT_DYNAMIC_CLASS(CDataProcessorManager, CValue);
 
@@ -124,7 +124,7 @@ void CManagerExternalDataProcessorValue::PrepareNames() const
 	m_methodHelper->AppendFunc("create", "create(fullPath)");
 }
 
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 #include "backend/external/metadataDataProcessor.h"
 
 bool CManagerExternalDataProcessorValue::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)
@@ -135,7 +135,7 @@ bool CManagerExternalDataProcessorValue::CallAsFunc(const long lMethodNum, CValu
 	{
 		CMetaDataDataProcessor* metaDataProcessor = new CMetaDataDataProcessor();
 		if (metaDataProcessor->LoadFromFile(paParams[0]->GetString())) {
-			IModuleManager* moduleManager = metaDataProcessor->GetModuleManager();
+			CModuleManagerExternalDataProcessor* moduleManager = metaDataProcessor->GetModuleManager();
 			pvarRetValue = moduleManager->GetObjectValue();
 			return true; 
 		}

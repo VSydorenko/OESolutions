@@ -33,29 +33,6 @@ inline wxObject* GetChildFormVisualEditor(IVisualHost* visualEdit, wxObject* wxo
 	return visualEdit->GetWxObject(obj->GetChild(childIndex));
 }
 
-OptionList* CValueSizerItem::GetDefaultOptionBorder(PropertyBitlist* property)
-{
-	OptionList* opt_list = new OptionList();
-
-	opt_list->AddOption(_("left"), wxLEFT);
-	opt_list->AddOption(_("right"), wxRIGHT);
-	opt_list->AddOption(_("bottom"), wxBOTTOM);
-	opt_list->AddOption(_("top"), wxTOP);
-
-	return opt_list;
-}
-
-OptionList* CValueSizerItem::GetDefaultOptionState(PropertyOption* property)
-{
-	OptionList* opt_list = new OptionList();
-
-	opt_list->AddOption(_("shrink"), wxSHRINK);
-	opt_list->AddOption(_("expand"), wxEXPAND);
-	//m_opt_list->AddOption(_("shaped", wxSHAPED);
-
-	return opt_list;
-}
-
 //************************************************************************************
 //*                            ValueSizerItem                                        *
 //************************************************************************************
@@ -125,7 +102,7 @@ void CValueSizerItem::OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVisualH
 	for (unsigned int i = 0; i < parentControl->GetChildCount(); i++) {
 		IValueFrame* child = parentControl->GetChild(i);
 		if (m_controlId == child->GetControlID()) {
-			idx = i; 
+			idx = i;
 			break;
 		}
 	}
@@ -220,20 +197,33 @@ CProcUnit* CValueSizerItem::GetFormProcUnit() const
 
 bool CValueSizerItem::LoadData(CMemoryReader& reader)
 {
-	m_propertyProportion->SetValue(reader.r_s32());
-	m_propertyFlagBorder->SetValue(reader.r_s64());
-	m_propertyFlagState->SetValue(reader.r_s64());
-	m_propertyBorder->SetValue(reader.r_s32());
+	//m_propertyProportion->SetValue(reader.r_s32());
+	//m_propertyFlagBorder->SetValue(reader.r_s64());
+	//m_propertyFlagState->SetValue(reader.r_s64());
+	//m_propertyBorder->SetValue(reader.r_s32());
+
+	m_propertyProportion->LoadData(reader);
+	//m_propertyFlagBorder->LoadData(reader);
+	
+	
+	m_propertyFlagState->LoadData(reader);
+	m_propertyBorder->LoadData(reader);
 
 	return IValueFrame::LoadData(reader);
 }
 
 bool CValueSizerItem::SaveData(CMemoryWriter& writer)
 {
-	writer.w_s32(m_propertyProportion->GetValueAsInteger());
-	writer.w_s64(m_propertyFlagBorder->GetValueAsInteger());
-	writer.w_s64(m_propertyFlagState->GetValueAsInteger());
-	writer.w_s32(m_propertyBorder->GetValueAsInteger());
+	//writer.w_s32(m_propertyProportion->GetValueAsInteger());
+	//writer.w_s64(m_propertyFlagBorder->GetValueAsInteger());
+	//writer.w_s64(m_propertyFlagState->GetValueAsInteger());
+	//writer.w_s32(m_propertyBorder->GetValueAsInteger());
+
+	m_propertyProportion->SaveData(writer);
+	//m_propertyFlagBorder->SaveData(writer);
+
+	m_propertyFlagState->SaveData(writer);
+	m_propertyBorder->SaveData(writer);
 
 	return IValueFrame::SaveData(writer);
 }

@@ -5,7 +5,7 @@
 
 #include "dataReportManager.h"
 #include "backend/metaData.h"
-#include "object.h"
+#include "commonObject.h"
 
 wxIMPLEMENT_DYNAMIC_CLASS(CReportManager, CValue);
 
@@ -122,7 +122,7 @@ void CManagerExternalReport::PrepareNames() const
 	m_methodHelper->AppendFunc("create", "create(fullPath)");
 }
 
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 #include "backend/external/metadataReport.h"
 
 bool CManagerExternalReport::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)
@@ -134,7 +134,7 @@ bool CManagerExternalReport::CallAsFunc(const long lMethodNum, CValue& pvarRetVa
 	{
 		CMetaDataReport* metaReport = new CMetaDataReport();
 		if (metaReport->LoadFromFile(paParams[0]->GetString())) {
-			IModuleManager* moduleManager = metaReport->GetModuleManager();
+			CModuleManagerExternalReport* moduleManager = metaReport->GetModuleManager();
 			pvarRetValue = moduleManager->GetObjectValue();
 			return true;
 		}

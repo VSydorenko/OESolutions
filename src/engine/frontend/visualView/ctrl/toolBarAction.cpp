@@ -1,24 +1,22 @@
 #include "toolbar.h"
 #include "form.h"
 
-inline void ParseElements(IValueFrame* element, OptionList* optionlist)
+inline void ParseElements(IValueFrame* element, CPropertyList* property)
 {
 	if (element->GetClassName() == wxT("tablebox")) {
-		optionlist->AddOption(element->GetControlName(), element->GetControlID());
+		property->AppendItem(element->GetControlName(), element->GetControlID(), element);
 	}
 
 	for (unsigned int i = 0; i < element->GetChildCount(); i++) {
-		ParseElements(element->GetChild(i), optionlist);
+		ParseElements(element->GetChild(i), property);
 	}
 }
 
-OptionList* CValueToolbar::GetActionSource(PropertyOption*)
+bool CValueToolbar::GetActionSource(CPropertyList* property)
 {
-	OptionList* optionlist = new OptionList;
+	property->AppendItem(_("<not selected>"), wxNOT_FOUND, wxEmptyValue);
+	property->AppendItem(_("form"), FORM_ACTION, (IValueFrame *)m_formOwner);
 
-	optionlist->AddOption(_("<not selected>"), 0);
-	optionlist->AddOption(_("form"), FORM_ACTION);
-
-	ParseElements(GetOwnerForm(), optionlist);
-	return optionlist;
+	ParseElements(GetOwnerForm(), property);
+	return true;
 }

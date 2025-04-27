@@ -4,26 +4,43 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "document.h"
+#include "backend/metadata.h"
+#include "backend/objCtor.h"
 
-void CMetaObjectDocument::OnPropertyCreated(Property* property)
+void CMetaObjectDocument::OnPropertyCreated(IProperty* property)
 {
-	if (m_propertyRecordData == property) {
-		CMetaObjectDocument::SaveToVariant(m_propertyRecordData->GetValue(), m_metaData);
-	}
-	IMetaObjectRecordDataMutableRef::OnPropertyCreated(property);
+    IMetaObjectRecordDataMutableRef::OnPropertyCreated(property);
 }
 
-bool CMetaObjectDocument::OnPropertyChanging(Property* property, const wxVariant& newValue)
+bool CMetaObjectDocument::OnPropertyChanging(IProperty* property, const wxVariant& newValue)
 {
-	if (m_propertyRecordData == property && !CMetaObjectDocument::LoadFromVariant(newValue))
-		return true;
-
-	return IMetaObjectRecordDataMutableRef::OnPropertyChanging(property, newValue);
+    return IMetaObjectRecordDataMutableRef::OnPropertyChanging(property, newValue);
 }
 
-void CMetaObjectDocument::OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue)
+void CMetaObjectDocument::OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue)
 {
-	if (CMetaObjectDocument::OnReloadMetaObject()) {
-		IMetaObject::OnPropertyChanged(property, oldValue, newValue);
-	}
+    if (m_propertyRegisterRecord == property) {
+        const CMetaDescription& old_metaDesc = m_propertyRegisterRecord->GetValueAsMetaDesc(oldValue);
+        const CMetaDescription& new_metaDesc = m_propertyRegisterRecord->GetValueAsMetaDesc(newValue);
+        for (unsigned int idx = 0; idx < old_metaDesc.GetTypeCount(); idx++) {
+            if (new_metaDesc.ContainMetaType(old_metaDesc.GetByIdx(idx))) continue;
+            IMetaObjectRegisterData* registerData = nullptr;
+            if (m_metaData->GetMetaObject(registerData, old_metaDesc.GetByIdx(idx))) {
+                CMetaObjectAttributeDefault* infoRecorder = registerData->GetRegisterRecorder();
+                wxASSERT(infoRecorder);
+                infoRecorder->GetTypeDesc().ClearMetaType(m_attributeReference->GetTypeDesc());
+            }
+        }
+        for (unsigned int idx = 0; idx < new_metaDesc.GetTypeCount(); idx++) {
+            if (old_metaDesc.ContainMetaType(new_metaDesc.GetByIdx(idx))) continue;
+            IMetaObjectRegisterData* registerData = nullptr;
+            if (m_metaData->GetMetaObject(registerData, new_metaDesc.GetByIdx(idx))) {
+                CMetaObjectAttributeDefault* infoRecorder = registerData->GetRegisterRecorder();
+                wxASSERT(infoRecorder);
+                infoRecorder->GetTypeDesc().AppendMetaType(m_attributeReference->GetTypeDesc());
+            }
+        }
+    }
+
+    if (CMetaObjectDocument::OnReloadMetaObject()) IMetaObject::OnPropertyChanged(property, oldValue, newValue);
 }

@@ -25,9 +25,10 @@ bool IMetaObject::AccessRight(const Role* role, const meta_identifier_t& id) con
 {
 	auto roleData = m_valRoles.find(id);
 	if (roleData != m_valRoles.end()) {
-		auto foundedData = std::find_if(roleData->second.begin(), roleData->second.end(), [role](const std::pair<wxString, bool >& pair) {
+		auto foundedData = std::find_if(roleData->second.begin(), roleData->second.end(), [role](const std::pair<wxString, bool >& pair)
+		{
 			return stringUtils::CompareString(role->GetName(), pair.first);
-			}
+		}
 		);
 		if (foundedData != roleData->second.end())
 			return foundedData->second;
@@ -47,9 +48,10 @@ bool IMetaObject::SetRight(const Role* role, const meta_identifier_t& id, const 
 Role* IMetaObject::GetRole(const wxString& nameParam) const
 {
 	auto it = std::find_if(m_roles.begin(), m_roles.end(),
-		[nameParam](const std::pair<wxString, Role*>& pair) {
-			return stringUtils::CompareString(nameParam, pair.first);
-		}
+		[nameParam](const std::pair<wxString, Role*>& pair)
+	{
+		return stringUtils::CompareString(nameParam, pair.first);
+	}
 	);
 
 	if (it != m_roles.end())
@@ -216,7 +218,7 @@ bool IMetaObject::ReadProperty(CMemoryReader& reader)
 			std::shared_ptr <CMemoryReader>propDataReader(propReader->open_chunk(iter_pos));
 			if (propDataReader == nullptr)
 				break;
-			Property* prop = GetProperty(propDataReader->r_stringZ());
+			IProperty* prop = GetProperty(propDataReader->r_stringZ());
 			if (prop != nullptr && !prop->LoadData(*propDataReader))
 				return false;
 		}
@@ -227,7 +229,7 @@ bool IMetaObject::ReadProperty(CMemoryReader& reader)
 			std::shared_ptr <CMemoryReader>eventDataReader(eventReader->open_chunk(iter_pos));
 			if (eventDataReader == nullptr)
 				break;
-			Event* event = GetEvent(eventDataReader->r_stringZ());
+			IEvent* event = GetEvent(eventDataReader->r_stringZ());
 			if (event != nullptr && !event->LoadData(*eventDataReader))
 				return false;
 		};
@@ -240,7 +242,7 @@ bool IMetaObject::SaveProperty(CMemoryWriter& writter) const
 {
 	CMemoryWriter propWritter;
 	for (unsigned int idx = 0; idx < GetPropertyCount(); idx++) {
-		Property* prop = GetProperty(idx);
+		IProperty* prop = GetProperty(idx);
 		wxASSERT(prop);
 		CMemoryWriter propDataWritter;
 		propDataWritter.w_stringZ(prop->GetName());
@@ -253,7 +255,7 @@ bool IMetaObject::SaveProperty(CMemoryWriter& writter) const
 
 	CMemoryWriter eventWritter;
 	for (unsigned int idx = 0; idx < GetEventCount(); idx++) {
-		Event* event = GetEvent(idx);
+		IEvent* event = GetEvent(idx);
 		wxASSERT(event);
 		CMemoryWriter eventDataWritter;
 		eventDataWritter.w_stringZ(event->GetName());
@@ -382,7 +384,7 @@ bool IMetaObject::OnDeleteMetaObject()
 bool IMetaObject::OnAfterCloseMetaObject()
 {
 	IBackendMetadataTree* metaTree = m_metaData->GetMetaTree();
-	if (metaTree != nullptr) 
+	if (metaTree != nullptr)
 		metaTree->CloseMetaObject(this);
 	return true;
 }
@@ -461,7 +463,8 @@ bool IMetaObject::PasteObject(CMemoryReader& reader)
 					return false;
 			}
 			prevReaderMemory = readerMemory;
-		} while (true);
+		}
+		while (true);
 	}
 
 	return true;
@@ -494,16 +497,16 @@ wxString IMetaObject::GetModuleName() const
 wxString IMetaObject::GetFullName() const
 {
 	wxString strFullName;
-	
+
 	IMetaObject* metaParent = GetParent();
-	while (metaParent != nullptr) {	
+	while (metaParent != nullptr) {
 		if (g_metaCommonMetadataCLSID != metaParent->GetClassType()) {
 			const wxString& strModuleName = metaParent->GetName();
 			strFullName = strModuleName + '.' + strFullName;
 		}
 		metaParent = metaParent->GetParent();
 	}
-	
+
 	return strFullName + GetName();
 }
 
@@ -544,29 +547,22 @@ void IMetaObject::PrepareNames() const
 	m_methodHelper->ClearHelper();
 
 	for (unsigned idx = 0; idx < IPropertyObject::GetPropertyCount(); idx++) {
-		Property* property = IPropertyObject::GetProperty(idx);
-		if (property == nullptr)
-			continue;
-		m_methodHelper->AppendProp(property->GetName(), idx);
+		IProperty* property = IPropertyObject::GetProperty(idx);
+		if (property == nullptr) continue;
+		m_methodHelper->AppendProp(property->GetName(), true, false, idx);
 	}
 }
 
 bool IMetaObject::SetPropVal(const long lPropNum, const CValue& varPropVal)
 {
-	Property* property = GetPropertyByIndex(lPropNum);
-	if (property != nullptr) {
-		property->SetDataValue(varPropVal);
-		return true;
-	}
+	IProperty* property = GetPropertyByIndex(lPropNum);
+	if (property != nullptr) return property->SetDataValue(varPropVal);
 	return false;
 }
 
 bool IMetaObject::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 {
-	Property* property = GetPropertyByIndex(lPropNum);
-	if (property != nullptr) {
-		pvarPropVal = property->GetDataValue();
-		return true;
-	}
+	const IProperty* property = GetPropertyByIndex(lPropNum);
+	if (property != nullptr) return property->GetDataValue(pvarPropVal);
 	return false;
 }

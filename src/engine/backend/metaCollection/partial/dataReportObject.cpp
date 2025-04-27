@@ -9,7 +9,7 @@
 #include "backend/appData.h"
 #include "reference/reference.h"
 #include "backend/databaseLayer/databaseLayer.h"
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 
 #include "backend/metaCollection/partial/tabularSection/tabularSection.h"
 

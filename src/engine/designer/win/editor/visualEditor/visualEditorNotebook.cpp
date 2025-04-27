@@ -9,7 +9,7 @@ void CVisualEditorNotebook::CreateVisualEditor(CMetaDocument* document, wxWindow
 	wxAuiNotebook::Freeze();
 	wxAuiNotebook::AddPage(m_visualEditor, _("Designer"), false, wxArtProvider::GetBitmap(wxART_DESIGNER_PAGE, wxART_DOC_FORM));
 	wxAuiNotebook::AddPage(m_codeEditor, _("Code"), false, wxArtProvider::GetBitmap(wxART_CODE_PAGE, wxART_DOC_FORM));
-	m_visualEditor->SetReadOnly(flags == wxDOC_READONLY); 
+	m_visualEditor->SetReadOnly(flags == wxDOC_READONLY);
 	m_codeEditor->SetReadOnly(flags == wxDOC_READONLY);
 	wxAuiNotebook::SetSelection(wxNOTEBOOK_PAGE_DESIGNER);
 
@@ -19,7 +19,7 @@ void CVisualEditorNotebook::CreateVisualEditor(CMetaDocument* document, wxWindow
 }
 
 void CVisualEditorNotebook::DestroyVisualEditor()
-{	
+{
 	//m_visualEditor->Destroy();
 	//m_codeEditor->Destroy();
 
@@ -76,26 +76,23 @@ bool CVisualEditorNotebook::CanRedo() const
 	return false;
 }
 
-void CVisualEditorNotebook::ModifyEvent(Event* event, const wxVariant& oldValue, const wxVariant& newValue)
+void CVisualEditorNotebook::ModifyEvent(IEvent* event, const wxVariant& oldValue, const wxVariant& newValue)
 {
-	wxString prcArgs = "";
-	for (auto& args : event->GetArgs()) {
-		if (!prcArgs.IsEmpty()) {
-			prcArgs += ", ";
-		}
-		prcArgs += args;
-	}
-
 	CParserModule parser; bool procFounded = false;
+
+	const wxString& strEvent = newValue.GetString();
 
 	unsigned int lineStart = m_codeEditor->GetLineCount();
 	unsigned int lineEnd = lineStart;
 
-	const wxString& strEvent = newValue.GetString();
+	bool changeSel = true;
 
-	if (event->GetType() == ET_ACTION) {
-		action_identifier_t action = wxNOT_FOUND;
-		procFounded = strEvent.ToInt(&action);
+	long action = wxNOT_FOUND;
+	if (strEvent.ToLong(&action)) {
+		changeSel = false;
+	}
+	else if (strEvent.IsEmpty()) {
+		changeSel = false;
 	}
 
 	if (parser.ParseModule(m_codeEditor->GetText())) {
@@ -105,103 +102,47 @@ void CVisualEditorNotebook::ModifyEvent(Event* event, const wxVariant& oldValue,
 				content.eType == eContentType::eExportProcedure ||
 				content.eType == eContentType::eExportFunction) {
 				lineStart = content.nLineStart; lineEnd = content.nLineEnd;
-				if (event->GetType() == ET_EVENT) {
-					if (stringUtils::CompareString(content.strName, event->GetValue())
-						&& !stringUtils::CompareString(content.strName, strEvent) && !strEvent.IsEmpty()) {
-						int answer = wxMessageBox(_("Do you rename an existing procedure?"), _("Rename"), wxYES_NO | wxCENTRE);
-						if (answer == wxYES) {
-							wxString currentLine = m_codeEditor->GetLine(content.nLineStart);
-							currentLine.Replace(event->GetValue(), strEvent);
-							m_codeEditor->Replace(m_codeEditor->GetLineEndPosition(content.nLineStart - 1) + 1, m_codeEditor->GetLineEndPosition(content.nLineStart) + 1, currentLine);
-							procFounded = true; lineStart = content.nLineStart; lineEnd = content.nLineEnd;
-						}
-						break;
-					}
-					else if (stringUtils::CompareString(content.strName, newValue)) {
+				if (stringUtils::CompareString(content.strName, oldValue) && !stringUtils::CompareString(content.strName, newValue) && changeSel) {
+					int answer = wxMessageBox(_("Do you rename an existing procedure?"), _("Rename"), wxYES_NO | wxCENTRE);
+					if (answer == wxYES) {
+						wxString currentLine = m_codeEditor->GetLine(content.nLineStart);
+						currentLine.Replace(content.strName, newValue);
+						m_codeEditor->Replace(m_codeEditor->GetLineEndPosition(content.nLineStart - 1) + 1, m_codeEditor->GetLineEndPosition(content.nLineStart) + 1, currentLine);
 						procFounded = true; lineStart = content.nLineStart; lineEnd = content.nLineEnd;
-						break;
 					}
-					else if (stringUtils::CompareString(content.strName, event->GetValue())
-						&& strEvent.IsEmpty()) {
-						int answer = wxMessageBox(_("Do you delete an existing procedure?"), _("Delete"), wxYES_NO | wxCENTRE);
-						if (answer == wxYES) {
-							m_codeEditor->Replace(
-								m_codeEditor->GetLineEndPosition(content.nLineStart - 1) + 1,
-								m_codeEditor->GetLineEndPosition(content.nLineEnd + 1),
-								wxEmptyString
-							);
-						}
-						procFounded = true;
-					}
+					break;
 				}
-				else if (event->GetType() == ET_ACTION) {
-					action_identifier_t action = wxNOT_FOUND;
-					if (strEvent.ToInt(&action)) {
-						const wxString& oldValue = event->GetValue();
-						if (!oldValue.ToInt(&action)) {
-							if (stringUtils::CompareString(content.strName, oldValue)) {
-								int answer = wxMessageBox(_("Do you delete an existing procedure?"), _("Delete"), wxYES_NO | wxCENTRE);
-								if (answer == wxYES) {
-									m_codeEditor->Replace(
-										m_codeEditor->GetLineEndPosition(content.nLineStart - 1) + 1,
-										m_codeEditor->GetLineEndPosition(content.nLineEnd) + 1,
-										wxEmptyString
-									);
-								}
-								procFounded = true;
-							}
-						}
-						else {
-							procFounded = true;
-						}
+				else if (stringUtils::CompareString(content.strName, newValue)) {
+					procFounded = true; lineStart = content.nLineStart; lineEnd = content.nLineEnd;
+					break;
+				}
+				else if (stringUtils::CompareString(content.strName, oldValue) && !changeSel) {
+					int answer = wxMessageBox(_("Do you delete an existing procedure?"), _("Delete"), wxYES_NO | wxCENTRE);
+					if (answer == wxYES) {
+						m_codeEditor->Replace(
+							m_codeEditor->GetLineEndPosition(content.nLineStart - 1) + 1,
+							m_codeEditor->GetLineEndPosition(content.nLineEnd + 1),
+							wxEmptyString
+						);
 					}
-					else {
-						const wxString& oldValue = event->GetValue();
-						if (!oldValue.ToInt(&action)) {
-							if (stringUtils::CompareString(content.strName, event->GetValue())
-								&& !stringUtils::CompareString(content.strName, strEvent) && !strEvent.IsEmpty()) {
-								int answer = wxMessageBox(_("Do you rename an existing procedure?"), _("Rename"), wxYES_NO | wxCENTRE);
-								if (answer == wxYES) {
-									wxString currentLine = m_codeEditor->GetLine(content.nLineStart);
-									currentLine.Replace(event->GetValue(), strEvent);
-									m_codeEditor->Replace(m_codeEditor->GetLineEndPosition(content.nLineStart - 1) + 1, m_codeEditor->GetLineEndPosition(content.nLineStart) + 1, currentLine);
-									procFounded = true; lineStart = content.nLineStart; lineEnd = content.nLineEnd;
-								}
-								break;
-							}
-							else if (stringUtils::CompareString(content.strName, strEvent)) {
-								procFounded = true; lineStart = content.nLineStart; lineEnd = content.nLineEnd;
-								break;
-							}
-							else if (stringUtils::CompareString(content.strName, event->GetValue())
-								&& strEvent.IsEmpty()) {
-								int answer = wxMessageBox(_("Do you delete an existing procedure?"), _("Delete"), wxYES_NO | wxCENTRE);
-								if (answer == wxYES) {
-									m_codeEditor->Replace(
-										m_codeEditor->GetLineEndPosition(content.nLineStart - 1) + 1,
-										m_codeEditor->GetLineEndPosition(content.nLineEnd + 1),
-										wxEmptyString
-									);
-								}
-								procFounded = true;
-							}
-						}
-					}
+					procFounded = true;
 				}
 			}
 		}
 	}
 
-	bool changeSel = true; 
+	if (changeSel) {
 
-	if (event->GetType() == ET_ACTION) {
-		action_identifier_t action = wxNOT_FOUND;
-		changeSel = !strEvent.ToInt(&action);
-	}
+		wxString prcArgs;
 
-	if (changeSel) {	
+		for (auto& args : event->GetArgs()) {
+			if (!prcArgs.IsEmpty()) prcArgs += ", ";
+			prcArgs += args;
+		}
+
 		if (wxAuiNotebook::GetSelection() != wxNOTEBOOK_PAGE_CODE_EDITOR)
 			wxAuiNotebook::SetSelection(wxNOTEBOOK_PAGE_CODE_EDITOR);
+
 		if (!procFounded) {
 			int endPos = m_codeEditor->GetLineEndPosition(lineEnd);
 			wxString offset = endPos > 0 ?

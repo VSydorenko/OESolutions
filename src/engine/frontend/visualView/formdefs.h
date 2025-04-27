@@ -3,11 +3,6 @@
 
 #include <wx/wx.h>
 
-class Property;
-class Event;
-
-class PropertyCategory;
-
 // Used to identify wxObject* that must be manually deleted
 class wxNoObject : public wxObject {};
 

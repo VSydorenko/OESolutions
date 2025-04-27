@@ -40,8 +40,11 @@ void CValueTableBoxColumn::ChoiceProcessing(CValue& vSelected)
 	if (standartProcessing.GetBoolean()) {
 		IValueTable::IValueModelReturnLine* retLine = GetReturnLine();
 		if (retLine != nullptr) {
+			//retLine->SetValueByMetaID(
+			//	m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId, vSelected
+			//);
 			retLine->SetValueByMetaID(
-				m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId, vSelected
+				GetSourceColumn(), vSelected
 			);
 		}
 		
@@ -116,7 +119,7 @@ void CValueTableBoxColumn::OnSelectButtonPressed(wxCommandEvent& event)
 			CValueViewRenderer* columnRenderer = columnObject->GetRenderer();
 			wxASSERT(columnRenderer);
 			const class_identifier_t& clsid = selValue.GetClassType();
-			if (!ITypeControlAttribute::QuickChoice(this, clsid, columnRenderer->GetEditorCtrl())) {
+			if (!ITypeControlFactory::QuickChoice(this, clsid, columnRenderer->GetEditorCtrl())) {
 				IMetaData* metaData = GetMetaData();
 				wxASSERT(metaData);
 				IMetaValueTypeCtor* so = metaData->GetTypeCtor(clsid);

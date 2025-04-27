@@ -41,5 +41,5 @@ bool CMetaObjectGrid::OnAfterCloseMetaObject()
 //*                       Register in runtime                           *
 //***********************************************************************
 
-METADATA_TYPE_REGISTER(CMetaObjectGrid, "baseTemplate", g_metaTemplateCLSID);
+METADATA_TYPE_REGISTER(CMetaObjectGrid, "template", g_metaTemplateCLSID);
 METADATA_TYPE_REGISTER(CMetaObjectCommonGrid, "commonTemplate", g_metaCommonTemplateCLSID);

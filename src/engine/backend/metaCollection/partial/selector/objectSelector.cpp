@@ -43,7 +43,7 @@ wxString ISelectorObject::GetString() const
 
 CSelectorDataObject::CSelectorDataObject(IMetaObjectRecordDataMutableRef* metaObject) :
 	ISelectorObject(),
-	IObjectValueInfo(Guid(), false),
+	IObjectDataValue(Guid(), false),
 	m_metaObject(metaObject)
 {
 	Reset();
@@ -200,7 +200,7 @@ bool CSelectorDataObject::GetPropVal(const long lPropNum, CValue& pvarPropVal)
 		}
 	}
 	if (id != m_metaObject->GetMetaID()) {
-		pvarPropVal = m_objectValues.at(id);
+		pvarPropVal = m_listObjectValue.at(id);
 		return true;
 	}
 	pvarPropVal = CReferenceDataObject::Create(m_metaObject, m_objGuid);
@@ -258,6 +258,6 @@ bool CSelectorRegisterObject::GetPropVal(const long lPropNum, CValue& pvarPropVa
 			return true;
 		}
 	}
-	pvarPropVal = m_objectValues[m_keyValues][id];
+	pvarPropVal = m_listObjectValue[m_keyValues][id];
 	return true;
 }

@@ -80,13 +80,12 @@ protected:
 
 private:
 
-	struct ContentData
-	{
+	struct CContentData {
 		eContentHelper m_contentType;
 		std::vector<wxString> m_args;
 	};
 
-	std::map<wxString, ContentData> m_contentHelper;
+	std::map<wxString, CContentData> m_contentHelper;
 };
 
 class BACKEND_API CMetaObjectCommonModule : public CMetaObjectModule {
@@ -99,8 +98,8 @@ private:
 
 protected:
 
-	PropertyCategory* m_moduleCategory = IPropertyObject::CreatePropertyCategory("Module");
-	Property* m_properyGlobalModule = IPropertyObject::CreateProperty(m_moduleCategory, "global_module", PropertyType::PT_BOOL, false);
+	CPropertyCategory* m_moduleCategory = IPropertyObject::CreatePropertyCategory(wxT("common module"), _("common module"));
+	CPropertyBoolean* m_propertyGlobalModule = IPropertyObject::CreateProperty<CPropertyBoolean>(m_moduleCategory, wxT("globalModule"), _("global module"), false);
 
 public:
 
@@ -128,14 +127,14 @@ public:
 
 	// check gm
 	virtual bool IsGlobalModule() const {
-		return m_properyGlobalModule->GetValueAsBoolean();
+		return m_propertyGlobalModule->GetValueAsBoolean();
 	}
 
 	/**
 	* Property events
 	*/
-	virtual bool OnPropertyChanging(Property* property, const wxVariant& newValue);
-	virtual void OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue);
+	virtual bool OnPropertyChanging(IProperty* property, const wxVariant& newValue);
+	virtual void OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue);
 
 protected:
 

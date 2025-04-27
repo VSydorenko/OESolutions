@@ -7,7 +7,7 @@
 #include "procUnit.h"
 
 #include "debugger/debugServer.h"
-#include "systemManager/systemManager.h"
+#include "system/systemManager.h"
 
 #define curCode	m_pByteCode->m_listCode[lCodeLine]
 
@@ -445,7 +445,7 @@ void CProcUnit::Execute(CRunContext* pContext, CValue* pvarRetValue, bool bDelta
 		tryData_t() :
 			m_lStartLine(0), m_lEndLine(0) {
 		}
-		tryData_t(const long&lStartLine, const long&lEndLine) :
+		tryData_t(const long& lStartLine, const long& lEndLine) :
 			m_lStartLine(lStartLine), m_lEndLine(lEndLine) {
 		}
 	};
@@ -701,14 +701,14 @@ start_label:
 					}
 					lCodeLine = tryCodeLine - 1;//since we'll add 1 later
 				} break;
-				case OPER_TRY: 
-					tryList.emplace_back(lCodeLine, index1); 
+				case OPER_TRY:
+					tryList.emplace_back(lCodeLine, index1);
 					break; //transition on error
 				case OPER_RAISE: CBackendException::Error(CBackendException::GetLastError()); break;
 				case OPER_RAISE_T: CBackendException::Error(m_pByteCode->m_listConst[index1].GetString()); break;
-				case OPER_RET: 
+				case OPER_RET:
 					if (index1 != DEF_VAR_NORET) {
-						if (pvarRetValue == nullptr) 
+						if (pvarRetValue == nullptr)
 							CBackendException::Error(_("Cannot set return value in procedure!"));
 						CopyValue(*pvarRetValue, variable1);
 					}

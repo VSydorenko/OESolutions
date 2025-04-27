@@ -1,7 +1,7 @@
 #ifndef _OUTPUT_MESSAGE_
 #define _OUTPUT_MESSAGE_
 
-#include "backend/compiler/value/value.h"
+#include "backend/compiler/value.h"
 
 class CValueOutput : public CValue
 {

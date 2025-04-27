@@ -6,7 +6,7 @@
 class FRONTEND_API IValueControl : public IValueFrame {
 	wxDECLARE_ABSTRACT_CLASS(IValueControl);
 protected:
-	Property* m_propertyName = IPropertyObject::CreateProperty({ "name", "name", "The name of the control." }, PropertyType::PT_WXNAME);
+	CPropertyName* m_propertyName = IPropertyObject::CreateProperty<CPropertyName>(m_category, wxT("name"), _("name"), _("The name of the control."), wxEmptyString);
 public:
 
 	IValueControl();
@@ -37,8 +37,8 @@ public:
 	/**
 	* Property events
 	*/
-	virtual bool OnPropertyChanging(Property* property, const wxVariant& newValue);
-	virtual void OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue);
+	virtual bool OnPropertyChanging(IProperty* property, const wxVariant& newValue);
+	virtual void OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue);
 
 	/**
 	* Support form

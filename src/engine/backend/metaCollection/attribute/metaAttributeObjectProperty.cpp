@@ -8,16 +8,16 @@
 #include "backend/metaData.h"
 #include "backend/objCtor.h"
 
-void CMetaObjectAttribute::OnPropertyCreated(Property* property)
+void CMetaObjectAttribute::OnPropertyCreated(IProperty* property)
 {
-	if (m_propertyType == property) {
-		CMetaObjectAttribute::SaveToVariant(m_propertyType->GetValue(), m_metaData);
-	}
+	//if (m_propertyType == property) {
+	/////	CMetaObjectAttribute::SaveToVariant(m_propertyType->GetValue(), m_metaData);
+	//}
 }
 
 #include <wx/propgrid/manager.h>
 
-void CMetaObjectAttribute::OnPropertyRefresh(wxPropertyGridManager* pg, wxPGProperty* pgProperty, Property* property)
+void CMetaObjectAttribute::OnPropertyRefresh(wxPropertyGridManager* pg, wxPGProperty* pgProperty, IProperty* property)
 {
 	if (m_propertySelectMode == property) {
 		if (GetClsidCount() > 1) {
@@ -45,14 +45,14 @@ void CMetaObjectAttribute::OnPropertyRefresh(wxPropertyGridManager* pg, wxPGProp
 	}
 }
 
-bool CMetaObjectAttribute::OnPropertyChanging(Property* property, const wxVariant& newValue)
+bool CMetaObjectAttribute::OnPropertyChanging(IProperty* property, const wxVariant& newValue)
 {
-	if (m_propertyType == property && !CMetaObjectAttribute::LoadFromVariant(newValue))
-		return false;
+	//if (m_propertyType == property && !CMetaObjectAttribute::LoadFromVariant(newValue))
+	//	return false;
 	return IMetaObjectAttribute::OnPropertyChanging(property, newValue);
 }
 
-void CMetaObjectAttribute::OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue)
+void CMetaObjectAttribute::OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue)
 {
 	IMetaObject* metaObject = GetParent();
 	wxASSERT(metaObject);

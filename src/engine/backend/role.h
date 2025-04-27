@@ -8,41 +8,30 @@ class BACKEND_API IMetaObject;
 //*******************************************************************************
 
 class Role {
-	wxString m_name;
-	wxString m_label;
-	IMetaObject* m_object; // pointer to the owner object
+	wxString m_roleName;
+	wxString m_roleLabel;
+	IMetaObject* m_owner; // pointer to the owner object
 	bool m_defValue;  // handler function name
 	friend class IMetaObject;
 private:
 	void InitRole(IMetaObject* metaObject, const bool& value = true);
 protected:
-	Role(const wxString& roleName, const wxString& roleLabel,
-		IMetaObject* metaObject, const bool& value = true) :
-		m_name(roleName),
-		m_label(roleLabel),
-		m_object(metaObject),
+	Role(IMetaObject* metaObject, const wxString& roleName, const wxString& roleLabel,
+		const bool& value = true) :
+		m_roleName(roleName),
+		m_roleLabel(roleLabel),
+		m_owner(metaObject),
 		m_defValue(value)
 	{
 		InitRole(metaObject, value);
 	}
 public:
 
-	bool GetDefValue() const {
-		return m_defValue;
-	}
+	bool GetDefValue() const { return m_defValue; }
 
-	wxString GetName() const {
-		return m_name;
-	}
-
-	IMetaObject* GetObject() const {
-		return m_object;
-	}
-
-	wxString GetLabel() const {
-		return m_label.IsEmpty() ?
-			m_name : m_label;
-	}
+	wxString GetName() const { return m_roleName; }
+	IMetaObject* GetRoleObject() const { return m_owner; }
+	wxString GetLabel() const { return m_roleLabel.IsEmpty() ? m_roleName : m_roleLabel; }
 };
 
 #endif

@@ -299,7 +299,7 @@ bool CRecordSetObjectAccumulationRegister::SaveVirtualTable()
 
 	bool hasError = false;
 
-	for (auto objectValue : m_objectValues) {
+	for (auto objectValue : m_listObjectValue) {
 
 		if (hasError)
 			break;

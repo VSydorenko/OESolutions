@@ -1,7 +1,7 @@
-#ifndef _ENUM_FACTORY_H__
-#define _ENUM_FACTORY_H__
+#ifndef __ENUM_FACTORY_H__
+#define __ENUM_FACTORY_H__
 
-#include "value/value.h"
+#include "value.h"
 
 //realization factory pattern 
 class CEnumFactory : public CValue {

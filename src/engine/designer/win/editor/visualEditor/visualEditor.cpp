@@ -5,7 +5,7 @@
 
 #include "visualEditor.h"
 
-#include "backend/wrapper/propertyInfo.h"
+#include "backend/propertyManager/propertyManager.h"
 
 
 #include <wx/collpane.h>
@@ -80,7 +80,7 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorHost::OnResizeBackPanel(
 	CValueForm* valueForm = m_formHandler->GetValueForm();
 
 	if (valueForm) {
-		//Property*prop(valueForm->GetProperty(wxT("size")));
+		//IProperty*prop(valueForm->GetProperty(wxT("size")));
 		//m_formHandler->ModifyProperty(prop, typeConv::SizeToString(m_back->GetSize()));
 		m_formHandler->SelectObject(valueForm, true);
 	}

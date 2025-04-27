@@ -34,7 +34,7 @@ public:
 #ifdef DEBUG
 			wxLogDebug("! failed to register class: %s", m_so->GetClassName());
 #endif
-			m_so = nullptr;
+			wxDELETE(m_so);
 		}
 	}
 	~value_register() {
@@ -47,7 +47,7 @@ public:
 #ifdef DEBUG
 			wxLogDebug("! failed to unregister class: %s", m_so->GetClassName());
 #endif
-			m_so = nullptr;
+			wxDELETE(m_so);
 		}
 	}
 };
@@ -249,7 +249,9 @@ public:
 	}
 
 	virtual CValue* CreateObject() const {
-		return new T();
+		T *_ptr = new T();
+		_ptr->CreateEnumeration();
+		return _ptr;
 	};
 };
 

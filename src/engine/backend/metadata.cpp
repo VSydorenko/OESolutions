@@ -7,7 +7,7 @@
 
 #include "backend/compiler/enumFactory.h"
 #include "backend/metaCollection/partial/contextManager.h"
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 #include "backend/debugger/debugServer.h"
 #include "backend/debugger/debugClient.h"
 
@@ -168,7 +168,6 @@ void IMetaData::DoGetMetaObject(const class_identifier_t& clsid, std::vector<IMe
 		wxASSERT(child);
 		DoGetMetaObject(clsid, list, child);
 	}
-
 	if (top->IsDeleted()) return;
 	if (clsid == top->GetClassType()) list.push_back(const_cast<IMetaObject*>(top));
 }
@@ -184,8 +183,7 @@ IMetaObject* IMetaData::DoFindByName(const wxString& strFileName, IMetaObject* t
 		IMetaObject* child = top->GetChild(idx);
 		wxASSERT(child);
 		IMetaObject* foundedMeta = DoFindByName(strFileName, child);
-		if (foundedMeta != nullptr)
-			return foundedMeta;
+		if (foundedMeta != nullptr) return foundedMeta;
 	}
 	if (top->IsDeleted()) return nullptr;
 	if (strFileName == top->GetDocPath()) return top;
@@ -194,15 +192,13 @@ IMetaObject* IMetaData::DoFindByName(const wxString& strFileName, IMetaObject* t
 
 IMetaObject* IMetaData::GetMetaObject(const meta_identifier_t& id, IMetaObject* top) const
 {
-	if (id == wxNOT_FOUND)
-		return nullptr;
+	if (id == wxNOT_FOUND) return nullptr;
 	return DoGetMetaObject(id, top != nullptr ? top : GetCommonMetaObject());
 }
 
 IMetaObject* IMetaData::GetMetaObject(const Guid& guid, IMetaObject* top) const
 {
-	if (!guid.isValid())
-		return nullptr;
+	if (!guid.isValid()) return nullptr;
 	return DoGetMetaObject(guid, top != nullptr ? top : GetCommonMetaObject());
 }
 
@@ -212,10 +208,8 @@ IMetaObject* IMetaData::DoGetMetaObject(const meta_identifier_t& id, IMetaObject
 		IMetaObject* child = top->GetChild(idx);
 		wxASSERT(child);
 		IMetaObject* foundedMeta = DoGetMetaObject(id, child);
-		if (foundedMeta != nullptr)
-			return foundedMeta;
+		if (foundedMeta != nullptr) return foundedMeta;
 	}
-
 	if (id == top->GetMetaID()) return top;
 	return nullptr;
 }
@@ -226,10 +220,8 @@ IMetaObject* IMetaData::DoGetMetaObject(const Guid& guid, IMetaObject* top) cons
 		IMetaObject* child = top->GetChild(idx);
 		wxASSERT(child);
 		IMetaObject* foundedMeta = DoGetMetaObject(guid, child);
-		if (foundedMeta != nullptr)
-			return foundedMeta;
+		if (foundedMeta != nullptr) return foundedMeta;
 	}
-
 	if (guid == top->GetGuid()) return top;
 	return nullptr;
 }

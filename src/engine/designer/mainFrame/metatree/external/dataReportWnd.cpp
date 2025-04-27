@@ -16,7 +16,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(CDataReportTree, wxPanel);
 #define ICON_SIZE 16
 
 CDataReportTree::CDataReportTree(CMetaDocument* docParent, wxWindow* parent, wxWindowID id)
-	: IMetaDataTree(docParent, parent, id), m_metaData(nullptr), m_initialize(false)
+	: IMetaDataTree(docParent, parent, id), m_metaData(nullptr), m_initialized(false)
 {
 	this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
@@ -169,7 +169,7 @@ void CDataReportTree::OnEditCaptionName(wxCommandEvent& event)
 
 	m_docParent->OnChangeFilename(true);
 
-	if (m_initialize) {
+	if (m_initialized) {
 		m_metaData->Modify(true);
 	}
 }
@@ -180,7 +180,7 @@ void CDataReportTree::OnEditCaptionSynonym(wxCommandEvent& event)
 	wxASSERT(report);
 	report->SetSynonym(m_synonymValue->GetValue());
 
-	if (m_initialize) {
+	if (m_initialized) {
 		m_metaData->Modify(true);
 	}
 }
@@ -191,7 +191,7 @@ void CDataReportTree::OnEditCaptionComment(wxCommandEvent& event)
 	wxASSERT(report);
 	report->SetComment(m_commentValue->GetValue());
 
-	if (m_initialize) {
+	if (m_initialized) {
 		m_metaData->Modify(true);
 	}
 }
@@ -209,7 +209,7 @@ void CDataReportTree::OnChoiceDefForm(wxCommandEvent& event)
 		report->SetDefFormObject(wxNOT_FOUND);
 	}
 
-	if (m_initialize) {
+	if (m_initialized) {
 		m_metaData->Modify(true);
 	}
 }

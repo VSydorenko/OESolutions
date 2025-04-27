@@ -5,7 +5,7 @@
 
 #include "form.h"
 #include "backend/appData.h"
-#include "backend/metaCollection/partial/object.h"
+#include "backend/metaCollection/partial/commonObject.h"
 
 enum
 {
@@ -22,12 +22,8 @@ CValueForm::CActionCollection CValueForm::GetActionCollection(const form_identif
 {
 	CActionCollection actionData(this);
 
-	IActionSource* srcAction =
-		dynamic_cast<IActionSource*>(CValueForm::GetSourceObject());
-
-	if (srcAction != nullptr) {
-		srcAction->AppendActionCollection(actionData, formType);
-	}
+	IActionDataObject* srcAction = dynamic_cast<IActionDataObject*>(CValueForm::GetSourceObject());
+	if (srcAction != nullptr) srcAction->AppendActionCollection(actionData, formType);
 
 	actionData.AddAction("close", _("Close"), enClose);
 	actionData.AddAction("update", _("Update"), enUpdate);
@@ -55,8 +51,8 @@ void CValueForm::ExecuteAction(const action_identifier_t& lNumAction, IBackendVa
 		break;
 	default:
 	{
-		IActionSource* srcAction = 
-			dynamic_cast<IActionSource*>(CValueForm::GetSourceObject());
+		IActionDataObject* srcAction = 
+			dynamic_cast<IActionDataObject*>(CValueForm::GetSourceObject());
 		if (srcAction != nullptr)
 			srcAction->ExecuteAction(lNumAction, srcForm);	
 		break;

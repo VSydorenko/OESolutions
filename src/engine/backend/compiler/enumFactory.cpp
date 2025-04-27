@@ -4,7 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "enumFactory.h"
-#include "backend/wrapper/propertyInfo.h"
+#include "backend/propertyManager/propertyManager.h"
 
 //*********************************************************************************************************
 //*                                   Singleton class "enumFactory"                                       *

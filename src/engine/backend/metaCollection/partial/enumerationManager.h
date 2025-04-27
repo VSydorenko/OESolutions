@@ -2,7 +2,7 @@
 #define _ENUMERATION_MANAGER_H__
 
 #include "enumeration.h"
-#include "backend/wrapper/managerInfo.h"
+#include "backend/managerInfo.h"
 
 class CEnumerationManager : public CValue,
 	public IMetaManagerInfo {

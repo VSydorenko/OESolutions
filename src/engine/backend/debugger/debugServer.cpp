@@ -134,7 +134,7 @@ void CDebuggerServer::ShutdownServer()
 	m_waitConnection = false;
 }
 
-#include "backend/compiler/value/valueOLE.h"
+#include "backend/system/value/valueOLE.h"
 #include "backend/backend_mainFrame.h"
 
 void CDebuggerServer::ClearCollectionBreakpoint()

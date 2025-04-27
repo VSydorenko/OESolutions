@@ -133,7 +133,7 @@ bool CMetaDataConfigurationStorage::SaveConfiguration(int flags)
 #endif
 		}
 
-		if (m_configNew && !CMetaObject::ExecuteSystemSQLCommand()) {
+		if (m_configNew && !CMetaObjectConfiguration::ExecuteSystemSQLCommand()) {
 #if _USE_SAVE_METADATA_IN_TRANSACTION == 1
 			db_query->RollBack(); return false;
 #else 

@@ -1,5 +1,5 @@
 #include "dataView.h"
-#include "backend/wrapper/tableInfo.h"
+#include "backend/tableInfo.h"
 
 wxDEFINE_EVENT(wxEVT_DATAVIEW_ITEM_START_INSERTING, wxDataViewEvent);
 wxDEFINE_EVENT(wxEVT_DATAVIEW_ITEM_START_DELETING, wxDataViewEvent);
@@ -319,9 +319,9 @@ bool wxDataModelViewCtrl::ShowFilter(struct filterRow_t& filter)
 				size_t index = reinterpret_cast<size_t>(item.GetID());
 				filterRow_t& filter = m_filterDialog->m_filterModel->GetFilter();
 				filterRow_t::filterData_t& filterData = filter.m_filters[index - 1];
-				typeDescription_t& typeDescription = filterData.m_filterTypeDescription;
+				CTypeDescription& typeDescription = filterData.m_filterTypeDescription;
 				if (filterData.m_filterValue.GetType() == eValueTypes::TYPE_EMPTY) {
-					const class_identifier_t& clsid = ITypeControlAttribute::ShowSelectType(commonMetaData,
+					const class_identifier_t& clsid = ITypeControlFactory::ShowSelectType(commonMetaData,
 						filterData.m_filterTypeDescription
 					);
 					if (clsid != 0 && commonMetaData->IsRegisterCtor(clsid)) {
@@ -330,7 +330,7 @@ bool wxDataModelViewCtrl::ShowFilter(struct filterRow_t& filter)
 					return;
 				}
 				const class_identifier_t& clsid = filterData.m_filterValue.GetClassType();
-				if (!ITypeControlAttribute::QuickChoice(this, clsid, GetEditorCtrl())) {
+				if (!ITypeControlFactory::QuickChoice(this, clsid, GetEditorCtrl())) {
 					IMetaValueTypeCtor* singleValue = commonMetaData->GetTypeCtor(clsid);
 					if (singleValue != nullptr) {
 						IMetaObject* metaObject = singleValue->GetMetaObject();

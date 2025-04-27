@@ -9,7 +9,7 @@
 #include "backend/appData.h"
 #include "reference/reference.h"
 #include "backend/databaseLayer/databaseLayer.h"
-#include "backend/systemManager/systemManager.h"
+#include "backend/system/systemManager.h"
 
 #include "backend/fileSystem/fs.h"
 //*********************************************************************************************
@@ -166,7 +166,7 @@ bool CRecordDataObjectCatalog::WriteObject()
 
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("BeforeWrite", cancel);
+					m_procUnit->CallAsProc(wxT("BeforeWrite"), cancel);
 
 					if (cancel.GetBoolean()) {
 						db_query->RollBack(); CSystemFunction::Raise(_("failed to write object in db!"));
@@ -181,7 +181,7 @@ bool CRecordDataObjectCatalog::WriteObject()
 
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("OnWrite", cancel);
+					m_procUnit->CallAsProc(wxT("OnWrite"), cancel);
 					if (cancel.GetBoolean()) {
 						db_query->RollBack(); CSystemFunction::Raise(_("failed to write object in db!"));
 						return false;
@@ -225,7 +225,7 @@ bool CRecordDataObjectCatalog::DeleteObject()
 
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("BeforeDelete", cancel);
+					m_procUnit->CallAsProc(wxT("BeforeDelete"), cancel);
 					if (cancel.GetBoolean()) {
 						db_query->RollBack(); CSystemFunction::Raise(_("failed to delete object in db!")); return false;
 					}
@@ -237,7 +237,7 @@ bool CRecordDataObjectCatalog::DeleteObject()
 
 				{
 					CValue cancel = false;
-					m_procUnit->CallAsProc("OnDelete", cancel);
+					m_procUnit->CallAsProc(wxT("OnDelete"), cancel);
 					if (cancel.GetBoolean()) {
 						db_query->RollBack(); CSystemFunction::Raise(_("failed to delete object in db!")); return false;
 					}
@@ -419,7 +419,7 @@ bool CRecordDataObjectCatalog::CallAsFunc(const long lMethodNum, CValue& pvarRet
 		return true;
 	}
 
-	return IModuleInfo::ExecuteFunc(
+	return IModuleDataObject::ExecuteFunc(
 		GetMethodName(lMethodNum), pvarRetValue, paParams, lSizeArray
 	);
 }

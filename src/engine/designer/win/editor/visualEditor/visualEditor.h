@@ -311,7 +311,7 @@ public:
 
 		wxImageList* m_iconList = nullptr;
 
-		std::map< IValueFrame*, wxTreeItemId> m_aItems;
+		std::map< IValueFrame*, wxTreeItemId> m_listItem;
 		std::map<wxString, int> m_iconIdx;
 
 		wxTreeCtrl* m_tcObjects = nullptr;
@@ -486,8 +486,8 @@ protected:
 	void NotifyObjectSelected(IValueFrame* obj, bool force = false);
 	void NotifyObjectCreated(IValueFrame* obj);
 	void NotifyObjectRemoved(IValueFrame* obj);
-	void NotifyPropertyModified(Property* prop);
-	void NotifyEventModified(Event* event);
+	void NotifyPropertyModified(IProperty* prop);
+	void NotifyEventModified(IEvent* event);
 	void NotifyProjectRefresh();
 	void NotifyCodeGeneration(bool panelOnly = false, bool force = false);
 
@@ -534,8 +534,8 @@ public:
 	void InsertObject(IValueFrame* obj, IValueFrame* parent);
 	void ExpandObject(IValueFrame* obj, bool expand);
 
-	void ModifyProperty(Property* prop, const wxVariant& oldValue, const wxVariant& newValue);
-	void ModifyEvent(Event* evt, const wxVariant& oldValue, const wxVariant& newValue);
+	void ModifyProperty(IProperty* prop, const wxVariant& oldValue, const wxVariant& newValue);
+	void ModifyEvent(IEvent* evt, const wxVariant& oldValue, const wxVariant& newValue);
 
 	void CreateWideGui();
 
@@ -709,8 +709,8 @@ public:
 			wxAuiNotebook::SetSelection(wxNOTEBOOK_PAGE_DESIGNER);
 	}
 
-	void ModifyEvent(Event* event, const wxVariant& oldValue, const wxVariant& newValue);
-	void ModifyProperty(Property* prop, const wxVariant& oldValue, const wxVariant& newValue) {
+	void ModifyEvent(IEvent* event, const wxVariant& oldValue, const wxVariant& newValue);
+	void ModifyProperty(IProperty* prop, const wxVariant& oldValue, const wxVariant& newValue) {
 		m_visualEditor->ModifyProperty(prop, oldValue, newValue);
 		if (wxAuiNotebook::GetSelection() != wxNOTEBOOK_PAGE_DESIGNER)
 			wxAuiNotebook::SetSelection(wxNOTEBOOK_PAGE_DESIGNER);

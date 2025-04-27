@@ -1,10 +1,10 @@
 #include "widgets.h"
 
-void CValueTextCtrl::OnPropertyCreated(Property* property)
+void CValueTextCtrl::OnPropertyCreated(IProperty* property)
 {
-	if (m_propertySource == property) {
-		CValueTextCtrl::SaveToVariant(m_propertySource->GetValue(), GetMetaData());
-	}
+	//if (m_propertySource == property) {
+	//	CValueTextCtrl::SaveToVariant(m_propertySource->GetValue(), GetMetaData());
+	//}
 }
 
 #include <wx/propgrid/manager.h>
@@ -12,7 +12,7 @@ void CValueTextCtrl::OnPropertyCreated(Property* property)
 #include "backend/metaData.h"
 #include "backend/objCtor.h"
 
-void CValueTextCtrl::OnPropertyRefresh(wxPropertyGridManager* pg, wxPGProperty* pgProperty, Property* property)
+void CValueTextCtrl::OnPropertyRefresh(wxPropertyGridManager* pg, wxPGProperty* pgProperty, IProperty* property)
 {
 	if (m_propertyChoiceForm == property) {
 		if (GetClsidCount() > 1) {
@@ -33,9 +33,9 @@ void CValueTextCtrl::OnPropertyRefresh(wxPropertyGridManager* pg, wxPGProperty* 
 	}
 }
 
-bool CValueTextCtrl::OnPropertyChanging(Property* property, const wxVariant& newValue)
+bool CValueTextCtrl::OnPropertyChanging(IProperty* property, const wxVariant& newValue)
 {
-	if (m_propertySource == property && !CValueTextCtrl::LoadFromVariant(newValue))
-		return true;
+	//if (m_propertySource == property && !CValueTextCtrl::LoadFromVariant(newValue))
+	//	return true;
 	return IValueControl::OnPropertyChanging(property, newValue);
 }

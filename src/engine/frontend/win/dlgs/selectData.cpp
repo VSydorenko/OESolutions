@@ -11,7 +11,7 @@ bool CDialogSelectDataType::ShowModal(class_identifier_t& clsid)
 	else if (m_listData->GetItemCount() == 1) {
 		long lSelectedItem = m_listData->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_DONTCARE);
 		if (lSelectedItem != wxNOT_FOUND) {
-			clsid = m_clsids.at(lSelectedItem);
+			clsid = m_listTypeClass.at(lSelectedItem);
 			return true;
 		}
 		return true;
@@ -21,7 +21,7 @@ bool CDialogSelectDataType::ShowModal(class_identifier_t& clsid)
 	if (res == wxID_OK) {
 		long lSelectedItem = m_listData->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (lSelectedItem != wxNOT_FOUND) {
-			clsid = m_clsids.at(lSelectedItem);
+			clsid = m_listTypeClass.at(lSelectedItem);
 			return true;
 		}
 	}
@@ -51,7 +51,7 @@ CDialogSelectDataType::CDialogSelectDataType(IMetaData* metaData, std::set<class
 			wxASSERT(typeCtor);
 			wxImageList* imageList = m_listData->GetImageList(wxIMAGE_LIST_SMALL);
 			long lSelectedItem = m_listData->InsertItem(m_listData->GetItemCount(), typeCtor->GetClassName(), imageList->Add(typeCtor->GetClassIcon()));
-			m_clsids.insert_or_assign(lSelectedItem, clsid);
+			m_listTypeClass.insert_or_assign(lSelectedItem, clsid);
 		}
 	}
 

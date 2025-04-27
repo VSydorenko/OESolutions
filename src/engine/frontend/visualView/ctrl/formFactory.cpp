@@ -55,7 +55,7 @@ IValueFrame* CValueForm::NewObject(const class_identifier_t& clsid, IValueFrame*
 {
 	if (CValue::IsRegisterCtor(clsid)) {
 		IValueFrame* newControl = nullptr;
-		CValue* ppParams[] = { this, controlParent, const_cast<CValue*>(&generateId) };
+		CValue* ppParams[] = {this, controlParent, const_cast<CValue*>(&generateId)};
 		try {
 			newControl = CValue::CreateAndConvertObjectRef< IValueFrame>(clsid, ppParams, 3);
 			newControl->IncrRef();
@@ -68,14 +68,24 @@ IValueFrame* CValueForm::NewObject(const class_identifier_t& clsid, IValueFrame*
 	return nullptr;
 }
 
+#include "frontend/visualView/ctrl/toolBar.h"
+
 void CValueForm::ResolveNameConflict(IValueFrame* control)
 {
 	// Save the original name for use later.
-	wxString originalName =
-		control->GetControlName();
+	wxString originalName = control->GetControlName();
 
 	if (originalName.IsEmpty()) {
-		originalName = control->GetClassName();
+		const IValueFrame* parentControl = control->GetParent();
+		if (parentControl != nullptr && g_controlToolBarItemCLSID == control->GetClassType()) {
+			originalName = parentControl->GetControlName() + wxT("_") + control->GetClassName();
+		}
+		else if (parentControl != nullptr && g_controlToolBarSeparatorCLSID == control->GetClassType()) {
+			originalName = parentControl->GetControlName() + wxT("_") + control->GetClassName();
+		}
+		else {
+			originalName = control->GetClassName();
+		}
 	}
 
 	// el nombre no puede estar repetido dentro del mismo form
@@ -85,7 +95,8 @@ void CValueForm::ResolveNameConflict(IValueFrame* control)
 	// construimos el conjunto de nombres
 	std::set<wxString> name_set;
 
-	std::function<void(IValueFrame*, IValueFrame*, std::set< wxString >&)> buildNameSet = [&buildNameSet](IValueFrame* object, IValueFrame* top, std::set< wxString >& name_set) {
+	std::function<void(IValueFrame*, IValueFrame*, std::set< wxString >&)> buildNameSet = [&buildNameSet](IValueFrame* object, IValueFrame* top, std::set< wxString >& name_set)
+	{
 		wxASSERT(object);
 		if (object != top) {
 			name_set.emplace(top->GetControlName());
@@ -93,13 +104,12 @@ void CValueForm::ResolveNameConflict(IValueFrame* control)
 		for (unsigned int i = 0; i < top->GetChildCount(); i++) {
 			buildNameSet(object, top->GetChild(i), name_set);
 		}
-		};
+	};
 
 	buildNameSet(control, top, name_set);
 
 	// comprobamos si hay conflicto
-	std::set<wxString>::iterator it =
-		name_set.find(originalName);
+	std::set<wxString>::iterator it = name_set.find(originalName);
 
 	int i = 0;
 
@@ -131,7 +141,7 @@ IValueFrame* CValueForm::CreateObject(const wxString& className, IValueFrame* co
 		//de forms (como childType de project), pero hay mucho código no válido
 		//para forms que no sean de tipo "form". Dicho de otra manera, hay
 		//código que dependen del nombre del tipo, cosa que hay que evitar.
-		if (controlParent->GetObjectTypeName() == wxT("form") && controlParent->GetClassName() != wxT("form") &&
+		if (controlParent->GetObjectTypeName() == wxT("form") && controlParent->GetClassName() != wxT("frontendForm") &&
 			(classType == wxT("statusbar") ||
 				classType == wxT("menubar") ||
 				classType == wxT("ribbonbar") ||
@@ -251,13 +261,13 @@ IValueFrame* CValueForm::CopyObject(IValueFrame* srcControl)
 	unsigned int i;
 	unsigned int count = srcControl->GetPropertyCount();
 	for (i = 0; i < count; i++) {
-		Property* objProp = srcControl->GetProperty(i);
+		IProperty* objProp = srcControl->GetProperty(i);
 		assert(objProp);
 
 		if (objProp->GetName() == wxT("name"))
 			continue;
 
-		Property* copyProp = copyObj->GetProperty(objProp->GetName());
+		IProperty* copyProp = copyObj->GetProperty(objProp->GetName());
 		assert(copyProp);
 
 		wxString propValue = objProp->GetValue();
@@ -267,8 +277,8 @@ IValueFrame* CValueForm::CopyObject(IValueFrame* srcControl)
 	// ...and the event handlers
 	count = srcControl->GetEventCount();
 	for (i = 0; i < count; i++) {
-		Event* event = srcControl->GetEvent(i);
-		Event* copyEvent = copyObj->GetEvent(event->GetName());
+		IEvent* event = srcControl->GetEvent(i);
+		IEvent* copyEvent = copyObj->GetEvent(event->GetName());
 		copyEvent->SetValue(event->GetValue());
 	}
 

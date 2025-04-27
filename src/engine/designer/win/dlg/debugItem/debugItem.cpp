@@ -12,7 +12,7 @@ void CDialogDebugItem::RefreshDebugList()
 	m_availableList->AppendColumn(_("Computer"), wxLIST_FORMAT_LEFT, 150);
 	m_availableList->AppendColumn(_("Port"), wxLIST_FORMAT_LEFT, 50);
 
-	for (auto connection : debugClient->GetConnections()) {
+	for (auto connection : debugClient->GetListConnection()) {
 		if (connection->GetConnectionType() != ConnectionType::ConnectionType_Scanner)
 			continue;
 		if (!connection->IsConnected())
@@ -32,7 +32,7 @@ void CDialogDebugItem::RefreshDebugList()
 	m_attachedList->AppendColumn(_("Computer"), wxLIST_FORMAT_LEFT, 150);
 	m_attachedList->AppendColumn(_("Port"), wxLIST_FORMAT_LEFT, 50);
 
-	for (auto connection : debugClient->GetConnections()) {
+	for (auto connection : debugClient->GetListConnection()) {
 		if (connection->GetConnectionType() != ConnectionType::ConnectionType_Debugger)
 			continue;
 		if (!connection->IsConnected())

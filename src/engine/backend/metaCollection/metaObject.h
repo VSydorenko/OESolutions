@@ -1,14 +1,10 @@
-﻿#ifndef _META_OBJECT_H__
-#define _META_OBJECT_H__
+﻿#ifndef __META_OBJECT_H__
+#define __META_OBJECT_H__
 
-#include "backend/compiler/value/value.h"
-#include "backend/wrapper/propertyInfo.h"
-
+#include "backend/propertyManager/propertyManager.h"
 #include "backend/metaCtor.h"
 #include "backend/backend_metatree.h"
 #include "backend/role.h"
-
-#include "backend/fileSystem/fs.h"
 
 //*******************************************************************************
 class BACKEND_API IMetaData;
@@ -83,30 +79,22 @@ const class_identifier_t g_metaExternalReportCLSID = string_to_clsid("MD_ERPT");
 #define updateMetaTable	 0x0002000	
 #define deleteMetaTable	 0x0004000	
 
-class BACKEND_API IMetaObject : public CValue,
-	public IPropertyObject {
+class BACKEND_API IMetaObject :
+	public IPropertyObject, public CValue {
 	wxDECLARE_ABSTRACT_CLASS(IMetaObject);
 protected:
 
-	struct roleName_t {
-		wxString m_roleName;
-		wxString m_roleLabel;
-		roleName_t(const wxString& roleName) : m_roleName(roleName) {}
-		roleName_t(const wxString& roleName, const wxString& roleLabel) : m_roleName(roleName), m_roleLabel(roleLabel) {}
-		roleName_t(const char* strPropName) : m_roleName(strPropName) {}
-	};
-
-	Role* CreateRole(const roleName_t& strName) {
-		return new Role(strName.m_roleName, strName.m_roleLabel, this);
+	template <typename... Args>
+	inline Role* CreateRole(Args&&... args) {
+		return new Role(this, std::forward<Args>(args)...);
 	}
 
 protected:
 
-	PropertyCategory* m_categoryCommon = IPropertyObject::CreatePropertyCategory({ "common", _("common") });
-
-	Property* m_propertyName = IPropertyObject::CreateProperty(m_categoryCommon, { "name" , _("name") }, PropertyType::PT_WXNAME);
-	Property* m_propertySynonym = IPropertyObject::CreateProperty(m_categoryCommon, { "synonym", _("synonym") }, PropertyType::PT_WXSTRING);
-	Property* m_propertyComment = IPropertyObject::CreateProperty(m_categoryCommon, { "comment", _("comment") }, PropertyType::PT_WXSTRING);
+	CPropertyCategory* m_categoryCommon = IPropertyObject::CreatePropertyCategory(wxT("common"), _("common"));
+	CPropertyName* m_propertyName = IPropertyObject::CreateProperty<CPropertyName>(m_categoryCommon, wxT("name"), _("name"), wxEmptyString);
+	CPropertyCaption* m_propertySynonym = IPropertyObject::CreateProperty<CPropertyCaption>(m_categoryCommon, wxT("synonym"), _("synonym"), wxEmptyString);
+	CPropertyString* m_propertyComment = IPropertyObject::CreateProperty<CPropertyString>(m_categoryCommon, wxT("comment"), _("comment"), wxEmptyString);
 
 protected:
 
@@ -130,38 +118,17 @@ public:
 	meta_identifier_t GetMetaID() const { return m_metaId; }
 	void SetMetaID(const meta_identifier_t& id) { m_metaId = id; }
 
-	wxString GetName() const {
-		return m_propertyName->GetValueAsString();
-	}
+	wxString GetName() const { return m_propertyName->GetValueAsString(); }
+	void SetName(const wxString& strName) { m_propertyName->SetValue(strName); }
 
-	void SetName(const wxString& strName) {
-		m_propertyName->SetValue(strName);
-	}
+	wxString GetSynonym() const { return m_propertySynonym->IsEmptyProperty() ? GetName() : m_propertySynonym->GetValueAsString(); }
+	void SetSynonym(const wxString& synonym) { m_propertySynonym->SetValue(synonym); }
 
-	wxString GetSynonym() const {
-		return m_propertySynonym->IsOk() ?
-			m_propertySynonym->GetValueAsString() : GetName();
-	}
+	wxString GetComment() const { return m_propertyComment->GetValueAsString(); }
+	void SetComment(const wxString& comment) { m_propertyComment->SetValue(comment); }
 
-	void SetSynonym(const wxString& synonym) {
-		m_propertySynonym->SetValue(synonym);
-	}
-
-	wxString GetComment() const {
-		return m_propertyComment->GetValueAsString();
-	}
-
-	void SetComment(const wxString& comment) {
-		m_propertyComment->SetValue(comment);
-	}
-
-	virtual void SetMetaData(IMetaData* metaData) {
-		m_metaData = metaData;
-	}
-
-	virtual IMetaData* GetMetaData() const {
-		return m_metaData;
-	}
+	virtual void SetMetaData(IMetaData* metaData) { m_metaData = metaData; }
+	virtual IMetaData* GetMetaData() const { return m_metaData; }
 
 	void ResetGuid();
 	void ResetId();
@@ -173,9 +140,7 @@ public:
 		}
 	}
 
-	operator meta_identifier_t() const {
-		return m_metaId;
-	}
+	operator meta_identifier_t() const { return m_metaId; }
 
 	IBackendMetadataTree* GetMetaDataTree() const;
 
@@ -232,9 +197,10 @@ public:
 	bool AccessRight(const wxString& roleName, const meta_identifier_t& id) const {
 		if (roleName.IsEmpty())
 			return false;
-		auto& it = std::find_if(m_roles.begin(), m_roles.end(), [roleName](const std::pair<wxString, Role*>& pair) {
+		auto& it = std::find_if(m_roles.begin(), m_roles.end(), [roleName](const std::pair<wxString, Role*>& pair)
+		{
 			return roleName == pair.first;
-			}
+		}
 		);
 		if (it == m_roles.end())
 			return false;
@@ -245,9 +211,10 @@ public:
 	bool SetRight(const wxString& roleName, const meta_identifier_t& id, const bool& val) {
 		if (roleName.IsEmpty())
 			return false;
-		auto& it = std::find_if(m_roles.begin(), m_roles.end(), [roleName](const std::pair<wxString, Role*>& pair) {
+		auto& it = std::find_if(m_roles.begin(), m_roles.end(), [roleName](const std::pair<wxString, Role*>& pair)
+		{
 			return roleName == pair.first;
-			}
+		}
 		);
 		if (it == m_roles.end())
 			return false;
@@ -429,9 +396,9 @@ public:
 		if (m_metaId != metaObject->GetMetaID())
 			return false;
 		for (unsigned int idx = 0; idx < GetPropertyCount(); idx++) {
-			Property* propDst = GetProperty(idx);
+			IProperty* propDst = GetProperty(idx);
 			wxASSERT(propDst);
-			Property* propSrc = metaObject->GetProperty(propDst->GetName());
+			IProperty* propSrc = metaObject->GetProperty(propDst->GetName());
 			if (propSrc == nullptr)
 				return false;
 			if (propDst->GetValue() != propSrc->GetValue())
@@ -447,10 +414,10 @@ public:
 	/**
 	* Property events
 	*/
-	virtual void OnPropertyCreated(Property* property);
-	virtual void OnPropertySelected(Property* property);
-	virtual bool OnPropertyChanging(Property* property, const wxVariant& newValue);
-	virtual void OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue);
+	virtual void OnPropertyCreated(IProperty* property);
+	virtual void OnPropertySelected(IProperty* property);
+	virtual bool OnPropertyChanging(IProperty* property, const wxVariant& newValue);
+	virtual void OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue);
 
 	/**
 	* Devuelve la posicion del hijo o GetChildCount() en caso de no encontrarlo
@@ -487,14 +454,17 @@ protected:
 				metaItem->m_listMetaObject.begin(),
 				metaItem->m_listMetaObject.end(),
 				std::back_inserter(m_listObject),
-				[](auto const& obj) {
-					return dynamic_cast<convType*>(obj);
-				}
+				[](auto const& obj)
+			{
+				return dynamic_cast<convType*>(obj);
+			}
 			);
 			m_listObject.erase(
-				std::remove_if(m_listObject.begin(), m_listObject.end(), [clsid](auto const& obj) {
-					if (obj != nullptr) return clsid != obj->GetClassType(); return obj == nullptr; }), m_listObject.end()
-						);
+				std::remove_if(m_listObject.begin(), m_listObject.end(), [clsid](auto const& obj)
+			{
+				if (obj != nullptr) return clsid != obj->GetClassType(); return obj == nullptr;
+			}), m_listObject.end()
+				);
 		}
 		CMetaVector(const std::vector<IMetaObject*>& listObject) {
 			m_listObject.reserve(listObject.size());
@@ -502,9 +472,10 @@ protected:
 				std::begin(listObject),
 				std::end(listObject),
 				std::back_inserter(m_listObject),
-				[](auto const& obj) {
-					return dynamic_cast<convType*>(obj);
-				}
+				[](auto const& obj)
+			{
+				return dynamic_cast<convType*>(obj);
+			}
 			);
 			m_listObject.erase(
 				std::remove_if(m_listObject.begin(), m_listObject.end(), [](auto const& obj) { return obj == nullptr; }), m_listObject.end()

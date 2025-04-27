@@ -45,13 +45,15 @@ void CValueButton::Cleanup(wxObject* obj, IVisualHost* visualHost)
 
 bool CValueButton::LoadData(CMemoryReader& reader)
 {
-	m_propertyCaption->SetValue(reader.r_stringZ());
+	m_propertyCaption->LoadData(reader);
+	m_propertyIcon->LoadData(reader);
 	return IValueWindow::LoadData(reader);
 }
 
 bool CValueButton::SaveData(CMemoryWriter& writer)
 {
-	writer.w_stringZ(m_propertyCaption->GetValueAsString());
+	m_propertyCaption->SaveData(writer);
+	m_propertyIcon->SaveData(writer);
 	return IValueWindow::SaveData(writer);
 }
 

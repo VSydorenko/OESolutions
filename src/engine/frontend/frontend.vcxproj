@@ -34,8 +34,6 @@
     <ClCompile Include="mainFrame\mainFrame.cpp" />
     <ClCompile Include="mainFrame\mainFrameChild.cpp" />
     <ClCompile Include="mainFrame\mainFrameComponent.cpp" />
-    <ClCompile Include="mainFrame\objinspect\advprops.cpp" />
-    <ClCompile Include="mainFrame\objinspect\editors.cpp" />
     <ClCompile Include="mainFrame\objinspect\objinspect.cpp" />
     <ClCompile Include="mainFrame\settings\editorsettings.cpp" />
     <ClCompile Include="mainFrame\settings\editorsettingspanel.cpp" />
@@ -132,8 +130,7 @@
     <ClCompile Include="visualView\ctrl\wrapsizer.cpp" />
     <ClCompile Include="visualView\dvc\dvc.cpp" />
     <ClCompile Include="visualView\pageWindow.cpp" />
-    <ClCompile Include="visualView\special\enums\valueOrient.cpp" />
-    <ClCompile Include="visualView\special\valueEvent.cpp" />
+    <ClCompile Include="visualView\special\enum\valueEnum.cpp" />
     <ClCompile Include="visualView\visualHost.cpp" />
     <ClCompile Include="visualView\visualHost_impl.cpp" />
     <ClCompile Include="visualView\visual.cpp" />
@@ -294,8 +291,6 @@
     <ClInclude Include="mainFrame\grid\property\gridProperty.h" />
     <ClInclude Include="mainFrame\mainFrame.h" />
     <ClInclude Include="mainFrame\mainFrameChild.h" />
-    <ClInclude Include="mainFrame\objinspect\advprops.h" />
-    <ClInclude Include="mainFrame\objinspect\editors.h" />
     <ClInclude Include="mainFrame\objinspect\objinspect.h" />
     <ClInclude Include="mainFrame\settings\editorsettings.h" />
     <ClInclude Include="mainFrame\settings\editorsettingspanel.h" />
@@ -326,9 +321,7 @@
     <ClInclude Include="visualView\dvc\dvc.h" />
     <ClInclude Include="visualView\formdefs.h" />
     <ClInclude Include="visualView\pageWindow.h" />
-    <ClInclude Include="visualView\special\enums\valueOrient.h" />
-    <ClInclude Include="visualView\special\valueEvent.h" />
-    <ClInclude Include="visualView\special\valueFilter.h" />
+    <ClInclude Include="visualView\special\enum\valueEnum.h" />
     <ClInclude Include="visualView\visualHost.h" />
     <ClInclude Include="visualView\visual.h" />
     <ClInclude Include="win\ctrls\charts\wxareachart.h" />

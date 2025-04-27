@@ -1,5 +1,5 @@
-﻿#ifndef _FORM_H_
-#define _FORM_H_
+﻿#ifndef __FORM_H__
+#define __FORM_H__
 
 #include "control.h"
 #include "frontend/docView/docView.h"
@@ -11,13 +11,13 @@
 //*                                     Defines                                              *
 //********************************************************************************************
 
-class CValueType;
-class CUniqueKey;
+class BACKEND_API CValueType;
+class BACKEND_API CUniqueKey;
 
 class CVisualView;
 
-class IMetaObjectForm;
-class IMetaObjectGenericData;
+class BACKEND_API IMetaObjectForm;
+class BACKEND_API IMetaObjectGenericData;
 
 //********************************************************************************************
 //*                                 define commom clsid									     *
@@ -30,7 +30,7 @@ const class_identifier_t g_controlFormCLSID = string_to_clsid("CT_FRME");
 //*                                  Visual Document & View                                  *
 //********************************************************************************************
 
-#include "backend/wrapper/valueInfo.h"
+#include "backend/valueInfo.h"
 
 class CVisualDocument : public CMetaDocument {
 	CVisualHost* m_visualHost;
@@ -92,7 +92,7 @@ public:
 //*                                      Value Frame                                         *
 //********************************************************************************************
 
-class FRONTEND_API CValueForm : public IBackendValueForm, public IValueFrame, public IModuleInfo {
+class FRONTEND_API CValueForm : public IBackendValueForm, public IValueFrame, public IModuleDataObject {
 	wxDECLARE_DYNAMIC_CLASS(CValueForm);
 private:
 	enum {
@@ -100,13 +100,13 @@ private:
 		eProcUnit
 	};
 protected:
-	PropertyCategory* m_categoryFrame = IPropertyObject::CreatePropertyCategory({ "frame", _("frame") });
-	Property* m_propertyCaption = IPropertyObject::CreateProperty(m_categoryFrame, "caption", PropertyType::PT_WXSTRING, _("New frame"));
-	Property* m_propertyFG = IPropertyObject::CreateProperty(m_categoryFrame, "fg", PropertyType::PT_WXCOLOUR, wxColour(0, 120, 215));
-	Property* m_propertyBG = IPropertyObject::CreateProperty(m_categoryFrame, "bg", PropertyType::PT_WXCOLOUR, wxColour(240, 240, 240));
-	Property* m_propertyEnabled = IPropertyObject::CreateProperty(m_categoryFrame, "enabled", PropertyType::PT_BOOL, true);
-	PropertyCategory* m_categorySizer = IPropertyObject::CreatePropertyCategory({ "sizer", _("sizer") });
-	Property* m_propertyOrient = IPropertyObject::CreateProperty(m_categorySizer, "orient", &IValueFrame::GetOrient, wxVERTICAL);
+	CPropertyCategory* m_categoryFrame = IPropertyObject::CreatePropertyCategory(wxT("frame"), _("frame"));
+	CPropertyCaption* m_propertyCaption = IPropertyObject::CreateProperty<CPropertyCaption>(m_categoryFrame, wxT("caption"), _("caption"), _("Frame"));
+	CPropertyColour* m_propertyFG = IPropertyObject::CreateProperty<CPropertyColour>(m_categoryFrame, wxT("fg"), wxColour(0, 120, 215));
+	CPropertyColour* m_propertyBG = IPropertyObject::CreateProperty<CPropertyColour>(m_categoryFrame, wxT("bg"), wxColour(240, 240, 240));
+	CPropertyBoolean* m_propertyEnabled = IPropertyObject::CreateProperty<CPropertyBoolean>(m_categoryFrame, wxT("enabled"), _("enabled"), true);
+	CPropertyCategory* m_categorySizer = IPropertyObject::CreatePropertyCategory(wxT("sizer"), _("sizer"));
+	CPropertyEnum<CValueEnumOrient>* m_propertyOrient = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumOrient>>(m_categorySizer, wxT("orient"), _("orient"), wxVERTICAL);
 private:
 
 	bool m_formModified;
@@ -137,10 +137,10 @@ public:
 	}
 
 	wxOrientation GetOrient() const {
-		return (wxOrientation)m_propertyOrient->GetValueAsInteger();
+		return m_propertyOrient->GetValueAsEnum();
 	}
 
-	IValueFrame* NewObject(const class_identifier_t& clsid, IValueFrame* parentControl = nullptr, const CValue &generateId = true);
+	IValueFrame* NewObject(const class_identifier_t& clsid, IValueFrame* parentControl = nullptr, const CValue& generateId = true);
 	IValueFrame* NewObject(const wxString& classControl, IValueFrame* controlParent, const CValue& generateId = true) {
 		const class_identifier_t& clsid = CValue::GetIDObjectFromString(classControl);
 		if (clsid > 0) {
@@ -187,7 +187,7 @@ public:
 
 	CValueForm(IControlFrame* ownerControl = nullptr, IMetaObjectForm* metaForm = nullptr,
 		ISourceDataObject* ownerSrc = nullptr, const CUniqueKey& formGuid = wxNullUniqueKey, bool readOnly = false);
-	
+
 	virtual ~CValueForm();
 
 	//****************************************************************************
@@ -227,8 +227,9 @@ public:
 		return const_cast<CValueForm*>(this);
 	}
 
-	ISourceDataObject* GetSourceObject() const;
-	IMetaObjectForm* GetFormMetaObject() const;
+	virtual ISourceDataObject* GetSourceObject() const { return m_sourceObject; }
+	virtual IMetaObjectForm* GetFormMetaObject() const { return m_metaFormObject; }
+
 	IMetaObjectGenericData* GetMetaObject() const;
 
 	/**

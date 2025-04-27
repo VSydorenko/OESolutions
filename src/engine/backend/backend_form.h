@@ -3,6 +3,10 @@
 
 #include "backend/uniqueKey.h"
 
+///////////////////////////////////////////////////
+class BACKEND_API IBackendValueForm;
+///////////////////////////////////////////////////
+
 class BACKEND_API IBackendMetaDocument {
 public:
 	virtual ~IBackendMetaDocument() {}
@@ -19,8 +23,14 @@ public:
 	static wxClassInfo ms_classInfo;
 #endif
 	virtual ~IBackendControlFrame() {}
+	
 	virtual bool GetControlValue(CValue& pvarControlVal) const = 0;
 	virtual Guid GetControlGuid() const = 0;
+
+	virtual IBackendValueForm* GetBackendForm() const { return nullptr; }
+
+	//Get ref class 
+	virtual class_identifier_t GetClassType() const = 0;
 };
 
 class BACKEND_API IBackendValueForm : public IBackendValue {
@@ -37,6 +47,11 @@ public:
 
 	virtual bool LoadForm(const wxMemoryBuffer& formData) = 0;
 	virtual wxMemoryBuffer SaveForm() = 0;
+
+	///////////////////////////////////////////////////////////////////////////
+
+	virtual ISourceDataObject* GetSourceObject() const = 0;
+	virtual IMetaObjectForm* GetFormMetaObject() const = 0;
 
 	///////////////////////////////////////////////////////////////////////////
 

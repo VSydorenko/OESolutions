@@ -128,7 +128,7 @@ void CValueNotebook::PrepareNames() const // this method is automatically called
 	m_methodHelper->AppendFunc(wxT("activePage"), "activePage()");
 }
 
-#include "backend/compiler/value/valueMap.h"
+#include "backend/system/value/valueMap.h"
 
 bool CValueNotebook::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CValue** paParams, const long lSizeArray)       //method call
 {
@@ -136,15 +136,15 @@ bool CValueNotebook::CallAsFunc(const long lMethodNum, CValue& pvarRetValue, CVa
 	{
 	case enPages:
 	{
-		CValueStructure* pages = new CValueStructure(true);
+		CValueStructure* structurePage = CValue::CreateAndConvertObjectValueRef<CValueStructure>(true);
 		for (unsigned int i = 0; i < GetChildCount(); i++) {
 			CValueNotebookPage* notebookPage = dynamic_cast<CValueNotebookPage*>(GetChild(i));
 			if (notebookPage) {
-				pages->Insert(notebookPage->GetControlName(), CValue(notebookPage));
+				structurePage->Insert(notebookPage->GetControlName(), CValue(notebookPage));
 			}
 		}
 #pragma message("nouverbe to nouverbe: необходимо доработать!")
-		pvarRetValue = pages;
+		pvarRetValue = structurePage;
 		return true; 
 	}
 	case enActivePage:

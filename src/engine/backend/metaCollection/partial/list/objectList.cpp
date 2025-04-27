@@ -28,7 +28,7 @@ IListDataObject::IListDataObject(IMetaObjectGenericData* metaTable, const form_i
 			obj->GetName(),
 			obj->GetSynonym(),
 			eComparisonType_Equal,
-			obj->GetTypeDescription(),
+			obj->GetTypeDesc(),
 			obj->CreateValue(),
 			false
 		);
@@ -56,7 +56,7 @@ ITreeDataObject::ITreeDataObject(IMetaObjectGenericData* metaTable, const form_i
 			obj->GetMetaID(),
 			obj->GetName(),
 			obj->GetSynonym(),
-			obj->GetTypeDescription(),
+			obj->GetTypeDesc(),
 			obj->CreateValue()
 		);
 	}

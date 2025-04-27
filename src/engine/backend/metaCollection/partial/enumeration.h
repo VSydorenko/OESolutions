@@ -1,7 +1,7 @@
-#ifndef _ENUMERATION_H__
-#define _ENUMERATION_H__
+#ifndef __ENUMERATION_H__
+#define __ENUMERATION_H__
 
-#include "object.h"
+#include "commonObject.h"
 
 class CMetaObjectEnumeration : public IMetaObjectRecordDataEnumRef {
 	wxDECLARE_DYNAMIC_CLASS(CMetaObjectEnumeration);
@@ -11,7 +11,7 @@ class CMetaObjectEnumeration : public IMetaObjectRecordDataEnumRef {
 		ID_METATREE_OPEN_MANAGER = 19000,
 	};
 
-	CMetaObjectCommonModule* m_moduleManager;
+	CMetaObjectCommonModule* m_moduleManager = IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(wxT("managerModule"));
 
 	enum
 	{
@@ -19,24 +19,22 @@ class CMetaObjectEnumeration : public IMetaObjectRecordDataEnumRef {
 		eFormSelect
 	};
 
-	virtual OptionList* GetFormType() override {
-		OptionList* optionlist = new OptionList;
-		optionlist->AddOption(wxT("formList"), _("Form list"), eFormList);
-		optionlist->AddOption(wxT("formSelect"), _("Form select"), eFormSelect);
-		return optionlist;
+	virtual CFormTypeList GetFormType() const override {
+		CFormTypeList formList; 
+		formList.AppendItem(wxT("formList"), _("Form list"), eFormList);
+		formList.AppendItem(wxT("formSelect"), _("Form select"), eFormSelect);
+		return formList;
 	}
 
 protected:
 
-	PropertyCategory* m_categoryForm = IPropertyObject::CreatePropertyCategory({ "defaultForms", "default forms" });
-	Property* m_propertyDefFormList = IPropertyObject::CreateProperty(m_categoryForm, { "default_list", "default list" }, &CMetaObjectEnumeration::GetFormList, wxNOT_FOUND);
-	Property* m_propertyDefFormSelect = IPropertyObject::CreateProperty(m_categoryForm, { "default_select" , "default select" }, &CMetaObjectEnumeration::GetFormSelect, wxNOT_FOUND);
+	CPropertyCategory* m_categoryForm = IPropertyObject::CreatePropertyCategory(wxT("defaultForms"), _("default forms"));
+	CPropertyList* m_propertyDefFormList = IPropertyObject::CreateProperty<CPropertyList>(m_categoryForm, wxT("defaultFormList"), _("default list"), &CMetaObjectEnumeration::GetFormList, wxNOT_FOUND);
+	CPropertyList* m_propertyDefFormSelect = IPropertyObject::CreateProperty<CPropertyList>(m_categoryForm, wxT("defaultFormSelect") , _("default select"), &CMetaObjectEnumeration::GetFormSelect, wxNOT_FOUND);
 
 private:
-
-	OptionList* GetFormList(PropertyOption*);
-	OptionList* GetFormSelect(PropertyOption*);
-
+	bool GetFormList(CPropertyList* prop);
+	bool GetFormSelect(CPropertyList* prop);
 public:
 
 	virtual bool FilterChild(const class_identifier_t& clsid) const {
@@ -103,7 +101,7 @@ public:
 	}
 
 	//descriptions...
-	wxString GetDataPresentation(const IObjectValueInfo* objValue) const;
+	wxString GetDataPresentation(const IObjectDataValue* objValue) const;
 
 	//prepare menu for item
 	virtual bool PrepareContextMenu(wxMenu* defaultMenu);

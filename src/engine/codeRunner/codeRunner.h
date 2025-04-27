@@ -89,7 +89,7 @@ public:
 		m_output->SetReadOnly(true);
 	}
 
-	CFrameCodeRunner(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = "Code runner", const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(638, 338), long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
+	CFrameCodeRunner(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Code runner"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(638, 338), long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
 	virtual ~CFrameCodeRunner();
 };
 

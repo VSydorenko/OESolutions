@@ -1,8 +1,7 @@
-#ifndef _ACCUMULATION_REGISTER_H__
-#define _ACCUMULATION_REGISTER_H__
+#ifndef __ACCUMULATION_REGISTER_H__
+#define __ACCUMULATION_REGISTER_H__
 
-#include "object.h"
-
+#include "commonObject.h"
 #include "accumulationRegisterEnum.h"
 
 class CMetaObjectAccumulationRegister : public IMetaObjectRegisterData {
@@ -13,11 +12,10 @@ private:
 		eFormList = 1,
 	};
 
-	virtual OptionList* GetFormType() override
-	{
-		OptionList* optionlist = new OptionList;
-		optionlist->AddOption(wxT("formList"), _("Form list"), eFormList);
-		return optionlist;
+	virtual CFormTypeList GetFormType() const override {
+		CFormTypeList formList;
+		formList.AppendItem(wxT("formList"), _("Form list"), eFormList);
+		return formList;
 	}
 
 	enum
@@ -26,32 +24,20 @@ private:
 		ID_METATREE_OPEN_MANAGER = 19001,
 	};
 
-	CMetaObjectModule* m_moduleObject;
-	CMetaObjectCommonModule* m_moduleManager;
+	CMetaObjectModule* m_moduleObject = IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("recordSetModule"));
+	CMetaObjectCommonModule* m_moduleManager = IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(wxT("managerModule"));
 
 private:
-
-	CMetaObjectAttributeDefault* m_attributeRecordType;
-
+	CMetaObjectAttributeDefault* m_attributeRecordType = IMetaObjectSourceData::CreateSpecialType(wxT("recordType"), _("Record type"), wxEmptyString, g_enumRecordTypeCLSID, false, CValueEnumAccumulationRegisterRecordType::CreateDefEnumValue());
 protected:
 
-	PropertyCategory* m_categoryForm = IPropertyObject::CreatePropertyCategory({ "defaultForms", "default forms" });
-	Property* m_propertyDefFormList = IPropertyObject::CreateProperty(m_categoryForm, { "default_list",  "default list" }, &CMetaObjectAccumulationRegister::GetFormList, wxNOT_FOUND);
-
-	PropertyCategory* m_categoryData = IPropertyObject::CreatePropertyCategory("data");
-	Property* m_propertyRegisterType = IPropertyObject::CreateProperty(m_categoryData, { "register_type", "register type" }, &CMetaObjectAccumulationRegister::GetRegisterType, eRegisterType::eBalances);
+	CPropertyCategory* m_categoryForm = IPropertyObject::CreatePropertyCategory(wxT("defaultForms"), _("default forms"));
+	CPropertyList* m_propertyDefFormList = IPropertyObject::CreateProperty<CPropertyList>(m_categoryForm, wxT("defaultFormList"), _("default form list"), &CMetaObjectAccumulationRegister::GetFormList, wxNOT_FOUND);
+	CPropertyCategory* m_categoryData = IPropertyObject::CreatePropertyCategory(wxT("data"), _("data"));
+	CPropertyEnum<CValueEnumAccumulationRegisterType>* m_propertyRegisterType = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumAccumulationRegisterType>>(m_categoryData, wxT("register_type"), _("register type"), eRegisterType::eBalances);
 
 private:
-
-	OptionList* GetRegisterType(PropertyOption*) {
-		OptionList* optionlist = new OptionList;
-		optionlist->AddOption(_("balances"), eBalances);
-		optionlist->AddOption(_("turnovers"), eTurnovers);
-		return optionlist;
-	}
-
-	OptionList* GetFormList(PropertyOption*);
-
+	bool GetFormList(CPropertyList* prop);
 public:
 
 	CMetaObjectAttributeDefault* GetRegisterRecordType() const {
@@ -65,7 +51,7 @@ public:
 	///////////////////////////////////////////////////////////////////
 
 	eRegisterType GetRegisterType() const {
-		return (eRegisterType)m_propertyRegisterType->GetValueAsInteger();
+		return m_propertyRegisterType->GetValueAsEnum();
 	}
 
 	wxString GetRegisterTableNameDB(eRegisterType rType) const {
@@ -174,7 +160,7 @@ public:
 	/**
 	* Property events
 	*/
-	virtual void OnPropertyChanged(Property* property, const wxVariant& oldValue, const wxVariant& newValue);
+	virtual void OnPropertyChanged(IProperty* property, const wxVariant& oldValue, const wxVariant& newValue);
 
 protected:
 
