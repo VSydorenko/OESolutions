@@ -68,8 +68,8 @@ void wxPGSourceDataProperty::RefreshChildren()
 {
     wxVariantDataSource* dataSource = property_cast(m_value, wxVariantDataSource);
     if (dataSource != nullptr) {
-        if (dataSource->GetSource() != wxNOT_FOUND) m_typeSelector->SetValue(dataSource->CloneSourceAttribute(dataSource->GetSource()));
-        else m_typeSelector->SetValue(dataSource->CloneSourceAttribute());
+        //if (dataSource->GetSource() != wxNOT_FOUND) m_typeSelector->SetValue(dataSource->CloneSourceAttribute(dataSource->GetSource()));
+        //else m_typeSelector->SetValue(dataSource->CloneSourceAttribute());
         m_typeSelector->SetFlagRecursively(wxPG_PROP_READONLY, !dataSource->IsPropAllowed());
     }
     else {

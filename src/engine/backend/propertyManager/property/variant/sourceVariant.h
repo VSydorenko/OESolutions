@@ -86,8 +86,8 @@ public:
 
 	//////////////////////////////////////////////////
 
-	meta_identifier_t GetIdByGuid(const Guid& guid, bool checkErase = false) const;
-	Guid GetGuidByID(const meta_identifier_t& id, bool checkErase = false) const;
+	meta_identifier_t GetIdByGuid(const Guid& guid) const;
+	Guid GetGuidByID(const meta_identifier_t& id) const;
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

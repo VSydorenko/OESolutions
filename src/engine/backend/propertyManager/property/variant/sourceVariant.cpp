@@ -55,7 +55,7 @@ wxString wxVariantDataSource::MakeString() const
 
 ////////////////////////////////////////////////////////////////////////////
 
-meta_identifier_t wxVariantDataSource::GetIdByGuid(const Guid& guid, bool checkErase) const
+meta_identifier_t wxVariantDataSource::GetIdByGuid(const Guid& guid) const
 {
     const ISourceObject* sourceObject = m_ownerProperty->GetSourceObject();
     if (guid.isValid() && sourceObject != nullptr) {
@@ -63,12 +63,12 @@ meta_identifier_t wxVariantDataSource::GetIdByGuid(const Guid& guid, bool checkE
         //wxASSERT(genericObject);
         const IMetaObject* metaObject = genericObject ? genericObject->FindMetaObjectByID(guid) : nullptr;
         //wxASSERT(metaObject);
-        return metaObject != nullptr && (checkErase || metaObject->IsAllowed()) ? metaObject->GetMetaID() : wxNOT_FOUND;
+        return metaObject != nullptr && metaObject->IsAllowed() ? metaObject->GetMetaID() : wxNOT_FOUND;
     }
     return wxNOT_FOUND;
 }
 
-Guid wxVariantDataSource::GetGuidByID(const meta_identifier_t& id, bool checkErase) const
+Guid wxVariantDataSource::GetGuidByID(const meta_identifier_t& id) const
 {
     const ISourceObject* sourceObject = m_ownerProperty->GetSourceObject();
     if (id != wxNOT_FOUND && sourceObject != nullptr) {
@@ -77,7 +77,7 @@ Guid wxVariantDataSource::GetGuidByID(const meta_identifier_t& id, bool checkEra
         IMetaObject* metaObject = genericObject != nullptr && genericObject->IsAllowed() ?
             genericObject->FindMetaObjectByID(id) : nullptr;
         //wxASSERT(metaObject);
-        return metaObject != nullptr && (checkErase || metaObject->IsAllowed()) ? metaObject->GetGuid() : wxNullGuid;
+        return metaObject != nullptr && metaObject->IsAllowed() ? metaObject->GetGuid() : wxNullGuid;
 
     }
     return wxNullGuid;
@@ -126,13 +126,22 @@ meta_identifier_t wxVariantDataSource::GetSource() const
 
 void wxVariantDataSource::SetSourceGuid(const Guid& guid, bool fillTypeDesc)
 {
+    const meta_identifier_t& id = GetIdByGuid(guid);
     m_dataSource = guid;
-    if (fillTypeDesc) m_attributeSource->SetFromMetaId(GetIdByGuid(guid));
+    if (fillTypeDesc) m_attributeSource->SetFromMetaId(id);
 }
 
 Guid wxVariantDataSource::GetSourceGuid() const
 {
-    return m_dataSource;
+    const ISourceObject* sourceObject = m_ownerProperty->GetSourceObject();
+    if (m_dataSource.isValid() && sourceObject != nullptr) {
+        const IMetaObjectSourceData* genericObject = sourceObject->GetSourceMetaObject();
+        if (genericObject == nullptr) return wxNullGuid;
+        IMetaObject* metaObject = genericObject ? genericObject->FindMetaObjectByID(m_dataSource) : nullptr;
+        wxASSERT(metaObject);
+        return metaObject != nullptr && metaObject->IsAllowed() ? m_dataSource : wxNullGuid;
+    }
+    return wxNullGuid;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -155,7 +164,9 @@ bool wxVariantDataSource::IsPropAllowed() const
         if (genericObject == nullptr) return true;
         IMetaObject* metaObject = genericObject ? genericObject->FindMetaObjectByID(m_dataSource) : nullptr;
         wxASSERT(metaObject);
-        return metaObject != nullptr && !metaObject->IsAllowed();
+        if (metaObject != nullptr) 
+            return !metaObject->IsAllowed();
+        return true;
     }
     return true;
 }
