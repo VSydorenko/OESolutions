@@ -12,8 +12,8 @@ void CDesignerApp::OnKeyEvent(wxKeyEvent& event)
 {
 	if (event.GetKeyCode() == WXK_ESCAPE) {
 		wxAuiMDIChildFrame* childFrame = mainFrame->GetActiveChild();
-		if (childFrame != nullptr)
-			childFrame->Close();
+		//if (childFrame != nullptr)
+		//	childFrame->Close();
 	}
 
 	event.Skip();
