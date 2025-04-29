@@ -102,11 +102,10 @@ bool CDebuggerClient::OffsetBreakpointInDB(const wxString& moduleName, unsigned 
 
 bool CDebuggerClient::RemoveAllBreakpointInDB()
 {
-	bool successful = true;
 	IPreparedStatement* preparedStatement = db_query->PrepareStatement("DELETE FROM %s;", dbg_table);
 	wxASSERT(preparedStatement);
-	if (preparedStatement->RunQuery() == DATABASE_LAYER_QUERY_RESULT_ERROR) {
-		wxASSERT_MSG(false, "error in RemoveAllBreakpointInDB"); successful = false;
-	}
-	return successful;
+	if (preparedStatement == nullptr) 
+		return false; 
+	preparedStatement->RunQuery(); 
+	return true;
 }
