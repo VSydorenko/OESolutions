@@ -131,7 +131,7 @@ void CCodeEditor::SetCurrentLine(int lineBreakpoint, bool setBreakLine)
 	else if (firstVisibleLine + linesOnScreen < (lineBreakpoint - 1))
 		ScrollToLine(lineBreakpoint - 1);
 
-	if (!setBreakLine) GotoLine(lineBreakpoint - 1);
+	//if (!setBreakLine) GotoLine(lineBreakpoint - 1);
 }
 
 void CCodeEditor::SetEditorSettings(const EditorSettings& settings)
