@@ -119,8 +119,9 @@ void CCodeEditor::SetCurrentLine(int lineBreakpoint, bool setBreakLine)
 	const int firstVisibleLine = GetFirstVisibleLine(),
 		linesOnScreen = LinesOnScreen();
 
-	if (!CCodeEditor::GetSTCFocus())
-		CCodeEditor::SetSTCFocus(true);
+	//Incorrect position when editing button title
+	//if (!CCodeEditor::GetSTCFocus()) 
+	// CodeEditor::SetSTCFocus(true);
 
 	MarkerDeleteAll(CCodeEditor::BreakLine);
 
@@ -130,6 +131,9 @@ void CCodeEditor::SetCurrentLine(int lineBreakpoint, bool setBreakLine)
 		ScrollToLine(lineBreakpoint - 1);
 	else if (firstVisibleLine + linesOnScreen < (lineBreakpoint - 1))
 		ScrollToLine(lineBreakpoint - 1);
+
+	//Set standart focus 
+	SetFocus();
 
 	//if (!setBreakLine) GotoLine(lineBreakpoint - 1);
 }
