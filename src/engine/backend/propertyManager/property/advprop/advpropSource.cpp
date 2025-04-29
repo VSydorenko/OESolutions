@@ -46,6 +46,18 @@ bool wxPGSourceDataProperty::StringToValue(wxVariant& variant, const wxString& t
     return text.IsEmpty();
 }
 
+void wxPGSourceDataProperty::RefreshChildren()
+{
+    const wxVariantDataSource* dataSource = property_cast(m_value, wxVariantDataSource);
+    if (dataSource != nullptr) {
+        const meta_identifier_t& id = dataSource->GetSource();
+        if (id != wxNOT_FOUND) m_typeSelector->SetValue(dataSource->CloneSourceAttribute(id));
+        else m_typeSelector->SetValue(dataSource->CloneSourceAttribute());
+    }
+    m_typeSelector->SetFlagRecursively(wxPG_PROP_READONLY, dataSource != nullptr ? !dataSource->IsPropAllowed() : false);  
+    wxPGSourceDataProperty::SetExpanded(true);
+}
+
 wxVariant wxPGSourceDataProperty::ChildChanged(wxVariant& thisValue, int childIndex, wxVariant& childValue) const
 {
     wxVariantDataSource* dataSource = property_cast(thisValue, wxVariantDataSource);
@@ -61,24 +73,10 @@ wxVariant wxPGSourceDataProperty::ChildChanged(wxVariant& thisValue, int childIn
     return wxVariant();
 }
 
+#include <wx/treectrl.h>
+
 #include "backend/metaData.h"
 #include "backend/objCtor.h"
-
-void wxPGSourceDataProperty::RefreshChildren()
-{
-    wxVariantDataSource* dataSource = property_cast(m_value, wxVariantDataSource);
-    if (dataSource != nullptr) {
-        //if (dataSource->GetSource() != wxNOT_FOUND) m_typeSelector->SetValue(dataSource->CloneSourceAttribute(dataSource->GetSource()));
-        //else m_typeSelector->SetValue(dataSource->CloneSourceAttribute());
-        m_typeSelector->SetFlagRecursively(wxPG_PROP_READONLY, !dataSource->IsPropAllowed());
-    }
-    else {
-        m_typeSelector->SetFlagRecursively(wxPG_PROP_READONLY, false);
-    }
-    wxPGSourceDataProperty::SetExpanded(true);
-}
-
-#include <wx/treectrl.h>
 
 wxPGEditorDialogAdapter* wxPGSourceDataProperty::GetEditorDialog() const
 {
@@ -316,10 +314,10 @@ wxPGEditorDialogAdapter* wxPGSourceDataProperty::GetEditorDialog() const
 
             tc->SetFocus();
 
-            IMetaValueTypeCtor* typeCtor = metaData->GetTypeCtor(clsid);
+            const IMetaValueTypeCtor* typeCtor = metaData->GetTypeCtor(clsid);
 
             if (typeCtor != nullptr) {
-                IMetaObjectSourceData* metaObject = nullptr;
+                const IMetaObjectSourceData* metaObject = nullptr;
                 if (typeCtor->ConvertToMetaValue(metaObject)) {
                     wxTreeItemSourceData* srcItemData = new wxTreeItemSourceData(metaObject->GetName() + wxT(" (") + MakeTypeString(metaData, clsid) + wxT(")"), wxNOT_FOUND, true);
                     const wxTreeItemId& rootItem = tc->AddRoot(metaObject->GetName() + wxT(" (") + MakeTypeString(metaData, clsid) + wxT(")"), icon_table, icon_table, srcItemData);
