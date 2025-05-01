@@ -132,8 +132,8 @@ void CCodeEditor::SetCurrentLine(int lineBreakpoint, bool setBreakLine)
 	else if (firstVisibleLine + linesOnScreen < (lineBreakpoint - 1))
 		ScrollToLine(lineBreakpoint - 1);
 
-	//Set standart focus 
-	SetFocus();
+	//Set standart focus
+	if (lineBreakpoint > 0) CCodeEditor::SetFocus();
 
 	//if (!setBreakLine) GotoLine(lineBreakpoint - 1);
 }
