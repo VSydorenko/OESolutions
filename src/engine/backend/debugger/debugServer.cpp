@@ -273,19 +273,15 @@ void CDebuggerServer::EnterDebugger(CRunContext* runContext, CByteUnit& CurCode,
 void CDebuggerServer::InitializeBreakpoints(const wxString& strDocPath, unsigned int from, unsigned int to)
 {
 	std::map<unsigned int, int>& moduleOffsets = m_listOffsetBreakpoint[strDocPath];
-	moduleOffsets.clear(); for (unsigned int i = from; i < to; i++) {
-		moduleOffsets[i] = 0;
-	}
+	moduleOffsets.clear(); for (unsigned int i = from; i < to; i++) { moduleOffsets[i] = 0; }
 }
 
 void CDebuggerServer::SendErrorToClient(const wxString& strFileName,
 	const wxString& strDocPath, unsigned int line, const wxString& strErrorMessage)
 {
-	if (!m_socketThread || !m_socketThread->IsConnected())
-		return;
+	if (m_socketServer == nullptr) CreateServer(defaultHost, defaultDebuggerPort, true);
 
-	if (!m_bUseDebug)
-		return;
+	if (m_socketThread == nullptr || !m_socketThread->IsConnected() || !m_bUseDebug) return;
 
 	CMemoryWriter commandChannel;
 
