@@ -9,11 +9,7 @@
 
 void CPropertyObjectGrid::AddSelectedCell(const wxGridBlockCoords& coords, bool afterErase)
 {
-	if (this != objectInspector->GetSelectedObject())
-		return;
-
-	if (afterErase)
-		ClearSelectedCell();
+	if (afterErase) ClearSelectedCell();
 
 	m_currentBlocks.push_back(coords);
 
@@ -35,6 +31,9 @@ void CPropertyObjectGrid::ShowProperty()
 			}
 		);
 	}
+
+	if (!objectInspector->IsShownProperty())
+		objectInspector->ShowProperty();
 
 	objectInspector->SelectObject(this);
 }

@@ -84,7 +84,7 @@ void CMetadataTree::CMetadataTreeWnd::OnRightUp(wxMouseEvent& event)
 		delete m_defaultMenu;
 	}
 
-	m_ownerTree->PropertyItem(); event.Skip();
+	m_ownerTree->SelectItem(); event.Skip();
 }
 
 void CMetadataTree::CMetadataTreeWnd::OnRightDown(wxMouseEvent& event)
@@ -140,7 +140,7 @@ void CMetadataTree::CMetadataTreeWnd::OnRightDown(wxMouseEvent& event)
 		delete m_defaultMenu;
 	}
 
-	m_ownerTree->PropertyItem(); event.Skip();
+	m_ownerTree->SelectItem(); event.Skip();
 }
 
 void CMetadataTree::CMetadataTreeWnd::OnRightDClick(wxMouseEvent& event)
@@ -321,7 +321,7 @@ void CMetadataTree::CMetadataTreeWnd::OnSelecting(wxTreeEvent& event)
 
 void CMetadataTree::CMetadataTreeWnd::OnSelected(wxTreeEvent& event)
 {
-	m_ownerTree->PropertyItem(); event.Skip();
+	m_ownerTree->SelectItem(); event.Skip();
 }
 
 void CMetadataTree::CMetadataTreeWnd::OnCollapsing(wxTreeEvent& event)

@@ -490,10 +490,10 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorObjectTree::OnPropertyMo
 	IProperty* prop = event.GetFrameProperty();
 
 	//if (prop->GetType() == PropertyType::PT_WXNAME) {
-		std::map< IValueFrame*, wxTreeItemId>::iterator it = m_listItem.find((IValueFrame*)prop->GetPropertyObject());
-		if (it != m_listItem.end()) {
-			UpdateItem(it->second, it->first);
-		}
+	std::map< IValueFrame*, wxTreeItemId>::iterator it = m_listItem.find((IValueFrame*)prop->GetPropertyObject());
+	if (it != m_listItem.end()) {
+		UpdateItem(it->second, it->first);
+	}
 	//}
 }
 
@@ -517,6 +517,7 @@ enum {
 	MENU_COPY,
 	MENU_MOVE_NEW_BOXSIZER,
 	MENU_DELETE,
+	MENU_PROPERTIES,
 };
 
 
@@ -542,6 +543,8 @@ CVisualEditorNotebook::CVisualEditor::CVisualEditorItemPopupMenu::CVisualEditorI
 	AppendSeparator();
 	Append(MENU_MOVE_UP, wxT("Move Up\tAlt+Up"));
 	Append(MENU_MOVE_DOWN, wxT("Move Down\tAlt+Down"));
+	AppendSeparator();
+	Append(MENU_PROPERTIES, wxT("Properties"));
 }
 
 void CVisualEditorNotebook::CVisualEditor::CVisualEditorItemPopupMenu::OnMenuEvent(wxCommandEvent& event)
@@ -550,14 +553,19 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorItemPopupMenu::OnMenuEve
 
 	switch (m_selID)
 	{
-		case MENU_CUT: m_formHandler->CutObject(m_formHandler->GetSelectedObject()); break;
-		case MENU_COPY: m_formHandler->CopyObject(m_formHandler->GetSelectedObject()); break;
-		case MENU_PASTE: m_formHandler->PasteObject(m_formHandler->GetSelectedObject()); break;
-		case MENU_DELETE: m_formHandler->RemoveObject(m_formHandler->GetSelectedObject()); break;
-		case MENU_MOVE_UP: m_formHandler->MovePosition(m_object, false); break;
-		case MENU_MOVE_DOWN: m_formHandler->MovePosition(m_object, true); break;
+	case MENU_CUT: m_formHandler->CutObject(m_formHandler->GetSelectedObject()); break;
+	case MENU_COPY: m_formHandler->CopyObject(m_formHandler->GetSelectedObject()); break;
+	case MENU_PASTE: m_formHandler->PasteObject(m_formHandler->GetSelectedObject()); break;
+	case MENU_DELETE: m_formHandler->RemoveObject(m_formHandler->GetSelectedObject()); break;
+	case MENU_MOVE_UP: m_formHandler->MovePosition(m_object, false); break;
+	case MENU_MOVE_DOWN: m_formHandler->MovePosition(m_object, true); break;
 
-		default: { m_object->ExecuteMenu(m_formHandler->GetVisualEditor(), m_selID); }
+	case MENU_PROPERTIES:
+		if (!objectInspector->IsShownProperty()) objectInspector->ShowProperty();
+		m_formHandler->SelectObject(m_object, true);
+		break;
+
+	default: { m_object->ExecuteMenu(m_formHandler->GetVisualEditor(), m_selID); }
 	}
 }
 
@@ -567,12 +575,12 @@ void CVisualEditorNotebook::CVisualEditor::CVisualEditorItemPopupMenu::OnUpdateE
 
 	switch (e.GetId())
 	{
-		case MENU_CUT:
-		case MENU_COPY:
-		case MENU_MOVE_UP:
-		case MENU_MOVE_DOWN:
-		case MENU_MOVE_NEW_BOXSIZER: e.Enable(m_formHandler->CanCopyObject() && m_formHandler->IsEditable()); break;
-		case MENU_DELETE: e.Enable(m_formHandler->CanCopyObject() && m_formHandler->IsEditable() && currentControl->CanDeleteControl()); break;
-		case MENU_PASTE: e.Enable(m_formHandler->CanPasteObject() && m_formHandler->IsEditable()); break;
+	case MENU_CUT:
+	case MENU_COPY:
+	case MENU_MOVE_UP:
+	case MENU_MOVE_DOWN:
+	case MENU_MOVE_NEW_BOXSIZER: e.Enable(m_formHandler->CanCopyObject() && m_formHandler->IsEditable()); break;
+	case MENU_DELETE: e.Enable(m_formHandler->CanCopyObject() && m_formHandler->IsEditable() && currentControl->CanDeleteControl()); break;
+	case MENU_PASTE: e.Enable(m_formHandler->CanPasteObject() && m_formHandler->IsEditable()); break;
 	}
 }

@@ -329,20 +329,28 @@ void CMetadataTree::EraseItem(const wxTreeItemId& item)
 	}
 }
 
+void CMetadataTree::SelectItem()
+{
+	if (appData->GetAppMode() != eRunMode::eDESIGNER_MODE) return;
+	if (objectInspector->IsShownProperty()) {
+		const wxTreeItemId& selection = m_metaTreeWnd->GetSelection();
+		IMetaObject* metaObject = GetMetaObject(selection);
+		objectInspector->ClearProperty();
+		UpdateToolbar(metaObject, selection);
+		if (metaObject == nullptr) return;
+		objectInspector->CallAfter(&CObjectInspector::SelectObject, metaObject, m_metaTreeWnd->GetEventHandler());
+	}
+}
+
 void CMetadataTree::PropertyItem()
 {
-	if (appData->GetAppMode() != eRunMode::eDESIGNER_MODE)
-		return;
-
+	if (appData->GetAppMode() != eRunMode::eDESIGNER_MODE) return;
 	const wxTreeItemId& selection = m_metaTreeWnd->GetSelection();
 	IMetaObject* metaObject = GetMetaObject(selection);
-
 	objectInspector->ClearProperty();
 	UpdateToolbar(metaObject, selection);
-
-	if (!metaObject)
-		return;
-
+	if (metaObject == nullptr) return;
+	if (!objectInspector->IsShownProperty()) objectInspector->ShowProperty();
 	objectInspector->CallAfter(&CObjectInspector::SelectObject, metaObject, m_metaTreeWnd->GetEventHandler());
 }
 

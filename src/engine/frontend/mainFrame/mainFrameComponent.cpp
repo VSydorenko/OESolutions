@@ -29,6 +29,13 @@ void CDocMDIFrame::CreatePropertyPane()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool CDocMDIFrame::IsShownProperty()
+{
+	const wxAuiPaneInfo propertyPane = m_mgr.GetPane(wxAUI_PANE_PROPERTY);
+	if (!propertyPane.IsOk()) return false;
+	return propertyPane.IsShown();
+}
+
 void CDocMDIFrame::ShowProperty()
 {
 	wxAuiPaneInfo& propertyPane = m_mgr.GetPane(wxAUI_PANE_PROPERTY);
@@ -41,6 +48,8 @@ void CDocMDIFrame::ShowProperty()
 		m_mgr.Update();
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "frontend/docView/docManager.h"
 #include "frontend/win/dlgs/authorization.h"

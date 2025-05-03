@@ -58,7 +58,7 @@ void CDataProcessorTree::CDataProcessorTreeWnd::OnRightUp(wxMouseEvent &event)
 		}
 		delete defaultMenu;
 	}
-	m_ownerTree->PropertyItem(); event.Skip();
+	m_ownerTree->SelectItem(); event.Skip();
 }
 
 void CDataProcessorTree::CDataProcessorTreeWnd::OnRightDown(wxMouseEvent &event)
@@ -89,7 +89,7 @@ void CDataProcessorTree::CDataProcessorTreeWnd::OnRightDown(wxMouseEvent &event)
 		}
 		delete defaultMenu;
 	}
-	m_ownerTree->PropertyItem(); event.Skip();
+	m_ownerTree->SelectItem(); event.Skip();
 }
 
 void CDataProcessorTree::CDataProcessorTreeWnd::OnRightDClick(wxMouseEvent &event)
@@ -223,7 +223,7 @@ void CDataProcessorTree::CDataProcessorTreeWnd::OnSelecting(wxTreeEvent &event)
 
 void CDataProcessorTree::CDataProcessorTreeWnd::OnSelected(wxTreeEvent &event)
 {
-	m_ownerTree->PropertyItem(); event.Skip();
+	m_ownerTree->SelectItem(); event.Skip();
 }
 
 void CDataProcessorTree::CDataProcessorTreeWnd::OnCollapsing(wxTreeEvent &event)

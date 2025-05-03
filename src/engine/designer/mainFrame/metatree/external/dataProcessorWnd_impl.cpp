@@ -153,19 +153,28 @@ void CDataProcessorTree::EraseItem(const wxTreeItemId& item)
 	}
 }
 
+void CDataProcessorTree::SelectItem()
+{
+	if (appData->GetAppMode() != eRunMode::eDESIGNER_MODE) return;
+	if (objectInspector->IsShownProperty()) {
+		const wxTreeItemId& selection = m_metaTreeWnd->GetSelection();
+		IMetaObject* metaObject = GetMetaObject(selection);
+		objectInspector->ClearProperty();
+		UpdateToolbar(metaObject, selection);
+		if (metaObject == nullptr) return;
+		objectInspector->CallAfter(&CObjectInspector::SelectObject, metaObject, m_metaTreeWnd->GetEventHandler());
+	}
+}
+
 void CDataProcessorTree::PropertyItem()
 {
-	if (appData->GetAppMode() != eRunMode::eDESIGNER_MODE)
-		return;
-	const wxTreeItemId &sel = m_metaTreeWnd->GetSelection();
+	if (appData->GetAppMode() != eRunMode::eDESIGNER_MODE) return;
+	const wxTreeItemId& selection = m_metaTreeWnd->GetSelection();
+	IMetaObject* metaObject = GetMetaObject(selection);
 	objectInspector->ClearProperty();
-
-	IMetaObject* metaObject = GetMetaObject(sel);
-	UpdateToolbar(metaObject, sel);
-
-	if (!metaObject)
-		return;
-
+	UpdateToolbar(metaObject, selection);
+	if (metaObject == nullptr) return;
+	if (!objectInspector->IsShownProperty()) objectInspector->ShowProperty();
 	objectInspector->CallAfter(&CObjectInspector::SelectObject, metaObject, m_metaTreeWnd->GetEventHandler());
 }
 

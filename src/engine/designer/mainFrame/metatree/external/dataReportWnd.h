@@ -182,6 +182,7 @@ private:
 	void EditItem();
 	void RemoveItem();
 	void EraseItem(const wxTreeItemId& item);
+	void SelectItem();
 	void PropertyItem();
 
 	void Collapse();

@@ -72,6 +72,8 @@ protected:
 
 public:
 
+	bool IsShownProperty();
+
 	/**
 	* Show property in mainFrame
 	*/

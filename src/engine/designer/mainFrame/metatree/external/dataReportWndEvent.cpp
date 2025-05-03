@@ -66,7 +66,7 @@ void CDataReportTree::CDataReportTreeWnd::OnRightUp(wxMouseEvent &event)
 		delete m_defaultMenu;
 	}
 
-	m_ownerTree->PropertyItem(); event.Skip();
+	m_ownerTree->SelectItem(); event.Skip();
 }
 
 void CDataReportTree::CDataReportTreeWnd::OnRightDown(wxMouseEvent &event)
@@ -110,7 +110,7 @@ void CDataReportTree::CDataReportTreeWnd::OnRightDown(wxMouseEvent &event)
 		delete defaultMenu;
 	}
 
-	m_ownerTree->PropertyItem(); event.Skip();
+	m_ownerTree->SelectItem(); event.Skip();
 }
 
 void CDataReportTree::CDataReportTreeWnd::OnRightDClick(wxMouseEvent &event)
@@ -242,7 +242,7 @@ void CDataReportTree::CDataReportTreeWnd::OnSelecting(wxTreeEvent &event)
 
 void CDataReportTree::CDataReportTreeWnd::OnSelected(wxTreeEvent &event)
 {
-	m_ownerTree->PropertyItem(); event.Skip();
+	m_ownerTree->SelectItem(); event.Skip();
 }
 
 void CDataReportTree::CDataReportTreeWnd::OnCollapsing(wxTreeEvent &event)

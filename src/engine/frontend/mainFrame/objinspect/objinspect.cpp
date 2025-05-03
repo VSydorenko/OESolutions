@@ -150,9 +150,17 @@ void CObjectInspector::Create(bool force)
 	RestoreLastSelectedPropItem();
 }
 
+bool CObjectInspector::IsShownProperty() const
+{
+	if (mainFrame != nullptr) 
+		return mainFrame->IsShownProperty();
+	return false;
+}
+
 void CObjectInspector::ShowProperty()
 {
-	if (mainFrame != nullptr) mainFrame->ShowProperty();
+	if (mainFrame != nullptr) 
+		mainFrame->ShowProperty();
 }
 
 void CObjectInspector::ClearProperty()

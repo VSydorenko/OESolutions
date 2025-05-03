@@ -265,18 +265,21 @@ public:
 
 	// Servicios para los observadores
 	void SelectObject(IPropertyObject* selobj, bool force = true) {
-		ShowProperty();
-		m_currentSel = selobj;
-		Create(force);
+		//ShowProperty();
+		if (IsShownProperty()) {
+			m_currentSel = selobj;
+			Create(force);
+		}
 	}
 
-	IPropertyObject* GetSelectedObject() const {
-		return m_currentSel;
-	}
+	IPropertyObject* GetSelectedObject() const { return m_currentSel; }
+
+	bool IsShownProperty() const;
 
 	void ShowProperty();
-	void SavePosition();
 	void ClearProperty();
+
+	void SavePosition();
 
 	static CObjectInspector* GetObjectInspector();
 
