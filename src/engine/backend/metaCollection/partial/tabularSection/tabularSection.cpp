@@ -108,6 +108,7 @@ bool ITabularSectionDataObject::SetValueByMetaID(const wxDataViewItem& item, con
 		if (node != nullptr) {
 			IMetaObjectAttribute* metaAttribute = m_metaTable->FindProp(id);
 			wxASSERT(metaAttribute);
+			if (metaAttribute == nullptr) return false; 
 			return node->SetValue(
 				id, metaAttribute->AdjustValue(varMetaVal), true
 			);
@@ -126,6 +127,7 @@ bool ITabularSectionDataObject::GetValueByMetaID(const wxDataViewItem& item, con
 
 	IMetaObjectAttribute* metaAttribute = m_metaTable->FindProp(id);
 	wxASSERT(metaAttribute);
+	if (metaAttribute == nullptr) return false;
 	if (appData->DesignerMode()) {
 		pvarMetaVal = metaAttribute->CreateValue();
 		return true;

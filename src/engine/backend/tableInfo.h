@@ -84,9 +84,9 @@ public:
 
 	filterData_t* GetFilterByID(unsigned int filterModel) {
 		auto& it = std::find_if(m_filters.begin(), m_filters.end(), [filterModel](const filterData_t& data)
-		{
-			return filterModel == data.m_filterModel;
-		}
+			{
+				return filterModel == data.m_filterModel;
+			}
 		);
 		if (it != m_filters.end())
 			return &*it;
@@ -95,9 +95,9 @@ public:
 
 	filterData_t* GetFilterByName(const wxString& filterName) {
 		auto& it = std::find_if(m_filters.begin(), m_filters.end(), [filterName](const filterData_t& data)
-		{
-			return filterName == data.m_filterName;
-		}
+			{
+				return filterName == data.m_filterName;
+			}
 		);
 		if (it != m_filters.end())
 			return &*it;
@@ -164,9 +164,9 @@ public:
 	sortData_t* GetSortByID(unsigned int col_id) const {
 		auto& it = std::find_if(m_sorts.begin(), m_sorts.end(),
 			[col_id](const sortData_t& data)
-		{
-			return col_id == data.m_sortModel;
-		}
+			{
+				return col_id == data.m_sortModel;
+			}
 		);
 		if (it != m_sorts.end()) return const_cast<sortData_t*>(&*it);
 		return nullptr;
@@ -629,6 +629,14 @@ public:
 			return cValue.IsEmpty();
 		}
 
+		bool HasColumnValue(const meta_identifier_t& id) const {
+			return m_nodeValues.find(id) != m_nodeValues.end();
+		}
+
+		bool HasColumnValue(unsigned int col) const {
+			return m_nodeValues.find(col) != m_nodeValues.end();
+		}
+
 		void EraseValue(const meta_identifier_t& id) {
 			auto& it = m_nodeValues.find(id);
 			if (it != m_nodeValues.end())
@@ -812,7 +820,7 @@ public:
 	}
 
 	void Sort(unsigned int col, bool ascending = true, bool notify = true) {
-		std::vector<sortModel_t> fixedSort = {{ col, ascending }};
+		std::vector<sortModel_t> fixedSort = { { col, ascending } };
 		Sort(fixedSort, notify);
 	}
 
@@ -820,9 +828,9 @@ public:
 		if (notify) wxDataViewModel::BeforeReset();
 		std::sort(m_nodeValues.begin(), m_nodeValues.end(),
 			[&paSort](const wxValueTableRow* a, const wxValueTableRow* b)
-		{
-			return a->CompareRow(b, paSort);
-		}
+			{
+				return a->CompareRow(b, paSort);
+			}
 		);
 		if (notify) wxDataViewModel::AfterReset();
 	}
@@ -1092,9 +1100,9 @@ public:
 		void Sort(std::vector<sortModel_t>& paSort) {
 			std::sort(m_children.begin(), m_children.end(),
 				[&paSort](const wxValueTreeNode* a, const wxValueTreeNode* b)
-			{
-				return a->CompareNode(b, paSort);
-			}
+				{
+					return a->CompareNode(b, paSort);
+				}
 			);
 			for (auto child : m_children) child->Sort(paSort);
 		}
@@ -1284,7 +1292,7 @@ public:
 	}
 
 	void Sort(unsigned int col, bool ascending = true, bool notify = true) {
-		std::vector<sortModel_t> fixedSort = {{ col, ascending }};
+		std::vector<sortModel_t> fixedSort = { { col, ascending } };
 		Sort(fixedSort, notify);
 	}
 

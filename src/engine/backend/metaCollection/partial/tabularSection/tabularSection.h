@@ -106,10 +106,11 @@ public:
 		}
 
 		virtual unsigned int GetColumnCount() const {
-			CMetaObjectTableData* metaTable = m_ownerTable->GetMetaObject();
-			wxASSERT(metaTable);
-			const auto& obj = metaTable->GetObjectAttributes();
-			return obj.size();
+			//CMetaObjectTableData* metaTable = m_ownerTable->GetMetaObject();
+			//wxASSERT(metaTable);
+			//const auto& obj = metaTable->GetObjectAttributes();
+			//return obj.size();
+			return m_listColumnInfo.size();
 		}
 
 		//array support 
