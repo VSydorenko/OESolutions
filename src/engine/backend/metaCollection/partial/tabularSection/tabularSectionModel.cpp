@@ -14,32 +14,31 @@ void ITabularSectionDataObject::GetValueByRow(wxVariant& variant,
 {
 	wxValueTableRow* node = GetViewData<wxValueTableRow>(row);
 	if (node == nullptr) return;
-	if (node->HasColumnValue(col)) {
-		if (m_metaTable->IsNumberLine(col))
-			variant = wxString::Format("%i", GetRow(row) + 1);
-		else
-			node->GetValue(col, variant);
-	}
+	if (m_metaTable->IsNumberLine(col))
+		variant = wxString::Format("%i", GetRow(row) + 1);
+	else if (node->HasColumnValue(col))
+		node->GetValue(col, variant);
+
 }
 
 #include "backend/metaData.h"
 
 bool ITabularSectionDataObject::SetValueByRow(const wxVariant& variant,
 	const wxDataViewItem& row, unsigned int col)
-{	
+{
 	wxValueTableRow* node = GetViewData<wxValueTableRow>(row);
 	if (node == nullptr) return false;
-	
+
 	if (!m_metaTable->IsNumberLine(col)) {
 		IMetaData* metaData = m_metaTable->GetMetaData();
 		wxASSERT(metaData);
 		if (node->HasColumnValue(col)) {
-			
+
 			const wxString& strData = variant.GetString();
-			
+
 			const CValue& selValue = node->GetTableValue(col);
 			const CValue& newValue = metaData->CreateObject(selValue.GetClassType());
-			
+
 			if (strData.Length() > 0) {
 				std::vector<CValue> listValue;
 				if (newValue.FindValue(strData, listValue)) {
