@@ -502,10 +502,10 @@ bool IRecordDataObjectRef::ReadData(const Guid& srcGuid)
 		else
 			resultSet = db_query->RunQueryWithResults("SELECT FIRST 1 * FROM " + tableName + " WHERE _uuid = '" + srcGuid.str() + "';");
 
-		if (resultSet == nullptr)
-			return false;
-		bool succes = true;
+		if (resultSet == nullptr) return false;
+		bool succes = false;
 		if (resultSet->Next()) {
+			succes = true; 
 			//load other attributes 
 			for (auto& obj : m_metaObject->GetGenericAttributes()) {
 				if (!m_metaObject->IsDataReference(obj->GetMetaID())) {
@@ -514,8 +514,7 @@ bool IRecordDataObjectRef::ReadData(const Guid& srcGuid)
 			}
 			for (auto& obj : m_metaObject->GetObjectTables()) {
 				CTabularSectionDataObjectRef* tabularSection = new CTabularSectionDataObjectRef(this, obj);
-				if (!tabularSection->LoadData(srcGuid))
-					succes = false;
+				if (!tabularSection->LoadData(srcGuid)) succes = false;
 				m_listObjectValue.insert_or_assign(obj->GetMetaID(), tabularSection);
 			}
 		}

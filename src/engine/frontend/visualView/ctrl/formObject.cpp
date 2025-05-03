@@ -309,12 +309,35 @@ bool CValueForm::InitializeFormModule()
 
 void CValueForm::NotifyCreate(const CValue& vCreated)
 {
-	if (m_controlOwner != nullptr) {
-		CValueForm* ownerForm = m_controlOwner->GetOwnerForm();
-		ownerForm->m_createdValue = vCreated; 
-		if (ownerForm != nullptr) ownerForm->UpdateForm();
+	CValueForm* ownerForm = m_controlOwner != nullptr ?
+		m_controlOwner->GetOwnerForm() : nullptr;
+
+	if (ownerForm != nullptr)
+		ownerForm->m_createdValue = vCreated;
+
+	CValueForm::Modify(false);
+}
+
+void CValueForm::NotifyChange(const CValue& vChanged)
+{
+	CValueForm* ownerForm = m_controlOwner != nullptr ?
+		m_controlOwner->GetOwnerForm() : nullptr;
+
+	if (ownerForm != nullptr)
 		ownerForm->m_createdValue = wxEmptyValue;
-	}
+
+	CValueForm::Modify(false);
+}
+
+void CValueForm::NotifyDelete(const CValue& vChanged)
+{
+	CValueForm* ownerForm = m_controlOwner != nullptr ?
+		m_controlOwner->GetOwnerForm() : nullptr;
+
+	if (ownerForm != nullptr)
+		ownerForm->m_createdValue = wxEmptyValue;
+
+	CValueForm::CloseForm(true);
 }
 
 void CValueForm::NotifyChoice(CValue& vSelected)

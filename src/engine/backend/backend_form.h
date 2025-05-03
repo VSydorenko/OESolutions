@@ -23,7 +23,7 @@ public:
 	static wxClassInfo ms_classInfo;
 #endif
 	virtual ~IBackendControlFrame() {}
-	
+
 	virtual bool GetControlValue(CValue& pvarControlVal) const = 0;
 	virtual Guid GetControlGuid() const = 0;
 
@@ -63,8 +63,12 @@ public:
 
 	//notify
 	virtual void NotifyCreate(const CValue& vCreated) = 0;
+	virtual void NotifyChange(const CValue& vChanged) = 0;
+	virtual void NotifyDelete(const CValue& vChanged) = 0;
+
 	virtual void NotifyChoice(CValue& vSelected) = 0;
 
+	//form event
 	virtual void ActivateForm() = 0;
 	virtual void UpdateForm() = 0;
 	virtual bool CloseForm(bool force = false) = 0;

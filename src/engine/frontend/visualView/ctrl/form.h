@@ -361,7 +361,11 @@ public:
 	
 	static bool UpdateFormUniqueKey(const CUniquePairKey& guid);
 
+	//notify
 	virtual void NotifyCreate(const CValue& vCreated);
+	virtual void NotifyChange(const CValue& vChanged);
+	virtual void NotifyDelete(const CValue& vChanged);
+	
 	virtual void NotifyChoice(CValue& vSelected);
 
 	CValue CreateControl(const CValueType* classControl, const CValue& vControl);

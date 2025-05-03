@@ -216,12 +216,9 @@ bool CRecordManagerObjectInformationRegister::WriteRegister(bool replace)
 				IBackendValueForm* const valueForm = GetForm();
 
 				if (newObject && valueForm != nullptr) valueForm->NotifyCreate(GetValue());
-				if (backend_mainFrame != nullptr) backend_mainFrame->RefreshFrame();
+				else if (valueForm != nullptr) valueForm->NotifyChange(GetValue());
 
-				if (valueForm != nullptr) {
-					valueForm->UpdateForm();
-					valueForm->Modify(false);
-				}	
+				if (backend_mainFrame != nullptr) backend_mainFrame->RefreshFrame();
 			}
 
 			m_recordSet->Modify(false);
@@ -254,13 +251,8 @@ bool CRecordManagerObjectInformationRegister::DeleteRegister()
 
 				db_query->Commit();
 
-				if (valueForm != nullptr) {
-					valueForm->CloseForm(true);
-				}
-
-				if (backend_mainFrame != nullptr) {
-					backend_mainFrame->RefreshFrame();
-				}
+				if (valueForm != nullptr) valueForm->NotifyDelete(GetValue());
+				if (backend_mainFrame != nullptr) backend_mainFrame->RefreshFrame();
 			}
 
 			m_recordSet->Modify(false);

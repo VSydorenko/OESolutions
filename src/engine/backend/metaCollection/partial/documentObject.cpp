@@ -346,13 +346,9 @@ bool CRecordDataObjectDocument::WriteObject(eDocumentWriteMode writeMode, eDocum
 				db_query->Commit();
 
 				if (newObject && valueForm != nullptr) valueForm->NotifyCreate(GetReference());
-				
-				if (backend_mainFrame != nullptr) backend_mainFrame->RefreshFrame();
+				else if (valueForm != nullptr) valueForm->NotifyChange(GetReference());
 
-				if (valueForm != nullptr) {
-					valueForm->UpdateForm();
-					valueForm->Modify(false);
-				}
+				if (backend_mainFrame != nullptr) backend_mainFrame->RefreshFrame();
 			}
 
 			m_objModified = false;
@@ -406,13 +402,8 @@ bool CRecordDataObjectDocument::DeleteObject()
 
 				db_query->Commit();
 
-				if (valueForm != nullptr) {
-					valueForm->CloseForm(true);
-				}
-
-				if (backend_mainFrame != nullptr) {
-					backend_mainFrame->RefreshFrame();
-				}
+				if (valueForm != nullptr) valueForm->NotifyDelete(GetReference());
+				if (backend_mainFrame != nullptr) backend_mainFrame->RefreshFrame();
 			}
 		}
 	}

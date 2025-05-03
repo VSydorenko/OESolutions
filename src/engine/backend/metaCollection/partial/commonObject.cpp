@@ -1803,10 +1803,9 @@ bool IRecordDataObjectRef::InitializeObject(const Guid& copyGuid)
 			m_objModified = true;
 		}
 		else {
-			succes = ReadData();
+			if (!ReadData()) PrepareEmptyObject();			
 		}
-		if (!succes)
-			return succes;
+		if (!succes) return succes;
 	}
 	else {
 		PrepareEmptyObject();
