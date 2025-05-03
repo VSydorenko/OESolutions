@@ -118,9 +118,7 @@ public:
 	virtual void CreateGUI() = 0;
 
 	virtual void Modify(bool modify) {}
-	virtual bool IsModified() const {
-		return false;
-	}
+	virtual bool IsModified() const { return false; }
 
 	virtual bool AuthenticationUser(const wxString& userName, const wxString& userPassword) const;
 
@@ -129,7 +127,11 @@ public:
 	virtual IBackendValueForm* ActiveWindow() const override;
 	virtual IBackendValueForm* CreateNewForm(class IBackendControlFrame* ownerControl = nullptr, class IMetaObjectForm* metaForm = nullptr,
 		class ISourceDataObject* ownerSrc = nullptr, const CUniqueKey& formGuid = wxNullUniqueKey, bool readOnly = false) override;
+
 	virtual class IBackendValueForm* FindFormByUniqueKey(const CUniqueKey& guid) override;
+	virtual class IBackendValueForm* FindFormByControlUniqueKey(const CUniqueKey& guid) override;
+	virtual class IBackendValueForm* FindFormBySourceUniqueKey(const CUniqueKey& guid) override;
+
 	virtual bool UpdateFormUniqueKey(const CUniquePairKey& guid) override;
 	virtual void RefreshFrame() override;
 

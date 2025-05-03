@@ -235,17 +235,12 @@ public:
 	/**
 	* Support form
 	*/
-	virtual wxString GetControlName() const {
-		return GetObjectTypeName();
-	};
+	virtual wxString GetControlName() const { return GetObjectTypeName(); }
+	virtual CValueForm* GetOwnerForm() const { return const_cast<CValueForm*>(this); }
 
-	virtual CValueForm* GetOwnerForm() const {
-		return const_cast<CValueForm*>(this);
-	}
+	CValue GetCreatedValue() const { return m_createdValue; }
 
-	IValueFrame* GetOwnerControl() const {
-		return (IValueFrame*)m_controlOwner;
-	}
+	IValueFrame* GetOwnerControl() const { return (IValueFrame*)m_controlOwner; }
 
 	/**
 	* Get type form
@@ -255,9 +250,7 @@ public:
 	/**
 	* Can delete object
 	*/
-	virtual bool CanDeleteControl() const {
-		return false;
-	}
+	virtual bool CanDeleteControl() const { return false; }
 
 public:
 
@@ -363,9 +356,14 @@ public:
 	bool SaveChildForm(CMemoryWriter& writterData, IValueFrame* controlParent);
 
 	static CValueForm* FindFormByUniqueKey(const CUniqueKey& guid);
+	static CValueForm* FindFormByControlUniqueKey(const CUniqueKey& guid);
+	static CValueForm* FindFormBySourceUniqueKey(const CUniqueKey& guid);
+	
 	static bool UpdateFormUniqueKey(const CUniquePairKey& guid);
 
-	void NotifyChoice(CValue& vSelected);
+	virtual void NotifyCreate(const CValue& vCreated);
+	virtual void NotifyChoice(CValue& vSelected);
+
 	CValue CreateControl(const CValueType* classControl, const CValue& vControl);
 	CValue FindControl(const CValue& vControl);
 	void RemoveControl(const CValue& vControl);
@@ -439,6 +437,8 @@ protected:
 		eDataBlock = 0x3550,
 		eChildBlock = 0x3570
 	};
+
+	CValue					m_createdValue;
 
 	CUniqueKey				m_formKey;
 	form_identifier_t		m_defaultFormType;

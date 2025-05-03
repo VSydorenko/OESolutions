@@ -162,22 +162,80 @@ bool CVisualView::OnClose(bool deleteWindow)
 
 CValueForm* CValueForm::FindFormByUniqueKey(const CUniqueKey& guid)
 {
-	if (!guid.isValid())
-		return nullptr;
+	if (guid.isValid()) {
+		std::map<const CUniqueKey, CVisualDocument*>::iterator foundedForm =
+			std::find_if(ms_formOpened.begin(), ms_formOpened.end(),
+				[guid](std::pair<const CUniqueKey, CVisualDocument* >& pair) {
+					const CUniqueKey& uniqueKey = pair.first; return uniqueKey == guid;
+				}
+			);
 
-	std::map<const CUniqueKey, CVisualDocument*>::iterator foundedForm =
-		std::find_if(ms_formOpened.begin(), ms_formOpened.end(),
-			[guid](std::pair<const CUniqueKey, CVisualDocument* >& pair) {
-				const CUniqueKey& uniqueKey = pair.first; return uniqueKey == guid;
-			}
-		);
+		if (foundedForm != ms_formOpened.end()) {
+			CVisualDocument* foundedVisualDocument = foundedForm->second;
+			wxASSERT(foundedVisualDocument);
+			CVisualView* visualView = foundedVisualDocument->GetFirstView();
+			wxASSERT(visualView);
+			return visualView->GetValueForm();
+		}
+	}
+	return nullptr;
+}
 
-	if (foundedForm != ms_formOpened.end()) {
-		CVisualDocument* foundedVisualDocument = foundedForm->second;
-		wxASSERT(foundedVisualDocument);
-		CVisualView* visualView = foundedVisualDocument->GetFirstView();
-		wxASSERT(visualView);
-		return visualView->GetValueForm();
+CValueForm* CValueForm::FindFormByControlUniqueKey(const CUniqueKey& guid)
+{
+	if (guid.isValid()) {
+		std::map<const CUniqueKey, CVisualDocument*>::iterator foundedSourceForm =
+			std::find_if(ms_formOpened.begin(), ms_formOpened.end(),
+				[guid](std::pair<const CUniqueKey, CVisualDocument* >& pair) {
+					CVisualDocument* foundedVisualDocument = pair.second;
+					wxASSERT(foundedVisualDocument);
+					CVisualView* visualView = foundedVisualDocument->GetFirstView();
+					wxASSERT(visualView);
+					CValueForm* valueForm = visualView->GetValueForm();
+					wxASSERT(valueForm);
+					IValueFrame* ownerControl = valueForm->GetOwnerControl();
+					if (ownerControl != nullptr) return guid == ownerControl->GetControlGuid();
+					return false;
+				}
+			);
+
+		if (foundedSourceForm != ms_formOpened.end()) {
+			CVisualDocument* foundedVisualDocument = foundedSourceForm->second;
+			wxASSERT(foundedVisualDocument);
+			CVisualView* visualView = foundedVisualDocument->GetFirstView();
+			wxASSERT(visualView);
+			return visualView->GetValueForm();
+		}
+	}
+
+	return nullptr;
+}
+
+CValueForm* CValueForm::FindFormBySourceUniqueKey(const CUniqueKey& guid)
+{
+	if (guid.isValid()) {
+		std::map<const CUniqueKey, CVisualDocument*>::iterator foundedSourceForm =
+			std::find_if(ms_formOpened.begin(), ms_formOpened.end(),
+				[guid](std::pair<const CUniqueKey, CVisualDocument* >& pair) {
+					CVisualDocument* foundedVisualDocument = pair.second;
+					wxASSERT(foundedVisualDocument);
+					CVisualView* visualView = foundedVisualDocument->GetFirstView();
+					wxASSERT(visualView);
+					CValueForm* valueForm = visualView->GetValueForm();
+					wxASSERT(valueForm);
+					ISourceDataObject* sourceObject = valueForm->GetSourceObject();
+					if (sourceObject != nullptr) return guid == sourceObject->GetGuid();
+					return false;
+				}
+			);
+
+		if (foundedSourceForm != ms_formOpened.end()) {
+			CVisualDocument* foundedVisualDocument = foundedSourceForm->second;
+			wxASSERT(foundedVisualDocument);
+			CVisualView* visualView = foundedVisualDocument->GetFirstView();
+			wxASSERT(visualView);
+			return visualView->GetValueForm();
+		}
 	}
 
 	return nullptr;

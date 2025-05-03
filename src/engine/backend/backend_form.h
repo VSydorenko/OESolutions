@@ -39,6 +39,9 @@ public:
 		class ISourceDataObject* ownerSrc = nullptr, const CUniqueKey& formGuid = wxNullUniqueKey, bool readOnly = false);
 
 	static IBackendValueForm* FindFormByUniqueKey(const CUniqueKey& guid);
+	static IBackendValueForm* FindFormByControlUniqueKey(const CUniqueKey& guid);
+	static IBackendValueForm* FindFormBySourceUniqueKey(const CUniqueKey& guid);
+
 	static bool UpdateFormUniqueKey(const CUniquePairKey& guid);
 
 	///////////////////////////////////////////////////////////////////////////
@@ -58,7 +61,8 @@ public:
 	virtual void BuildForm(const form_identifier_t& formType) = 0;
 	virtual bool InitializeFormModule() = 0;
 
-	//choice
+	//notify
+	virtual void NotifyCreate(const CValue& vCreated) = 0;
 	virtual void NotifyChoice(CValue& vSelected) = 0;
 
 	virtual void ActivateForm() = 0;

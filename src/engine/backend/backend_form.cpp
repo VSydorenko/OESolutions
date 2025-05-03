@@ -47,6 +47,20 @@ IBackendValueForm* IBackendValueForm::FindFormByUniqueKey(const CUniqueKey& guid
     return nullptr;
 }
 
+IBackendValueForm* IBackendValueForm::FindFormByControlUniqueKey(const CUniqueKey& guid)
+{
+    if (backend_mainFrame != nullptr)  return backend_mainFrame->FindFormByControlUniqueKey(guid);
+    CSystemFunction::Raise(_("Context functions are not available!"));
+    return nullptr;
+}
+
+IBackendValueForm* IBackendValueForm::FindFormBySourceUniqueKey(const CUniqueKey& guid)
+{
+    if (backend_mainFrame != nullptr)  return backend_mainFrame->FindFormBySourceUniqueKey(guid);
+    CSystemFunction::Raise(_("Context functions are not available!"));
+    return nullptr;
+}
+
 bool IBackendValueForm::UpdateFormUniqueKey(const CUniquePairKey& guid)
 {
     if (backend_mainFrame != nullptr) return backend_mainFrame->UpdateFormUniqueKey(guid);

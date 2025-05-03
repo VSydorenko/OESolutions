@@ -174,6 +174,8 @@ bool CRecordDataObjectCatalog::WriteObject()
 					}
 				}
 
+				bool newObject = CRecordDataObjectCatalog::IsNewObject();
+
 				if (!SaveData()) {
 					db_query->RollBack(); CSystemFunction::Raise(_("failed to write object in db!"));
 					return false;
@@ -190,10 +192,9 @@ bool CRecordDataObjectCatalog::WriteObject()
 
 				db_query->Commit();
 
-				if (backend_mainFrame != nullptr) {
-					backend_mainFrame->RefreshFrame();
-				}
-
+				if (newObject && valueForm != nullptr) valueForm->NotifyCreate(GetReference());
+				if (backend_mainFrame != nullptr) backend_mainFrame->RefreshFrame();
+				
 				if (valueForm) {
 					valueForm->UpdateForm();
 					valueForm->Modify(false);

@@ -307,15 +307,23 @@ bool CValueForm::InitializeFormModule()
 
 #include "backend/system/value/valueType.h"
 
+void CValueForm::NotifyCreate(const CValue& vCreated)
+{
+	if (m_controlOwner != nullptr) {
+		CValueForm* ownerForm = m_controlOwner->GetOwnerForm();
+		ownerForm->m_createdValue = vCreated; 
+		if (ownerForm != nullptr) ownerForm->UpdateForm();
+		ownerForm->m_createdValue = wxEmptyValue;
+	}
+}
+
 void CValueForm::NotifyChoice(CValue& vSelected)
 {
 	if (m_controlOwner != nullptr) {
 		CValueForm* ownerForm = m_controlOwner->GetOwnerForm();
-		if (ownerForm != nullptr)
-			ownerForm->CallAsEvent("choiceProcessing", vSelected, GetValue());
+		if (ownerForm != nullptr) ownerForm->CallAsEvent("choiceProcessing", vSelected, GetValue());
 		m_controlOwner->ChoiceProcessing(vSelected);
-		if (ownerForm != nullptr)
-			ownerForm->UpdateForm();
+		if (ownerForm != nullptr) ownerForm->UpdateForm();
 	}
 
 	CValueForm::CloseForm();

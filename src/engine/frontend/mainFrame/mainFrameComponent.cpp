@@ -97,6 +97,16 @@ IBackendValueForm* CDocMDIFrame::FindFormByUniqueKey(const CUniqueKey& guid)
 	return CValueForm::FindFormByUniqueKey(guid);
 }
 
+IBackendValueForm* CDocMDIFrame::FindFormByControlUniqueKey(const CUniqueKey& guid)
+{
+	return CValueForm::FindFormByControlUniqueKey(guid);
+}
+
+IBackendValueForm* CDocMDIFrame::FindFormBySourceUniqueKey(const CUniqueKey& guid)
+{
+	return CValueForm::FindFormBySourceUniqueKey(guid);
+}
+
 bool CDocMDIFrame::UpdateFormUniqueKey(const CUniquePairKey& guid)
 {
 	return CValueForm::UpdateFormUniqueKey(guid);

@@ -201,6 +201,8 @@ bool CRecordManagerObjectInformationRegister::WriteRegister(bool replace)
 			{
 				db_query->BeginTransaction();
 
+				bool newObject = CRecordManagerObjectInformationRegister::IsNewObject();
+
 				if (!SaveData()) {
 					db_query->RollBack();
 					CSystemFunction::Raise(_("failed to save object in db!"));
@@ -213,14 +215,13 @@ bool CRecordManagerObjectInformationRegister::WriteRegister(bool replace)
 
 				IBackendValueForm* const valueForm = GetForm();
 
+				if (newObject && valueForm != nullptr) valueForm->NotifyCreate(GetValue());
+				if (backend_mainFrame != nullptr) backend_mainFrame->RefreshFrame();
+
 				if (valueForm != nullptr) {
 					valueForm->UpdateForm();
 					valueForm->Modify(false);
-				}
-
-				if (backend_mainFrame != nullptr) {
-					backend_mainFrame->RefreshFrame();
-				}
+				}	
 			}
 
 			m_recordSet->Modify(false);

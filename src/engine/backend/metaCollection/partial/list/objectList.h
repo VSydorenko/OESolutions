@@ -420,15 +420,9 @@ public:
 		wxValueTableKeyRow() :
 			wxValueTableRow(), m_nodeKeys() {
 		}
-		void AppendNodeValue(const meta_identifier_t& id, const CValue& variant) {
-			m_nodeKeys.insert_or_assign(id, variant);
-		}
-		CValue& AppendNodeValue(const meta_identifier_t& id) {
-			return m_nodeKeys[id];
-		}
-		CUniquePairKey GetUniquePairKey(IMetaObjectRegisterData* metaObject) const {
-			return CUniquePairKey(metaObject, m_nodeValues);
-		}
+		void AppendNodeValue(const meta_identifier_t& id, const CValue& variant) { m_nodeKeys.insert_or_assign(id, variant); }
+		CValue& AppendNodeValue(const meta_identifier_t& id) { return m_nodeKeys[id]; }
+		CUniquePairKey GetUniquePairKey(IMetaObjectRegisterData* metaObject) const { return CUniquePairKey(metaObject, m_nodeValues); }
 
 	private:
 		valueArray_t m_nodeKeys;

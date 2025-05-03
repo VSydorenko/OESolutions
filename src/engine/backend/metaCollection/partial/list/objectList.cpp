@@ -321,9 +321,9 @@ wxDataViewItem CListDataObjectEnumRef::FindRowValue(IValueModelReturnLine* retLi
 {
 	wxValueTableEnumRow* node = GetViewData<wxValueTableEnumRow>(retLine->GetLineItem());
 	auto it = std::find_if(m_nodeValues.begin(), m_nodeValues.end(), [node](wxValueTableRow* row)
-	{
-		return node->GetGuid() == ((wxValueTableEnumRow*)row)->GetGuid();
-	}
+		{
+			return node->GetGuid() == ((wxValueTableEnumRow*)row)->GetGuid();
+		}
 	);
 	if (it != m_nodeValues.end()) return wxDataViewItem(*it);
 	return wxDataViewItem(nullptr);
@@ -416,9 +416,9 @@ wxDataViewItem CListDataObjectRef::FindRowValue(IValueModelReturnLine* retLine) 
 {
 	wxValueTableListRow* node = GetViewData<wxValueTableListRow>(retLine->GetLineItem());
 	auto it = std::find_if(m_nodeValues.begin(), m_nodeValues.end(), [node](wxValueTableRow* row)
-	{
-		return node->GetGuid() == ((wxValueTableListRow*)row)->GetGuid();
-	}
+		{
+			return node->GetGuid() == ((wxValueTableListRow*)row)->GetGuid();
+		}
 	);
 	if (it != m_nodeValues.end()) return wxDataViewItem(*it);
 	return wxDataViewItem(nullptr);
@@ -462,10 +462,8 @@ void CListDataObjectRef::AddValue(unsigned int before)
 {
 	IMetaObjectRecordDataMutableRef* metaObject = nullptr;
 	if (m_metaObject->ConvertToValue(metaObject)) {
-		IRecordDataObject* dataValue = metaObject->CreateObjectValue();
-		if (dataValue != nullptr) {
-			dataValue->ShowValue();
-		}
+		IRecordDataObjectRef* dataValueRef = metaObject->CreateObjectValue();
+		if (dataValueRef != nullptr) dataValueRef->ShowFormValue(wxEmptyString, dynamic_cast<IBackendControlFrame*>(IBackendValueForm::FindFormBySourceUniqueKey(m_objGuid)));
 	}
 }
 
@@ -502,7 +500,7 @@ void CListDataObjectRef::DeleteValue()
 		wxValueTableListRow* node = GetViewData<wxValueTableListRow>(GetSelection());
 		if (node == nullptr)
 			return;
-	
+
 		IRecordDataObjectRef* dataValue = metaObject->CreateObjectValue(node->GetGuid());
 		if (dataValue != nullptr) dataValue->DeleteObject();
 	}
@@ -565,21 +563,21 @@ wxDataViewItem CTreeDataObjectFolderRef::FindRowValue(const CValue& varValue, co
 	CReferenceDataObject* pRefData = nullptr;
 	if (varValue.ConvertToValue(pRefData)) {
 		std::function<void(wxValueTreeListNode*, wxValueTreeListNode*&, const Guid&)> findGuid = [&findGuid](wxValueTreeListNode* parent, wxValueTreeListNode*& foundedNode, const Guid& guid)
-		{
-			if (guid == parent->GetGuid()) {
-				foundedNode = parent; return;
-			}
-			else if (foundedNode != nullptr) {
-				return;
-			}
-			for (unsigned int n = 0; n < parent->GetChildCount(); n++) {
-				wxValueTreeListNode* node = dynamic_cast<wxValueTreeListNode*>(parent->GetChild(n));
-				if (node != nullptr)
-					findGuid(node, foundedNode, guid);
-				if (foundedNode != nullptr)
-					break;
-			}
-		};
+			{
+				if (guid == parent->GetGuid()) {
+					foundedNode = parent; return;
+				}
+				else if (foundedNode != nullptr) {
+					return;
+				}
+				for (unsigned int n = 0; n < parent->GetChildCount(); n++) {
+					wxValueTreeListNode* node = dynamic_cast<wxValueTreeListNode*>(parent->GetChild(n));
+					if (node != nullptr)
+						findGuid(node, foundedNode, guid);
+					if (foundedNode != nullptr)
+						break;
+				}
+			};
 		wxValueTreeListNode* foundedNode = nullptr;
 		for (unsigned int child = 0; child < GetRoot()->GetChildCount(); child++) {
 			wxValueTreeListNode* node = dynamic_cast<wxValueTreeListNode*>(GetRoot()->GetChild(child));
@@ -599,17 +597,17 @@ wxDataViewItem CTreeDataObjectFolderRef::FindRowValue(IValueModelReturnLine* ret
 	wxValueTreeListNode* node = GetViewData<wxValueTreeListNode>(retLine->GetLineItem());
 	std::function<void(wxValueTreeListNode*, wxValueTreeListNode*&, const Guid&)> findGuid =
 		[&findGuid](wxValueTreeListNode* parent, wxValueTreeListNode*& foundedNode, const Guid& guid)
-	{
-		if (guid == parent->GetGuid()) { foundedNode = parent; return; }
-		else if (foundedNode != nullptr) { return; }
+		{
+			if (guid == parent->GetGuid()) { foundedNode = parent; return; }
+			else if (foundedNode != nullptr) { return; }
 
-		for (unsigned int n = 0; n < parent->GetChildCount(); n++) {
-			wxValueTreeListNode* child = dynamic_cast<wxValueTreeListNode*>(parent->GetChild(n));
-			if (child != nullptr)
-				findGuid(child, foundedNode, guid);
-			if (foundedNode != nullptr) break;
-		}
-	};
+			for (unsigned int n = 0; n < parent->GetChildCount(); n++) {
+				wxValueTreeListNode* child = dynamic_cast<wxValueTreeListNode*>(parent->GetChild(n));
+				if (child != nullptr)
+					findGuid(child, foundedNode, guid);
+				if (foundedNode != nullptr) break;
+			}
+		};
 	wxValueTreeListNode* foundedNode = nullptr;
 	for (unsigned int c = 0; c < GetRoot()->GetChildCount(); c++) {
 		wxValueTreeListNode* child = dynamic_cast<wxValueTreeListNode*>(GetRoot()->GetChild(c));
@@ -674,10 +672,10 @@ void CTreeDataObjectFolderRef::AddValue(unsigned int before)
 		else
 			node->GetValue(*m_metaObject->GetDataReference(), cParent);
 	}
-	IRecordDataObject* dataValue = m_metaObject->CreateObjectValue(eObjectMode::OBJECT_ITEM);
-	if (dataValue != nullptr) {
-		dataValue->SetValueByMetaID(*m_metaObject->GetDataParent(), cParent);
-		dataValue->ShowValue();
+	IRecordDataObjectFolderRef* dataValueFolderRef = m_metaObject->CreateObjectValue(eObjectMode::OBJECT_ITEM);
+	if (dataValueFolderRef != nullptr) {
+		dataValueFolderRef->SetValueByMetaID(*m_metaObject->GetDataParent(), cParent);
+		dataValueFolderRef->ShowFormValue(wxEmptyString, dynamic_cast<IBackendControlFrame*>(IBackendValueForm::FindFormBySourceUniqueKey(m_objGuid)));
 	}
 }
 
@@ -807,6 +805,20 @@ wxString CTreeDataObjectFolderRef::GetString() const
 
 wxDataViewItem CListRegisterObject::FindRowValue(const CValue& varValue, const wxString& colName) const
 {
+	IRecordManagerObject* pRefData = nullptr;
+	if (varValue.ConvertToValue(pRefData)) {
+		IMetaObjectRegisterData* metaObject = GetMetaObject();
+		wxASSERT(metaObject);
+		for (long row = 0; row < GetRowCount(); row++) {
+			wxDataViewItem item = GetItem(row);
+			if (item.IsOk()) {
+				wxValueTableKeyRow* node = GetViewData<wxValueTableKeyRow>(item);
+				if (node != nullptr && pRefData->GetGuid() == node->GetUniquePairKey(metaObject))
+					return item;
+			}
+		}
+	}
+
 	return wxDataViewItem(nullptr);
 }
 
@@ -816,9 +828,9 @@ wxDataViewItem CListRegisterObject::FindRowValue(IValueModelReturnLine* retLine)
 	wxASSERT(metaObject);
 	wxValueTableKeyRow* node = GetViewData<wxValueTableKeyRow>(retLine->GetLineItem());
 	auto it = std::find_if(m_nodeValues.begin(), m_nodeValues.end(), [node, metaObject](wxValueTableRow* row)
-	{
-		return node->GetUniquePairKey(metaObject) == ((wxValueTableKeyRow*)row)->GetUniquePairKey(metaObject);
-	}
+		{
+			return node->GetUniquePairKey(metaObject) == ((wxValueTableKeyRow*)row)->GetUniquePairKey(metaObject);
+		}
 	);
 	if (it != m_nodeValues.end()) return wxDataViewItem(*it);
 	return wxDataViewItem(nullptr);
@@ -872,7 +884,7 @@ void CListRegisterObject::AddValue(unsigned int before)
 		IRecordManagerObject* recordManager =
 			m_metaObject->CreateRecordManagerObjectValue();
 		wxASSERT(recordManager);
-		recordManager->ShowFormValue();
+		recordManager->ShowFormValue(wxEmptyString, dynamic_cast<IBackendControlFrame*>(IBackendValueForm::FindFormBySourceUniqueKey(m_objGuid)));
 	}
 }
 
@@ -970,9 +982,9 @@ bool CListDataObjectEnumRef::CallAsProc(const long lMethodNum, CValue** paParams
 {
 	switch (lMethodNum)
 	{
-		case enRefresh:
-			CallRefreshModel();
-			return true;
+	case enRefresh:
+		CallRefreshModel();
+		return true;
 	}
 	return false;
 }
@@ -990,9 +1002,9 @@ bool CListDataObjectRef::CallAsProc(const long lMethodNum, CValue** paParams, co
 {
 	switch (lMethodNum)
 	{
-		case enRefresh:
-			CallRefreshModel();
-			return true;
+	case enRefresh:
+		CallRefreshModel();
+		return true;
 	}
 	return false;
 }
@@ -1010,9 +1022,9 @@ bool CTreeDataObjectFolderRef::CallAsProc(const long lMethodNum, CValue** paPara
 {
 	switch (lMethodNum)
 	{
-		case enRefresh:
-			CallRefreshModel();
-			return true;
+	case enRefresh:
+		CallRefreshModel();
+		return true;
 	}
 	return false;
 }
@@ -1029,9 +1041,9 @@ bool CListRegisterObject::CallAsProc(const long lMethodNum, CValue** paParams, c
 {
 	switch (lMethodNum)
 	{
-		case enRefresh:
-			CallRefreshModel();
-			return true;
+	case enRefresh:
+		CallRefreshModel();
+		return true;
 	}
 	return false;
 }

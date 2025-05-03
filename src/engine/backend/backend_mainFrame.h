@@ -28,6 +28,9 @@ public:
 	}
 
 	virtual class IBackendValueForm* FindFormByUniqueKey(const CUniqueKey& guid) { return nullptr; }
+	virtual class IBackendValueForm* FindFormByControlUniqueKey(const CUniqueKey& guid) { return nullptr; }
+	virtual class IBackendValueForm* FindFormBySourceUniqueKey(const CUniqueKey& guid) { return nullptr; }
+
 	virtual bool UpdateFormUniqueKey(const CUniquePairKey& guid) { return nullptr; }
 
 #pragma region property

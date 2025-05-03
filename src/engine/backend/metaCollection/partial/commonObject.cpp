@@ -2714,7 +2714,7 @@ IValueTable* IRecordSetObject::SaveDataToTable() const
 
 bool IRecordSetObject::IsEmpty() const
 {
-	return m_selected;
+	return !m_selected;
 }
 
 void IRecordSetObject::Modify(bool mod)

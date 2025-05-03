@@ -25,7 +25,7 @@ void CRecordDataObjectDocument::CRecorderRegisterDocument::CreateRecordSet()
 	wxASSERT(metaDocument);
 	IMetaData* metaData = metaDocument->GetMetaData();
 	wxASSERT(metaData);
-	
+
 	CRecorderRegisterDocument::ClearRecordSet();
 
 	const CMetaDescription& metaDesc = metaDocument->GetRecordDescription();
@@ -345,9 +345,9 @@ bool CRecordDataObjectDocument::WriteObject(eDocumentWriteMode writeMode, eDocum
 
 				db_query->Commit();
 
-				if (backend_mainFrame != nullptr) {
-					backend_mainFrame->RefreshFrame();
-				}
+				if (newObject && valueForm != nullptr) valueForm->NotifyCreate(GetReference());
+				
+				if (backend_mainFrame != nullptr) backend_mainFrame->RefreshFrame();
 
 				if (valueForm != nullptr) {
 					valueForm->UpdateForm();
@@ -545,12 +545,12 @@ bool CRecordDataObjectDocument::GetPropVal(const long lPropNum, CValue& pvarProp
 	else if (lPropAlias == eSystem) {
 		switch (m_methodHelper->GetPropData(lPropNum))
 		{
-			case eRegisterRecords:
-				pvarPropVal = m_registerRecords->GetValue();
-				return true;
-			case eThisObject:
-				pvarPropVal = GetValue();
-				return true;
+		case eRegisterRecords:
+			pvarPropVal = m_registerRecords->GetValue();
+			return true;
+		case eThisObject:
+			pvarPropVal = GetValue();
+			return true;
 		}
 	}
 	return false;
@@ -560,36 +560,36 @@ bool CRecordDataObjectDocument::CallAsFunc(const long lMethodNum, CValue& pvarRe
 {
 	switch (lMethodNum)
 	{
-		case eIsNew:
-			pvarRetValue = m_newObject;
-			return true;
-		case eCopy:
-			pvarRetValue = CopyObject();
-			return true;
-		case eFill:
-			FillObject(*paParams[0]);
-			return true;
-		case eWrite:
-			WriteObject(
-				lSizeArray > 0 ? paParams[0]->ConvertToEnumValue<eDocumentWriteMode>() : eDocumentWriteMode::eDocumentWriteMode_Write,
-				lSizeArray > 1 ? paParams[1]->ConvertToEnumValue<eDocumentPostingMode>() : eDocumentPostingMode::eDocumentPostingMode_RealTime
-			);
-			return true;
-		case eDelete:
-			DeleteObject();
-			return true;
-		case eModified:
-			pvarRetValue = m_objModified;
-			return true;
-		case Func::eGetFormObject:
-			pvarRetValue = GetFormValue(
-				paParams[0]->GetString(),
-				paParams[1]->ConvertToType<IBackendControlFrame>()
-			);
-			return true;
-		case Func::eGetMetadata:
-			pvarRetValue = m_metaObject;
-			return true;
+	case eIsNew:
+		pvarRetValue = m_newObject;
+		return true;
+	case eCopy:
+		pvarRetValue = CopyObject();
+		return true;
+	case eFill:
+		FillObject(*paParams[0]);
+		return true;
+	case eWrite:
+		WriteObject(
+			lSizeArray > 0 ? paParams[0]->ConvertToEnumValue<eDocumentWriteMode>() : eDocumentWriteMode::eDocumentWriteMode_Write,
+			lSizeArray > 1 ? paParams[1]->ConvertToEnumValue<eDocumentPostingMode>() : eDocumentPostingMode::eDocumentPostingMode_RealTime
+		);
+		return true;
+	case eDelete:
+		DeleteObject();
+		return true;
+	case eModified:
+		pvarRetValue = m_objModified;
+		return true;
+	case Func::eGetFormObject:
+		pvarRetValue = GetFormValue(
+			paParams[0]->GetString(),
+			paParams[1]->ConvertToType<IBackendControlFrame>()
+		);
+		return true;
+	case Func::eGetMetadata:
+		pvarRetValue = m_metaObject;
+		return true;
 	}
 
 	return IModuleDataObject::ExecuteFunc(
@@ -635,9 +635,9 @@ bool CRecordDataObjectDocument::CRecorderRegisterDocument::CallAsFunc(const long
 {
 	switch (lMethodNum)
 	{
-		case enWriteRegister:
-			WriteRecordSet();
-			return true;
+	case enWriteRegister:
+		WriteRecordSet();
+		return true;
 	}
 
 	return false;
