@@ -972,56 +972,61 @@ void CCodeEditor::OnKeyDown(wxKeyEvent& event)
 	case WXK_RIGHT:
 		SetEmptySelection(GetCurrentPos() + 1);
 		break;
-	case WXK_UP:
-	{
-		int currentPos = GetCurrentPos();
-		int line = LineFromPosition(currentPos);
+	case WXK_UP:{
+		if (!event.ShiftDown()) {
+			int currentPos = GetCurrentPos();
+			int line = LineFromPosition(currentPos);
 
-		int startPos = PositionFromLine(line);
-		int endPos = GetLineEndPosition(line);
+			int startPos = PositionFromLine(line);
+			int endPos = GetLineEndPosition(line);
 
-		int length = currentPos - startPos;
+			int length = currentPos - startPos;
 
-		int startNewPos = PositionFromLine(line - 1);
-		int endNewPos = GetLineEndPosition(line - 1);
+			int startNewPos = PositionFromLine(line - 1);
+			int endNewPos = GetLineEndPosition(line - 1);
 
-		if (endNewPos - startNewPos < length) {
-			std::string m_stringBuffer;
-			for (int c = 0; c < (length - (endNewPos - startNewPos)); c++) {
-				m_stringBuffer.push_back(' ');
+			if (endNewPos - startNewPos < length) {
+				std::string m_stringBuffer;
+				for (int c = 0; c < (length - (endNewPos - startNewPos)); c++) {
+					m_stringBuffer.push_back(' ');
+				}
+				InsertText(endNewPos, m_stringBuffer);
 			}
-
-			InsertText(endNewPos, m_stringBuffer);
+			SetEmptySelection(startNewPos + length);
 		}
-
-		SetEmptySelection(startNewPos + length); break;
+		else {
+			event.Skip();
+		}
+		break;
 	}
 	case WXK_DOWN:
 	{
-		int currentPos = GetCurrentPos();
-		int line = LineFromPosition(currentPos);
+		if (!event.ShiftDown()) {
+			int currentPos = GetCurrentPos();
+			int line = LineFromPosition(currentPos);
 
-		int startPos = PositionFromLine(line);
-		int endPos = GetLineEndPosition(line);
+			int startPos = PositionFromLine(line);
+			int endPos = GetLineEndPosition(line);
 
-		int length = currentPos - startPos;
+			int length = currentPos - startPos;
 
-		int startNewPos = PositionFromLine(line + 1);
-		int endNewPos = GetLineEndPosition(line + 1);
+			int startNewPos = PositionFromLine(line + 1);
+			int endNewPos = GetLineEndPosition(line + 1);
 
-		if (endNewPos - startNewPos < length)
-		{
-			std::string m_stringBuffer;
+			if (endNewPos - startNewPos < length) {
+				std::string m_stringBuffer;
+				for (int c = 0; c < (length - (endNewPos - startNewPos)); c++) {
+					m_stringBuffer.push_back(' ');
+				}
 
-			for (int c = 0; c < (length - (endNewPos - startNewPos)); c++)
-			{
-				m_stringBuffer.push_back(' ');
+				InsertText(endNewPos, m_stringBuffer);
 			}
-
-			InsertText(endNewPos, m_stringBuffer);
+			SetEmptySelection(startNewPos + length);
 		}
-
-		SetEmptySelection(startNewPos + length); break;
+		else {
+			event.Skip();
+		}
+		break;
 	}
 	case WXK_NUMPAD_ENTER:
 	case WXK_RETURN: PrepareTABs(); break;
