@@ -169,15 +169,16 @@ void CVisualEditorNotebook::ModifyEvent(IEvent* event, const wxVariant& oldValue
 
 void CVisualEditorNotebook::OnPageChanged(wxAuiNotebookEvent& event) {
 	if (wxAuiNotebook::GetSelection() == wxNOTEBOOK_PAGE_DESIGNER) {
+		m_visualEditor->SetFocus();
 		objectInspector->SelectObject(m_visualEditor->GetSelectedObject());
 	}
 	else if (wxAuiNotebook::GetSelection() == wxNOTEBOOK_PAGE_CODE_EDITOR) {
 		if (m_visualEditor->m_document != nullptr) {
 			IMetaObject* moduleObject = m_visualEditor->m_document->GetMetaObject();
-			if (moduleObject != nullptr)
-				objectInspector->SelectObject(moduleObject);
+			if (moduleObject != nullptr) objectInspector->SelectObject(moduleObject);
 		}
 		m_codeEditor->SetSTCFocus(true);
+		m_codeEditor->SetFocus();
 	}
 	if (m_visualEditor->m_document != nullptr)
 		m_visualEditor->m_document->Activate();
