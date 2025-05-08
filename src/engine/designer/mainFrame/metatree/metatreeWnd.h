@@ -47,26 +47,26 @@ public:
 protected:
 
 	class wxTreeItemClsidData : public wxTreeItemData,
-		public treeClassIdentifierData_t {
+		public CTreeDataClassIdentifier {
 	public:
-		wxTreeItemClsidData(const class_identifier_t& clsid) : treeClassIdentifierData_t(clsid) {}
+		wxTreeItemClsidData(const class_identifier_t& clsid) : CTreeDataClassIdentifier(clsid) {}
 	};
 
-	class wxTreeItemMetaData : public wxTreeItemData, public treeMetaData_t {
+	class wxTreeItemMetaData : public wxTreeItemData, public CTreeDataMetaItem {
 	public:
-		wxTreeItemMetaData(IMetaObject* metaObject) : treeMetaData_t(metaObject) {}
+		wxTreeItemMetaData(IMetaObject* metaObject) : CTreeDataMetaItem(metaObject) {}
 	};
 
 	class wxTreeItemClsidMetaData : public wxTreeItemData,
-		public treeMetaData_t, public treeClassIdentifierData_t {
+		public CTreeDataMetaItem, public CTreeDataClassIdentifier {
 	public:
 		wxTreeItemClsidMetaData(const class_identifier_t& clsid, IMetaObject* metaObject) :
-			treeClassIdentifierData_t(clsid), treeMetaData_t(metaObject)
+			CTreeDataClassIdentifier(clsid), CTreeDataMetaItem(metaObject)
 		{
 		}
 	};
 
-	void CreateToolBar(wxWindow *parent);
+	void CreateToolBar(wxWindow* parent);
 	void EditModule(const wxString& fullName, int lineNumber, bool setRunLine = true);
 
 	enum
@@ -84,8 +84,8 @@ protected:
 
 protected:
 
-	wxAuiToolBar*	m_metaTreeToolbar;
-	CMetaDocument*	m_docParent;
+	wxAuiToolBar* m_metaTreeToolbar;
+	CMetaDocument* m_docParent;
 
 	bool			m_bReadOnly;
 };
@@ -122,6 +122,47 @@ private:
 		ID_METATREE_REPLACE,
 		ID_METATREE_SAVE,
 	};
+
+	wxTreeItemId GetSelectionIdentifier() const {
+		wxTreeItemId parentItem = m_metaTreeWnd->GetSelection();
+		while (parentItem != nullptr) {
+			wxTreeItemData* item = m_metaTreeWnd->GetItemData(parentItem);
+			if (item != nullptr) {
+				CTreeDataClassIdentifier* item_clsid = dynamic_cast<CTreeDataClassIdentifier*>(item);
+				if (item_clsid != nullptr) return parentItem;
+			}
+			parentItem = m_metaTreeWnd->GetItemParent(parentItem);
+		}
+		return wxTreeItemId(nullptr);
+	}
+
+	class_identifier_t GetClassIdentifier() const {
+		wxTreeItemData* item = m_metaTreeWnd->GetItemData(GetSelectionIdentifier());
+		if (item != nullptr) {
+			CTreeDataClassIdentifier* item_clsid = dynamic_cast<CTreeDataClassIdentifier*>(item);
+			if (item_clsid != nullptr) return item_clsid->m_clsid;
+		}
+		return 0;
+	}
+
+	IMetaObject* GetMetaIdentifier() const {
+		wxTreeItemId parentItem = GetSelectionIdentifier();
+		wxTreeItemData* item = m_metaTreeWnd->GetItemData(parentItem);
+		if (item != nullptr) {
+			CTreeDataClassIdentifier* item_clsid = dynamic_cast<CTreeDataClassIdentifier*>(item);
+			if (item_clsid != nullptr) {
+				while (parentItem != nullptr) {
+					wxTreeItemData* item = m_metaTreeWnd->GetItemData(parentItem);
+					if (item != nullptr) {
+						IMetaObject* metaParent = GetMetaObject(parentItem);
+						if (metaParent != nullptr) return metaParent;
+					}
+					parentItem = m_metaTreeWnd->GetItemParent(parentItem);
+				}
+			}
+		}
+		return nullptr;
+	}
 
 private:
 
@@ -214,7 +255,7 @@ private:
 		wxASSERT(typeCtor);
 		wxImageList* imageList = m_metaTreeWnd->GetImageList();
 		wxASSERT(imageList);
-		int imageIndex = imageList->Add(typeCtor->GetClassIcon());
+		const int imageIndex = imageList->Add(typeCtor->GetClassIcon());
 		return m_metaTreeWnd->AddRoot(name.IsEmpty() ? typeCtor->GetClassName() : name,
 			imageIndex,
 			imageIndex,
@@ -228,7 +269,7 @@ private:
 		wxASSERT(typeCtor);
 		wxImageList* imageList = m_metaTreeWnd->GetImageList();
 		wxASSERT(imageList);
-		int imageIndex = imageList->Add(typeCtor->GetClassIcon());
+		const int imageIndex = imageList->Add(typeCtor->GetClassIcon());
 		return m_metaTreeWnd->AppendItem(parent, name.IsEmpty() ? typeCtor->GetClassName() : name,
 			imageIndex,
 			imageIndex,
@@ -242,7 +283,7 @@ private:
 		wxASSERT(typeCtor);
 		wxImageList* imageList = m_metaTreeWnd->GetImageList();
 		wxASSERT(imageList);
-		int imageIndex = imageList->Add(typeCtor->GetClassIcon());
+		const int imageIndex = imageList->Add(typeCtor->GetClassIcon());
 		return m_metaTreeWnd->AppendItem(parent, metaObject->GetName(),
 			imageIndex,
 			imageIndex,
@@ -254,7 +295,7 @@ private:
 		IMetaObject* metaObject) const {
 		wxImageList* imageList = m_metaTreeWnd->GetImageList();
 		wxASSERT(imageList);
-		int imageIndex = imageList->Add(metaObject->GetIcon());
+		const int imageIndex = imageList->Add(metaObject->GetIcon());
 		return m_metaTreeWnd->AppendItem(parent, metaObject->GetName(),
 			imageIndex,
 			imageIndex,
@@ -264,7 +305,11 @@ private:
 
 	void ActivateItem(const wxTreeItemId& item);
 
-	IMetaObject *CreateItem(bool showValue = true);
+	IMetaObject* NewItem(const class_identifier_t& clsid, IMetaObject* metaParent);
+	IMetaObject* CreateItem(bool showValue = true);
+
+	wxTreeItemId FillItem(IMetaObject* metaItem, const wxTreeItemId& item);
+
 	void EditItem();
 	void RemoveItem();
 	void EraseItem(const wxTreeItemId& item);
@@ -301,8 +346,8 @@ private:
 
 		if (!item.IsOk())
 			return nullptr;
-		treeMetaData_t* data =
-			dynamic_cast<treeMetaData_t*>(m_metaTreeWnd->GetItemData(item));
+		CTreeDataMetaItem* data =
+			dynamic_cast<CTreeDataMetaItem*>(m_metaTreeWnd->GetItemData(item));
 		if (data == nullptr)
 			return nullptr;
 		return data->m_metaObject;

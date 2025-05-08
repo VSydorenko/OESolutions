@@ -32,22 +32,22 @@ public:
 
 protected:
 
-	struct treeData_t {
+	struct CTreeData {
 		bool m_expanded = false;
 	};
 
-	struct treeClassIdentifierData_t : treeData_t {
+	struct CTreeDataClassIdentifier : CTreeData {
 		class_identifier_t m_clsid; //тип элемента
 	public:
-		treeClassIdentifierData_t(const class_identifier_t& clsid) :
+		CTreeDataClassIdentifier(const class_identifier_t& clsid) :
 			m_clsid(clsid) {
 		}
 	};
 
-	struct treeMetaData_t : treeData_t {
+	struct CTreeDataMetaItem : CTreeData {
 		IMetaObject* m_metaObject; //тип элемента
 	public:
-		treeMetaData_t(IMetaObject* metaObject) :
+		CTreeDataMetaItem(IMetaObject* metaObject) :
 			m_metaObject(metaObject) {
 		}
 	};

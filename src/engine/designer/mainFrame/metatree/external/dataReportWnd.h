@@ -25,6 +25,49 @@ private:
 
 	bool m_initialized;
 
+private:
+
+	wxTreeItemId GetSelectionIdentifier() const {
+		wxTreeItemId parentItem = m_metaTreeWnd->GetSelection();
+		while (parentItem != nullptr) {
+			wxTreeItemData* item = m_metaTreeWnd->GetItemData(parentItem);
+			if (item != nullptr) {
+				CTreeDataClassIdentifier* item_clsid = dynamic_cast<CTreeDataClassIdentifier*>(item);
+				if (item_clsid != nullptr) return parentItem;
+			}
+			parentItem = m_metaTreeWnd->GetItemParent(parentItem);
+		}
+		return wxTreeItemId(nullptr);
+	}
+
+	class_identifier_t GetClassIdentifier() const {
+		wxTreeItemData* item = m_metaTreeWnd->GetItemData(GetSelectionIdentifier());
+		if (item != nullptr) {
+			CTreeDataClassIdentifier* item_clsid = dynamic_cast<CTreeDataClassIdentifier*>(item);
+			if (item_clsid != nullptr) return item_clsid->m_clsid;
+		}
+		return 0;
+	}
+
+	IMetaObject* GetMetaIdentifier() const {
+		wxTreeItemId parentItem = GetSelectionIdentifier();
+		wxTreeItemData* item = m_metaTreeWnd->GetItemData(parentItem);
+		if (item != nullptr) {
+			CTreeDataClassIdentifier* item_clsid = dynamic_cast<CTreeDataClassIdentifier*>(item);
+			if (item_clsid != nullptr) {
+				while (parentItem != nullptr) {
+					wxTreeItemData* item = m_metaTreeWnd->GetItemData(parentItem);
+					if (item != nullptr) {
+						IMetaObject* metaParent = GetMetaObject(parentItem);
+						if (metaParent != nullptr) return metaParent;
+					}
+					parentItem = m_metaTreeWnd->GetItemParent(parentItem);
+				}
+			}
+		}
+		return nullptr;
+	}
+
 protected:
 
 	void OnEditCaptionName(wxCommandEvent& event);
@@ -65,8 +108,8 @@ protected:
 		virtual int OnCompareItems(const wxTreeItemId& item1,
 			const wxTreeItemId& item2) {
 			int ret = wxStrcmp(GetItemText(item1), GetItemText(item2));
-			treeMetaData_t* data1 = dynamic_cast<treeMetaData_t*>(GetItemData(item1));
-			treeMetaData_t* data2 = dynamic_cast<treeMetaData_t*>(GetItemData(item2));
+			CTreeDataMetaItem* data1 = dynamic_cast<CTreeDataMetaItem*>(GetItemData(item1));
+			CTreeDataMetaItem* data2 = dynamic_cast<CTreeDataMetaItem*>(GetItemData(item2));
 			if (data1 != nullptr && data2 != nullptr && ret > 0) {
 				IMetaObject* metaObject1 = data1->m_metaObject;
 				IMetaObject* metaObject2 = data2->m_metaObject;
@@ -178,7 +221,11 @@ private:
 
 	void ActivateItem(const wxTreeItemId& item);
 
+	IMetaObject* NewItem(const class_identifier_t& clsid, IMetaObject* metaParent);
 	IMetaObject* CreateItem(bool showValue = true);
+
+	wxTreeItemId FillItem(IMetaObject* metaItem, const wxTreeItemId& item);
+
 	void EditItem();
 	void RemoveItem();
 	void EraseItem(const wxTreeItemId& item);
@@ -202,8 +249,8 @@ private:
 	{
 		if (!item.IsOk())
 			return nullptr;
-		treeMetaData_t* data =
-			dynamic_cast<treeMetaData_t*>(m_metaTreeWnd->GetItemData(item));
+		CTreeDataMetaItem* data =
+			dynamic_cast<CTreeDataMetaItem*>(m_metaTreeWnd->GetItemData(item));
 		if (data == nullptr)
 			return nullptr;
 		return data->m_metaObject;

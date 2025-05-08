@@ -167,11 +167,11 @@ void CMetadataTree::CMetadataTreeWnd::OnBeginDrag(wxTreeEvent& event) {
 
 	wxTreeItemId curItem = event.GetItem();
 	if (!curItem.IsOk())
-		return; 
+		return;
 	// need to explicitly allow drag
 	if (curItem == GetRootItem())
 		return;
-	IMetaObject *metaObject = m_ownerTree->GetMetaObject(curItem);
+	IMetaObject* metaObject = m_ownerTree->GetMetaObject(curItem);
 	if (metaObject == nullptr)
 		return;
 	m_draggedItem = curItem;
@@ -179,7 +179,7 @@ void CMetadataTree::CMetadataTreeWnd::OnBeginDrag(wxTreeEvent& event) {
 }
 
 void CMetadataTree::CMetadataTreeWnd::OnEndDrag(wxTreeEvent& event) {
-	
+
 	bool copy = ::wxGetKeyState(WXK_CONTROL);
 	wxTreeItemId itemSrc = m_draggedItem, itemDst = event.GetItem();
 	m_draggedItem = (wxTreeItemId)0l;
@@ -191,9 +191,9 @@ void CMetadataTree::CMetadataTreeWnd::OnEndDrag(wxTreeEvent& event) {
 		item = GetItemParent(item);
 	}
 
-	IMetaObject *metaSrcObject = m_ownerTree->GetMetaObject(itemSrc);
+	IMetaObject* metaSrcObject = m_ownerTree->GetMetaObject(itemSrc);
 	IMetaObject* metaDstObject = m_ownerTree->GetMetaObject(itemDst);
-	
+
 	event.Skip();
 }
 
@@ -219,7 +219,7 @@ void CMetadataTree::CMetadataTreeWnd::OnPropertyItem(wxCommandEvent& event)
 
 void CMetadataTree::CMetadataTreeWnd::OnUpItem(wxCommandEvent& event)
 {
-	m_ownerTree->UpItem(); 
+	m_ownerTree->UpItem();
 	event.Skip();
 }
 
@@ -231,25 +231,25 @@ void CMetadataTree::CMetadataTreeWnd::OnDownItem(wxCommandEvent& event)
 
 void CMetadataTree::CMetadataTreeWnd::OnSortItem(wxCommandEvent& event)
 {
-	m_ownerTree->SortItem(); 
+	m_ownerTree->SortItem();
 	event.Skip();
 }
 
 void CMetadataTree::CMetadataTreeWnd::OnInsertItem(wxCommandEvent& event)
 {
-	m_ownerTree->InsertItem(); 
+	m_ownerTree->InsertItem();
 	event.Skip();
 }
 
 void CMetadataTree::CMetadataTreeWnd::OnReplaceItem(wxCommandEvent& event)
 {
-	m_ownerTree->ReplaceItem(); 
+	m_ownerTree->ReplaceItem();
 	event.Skip();
 }
 
 void CMetadataTree::CMetadataTreeWnd::OnSaveItem(wxCommandEvent& event)
 {
-	m_ownerTree->SaveItem(); 
+	m_ownerTree->SaveItem();
 	event.Skip();
 }
 
@@ -263,14 +263,14 @@ void CMetadataTree::CMetadataTreeWnd::OnCommandItem(wxCommandEvent& event)
 
 void CMetadataTree::CMetadataTreeWnd::OnCopyItem(wxCommandEvent& event)
 {
-	wxTreeItemId item = GetSelection();
+	const wxTreeItemId& item = GetSelection();
 	if (!item.IsOk())
 		return;
 	// Write some text to the clipboard
 	if (wxTheClipboard->Open()) {
 		IMetaObject* metaObject = m_ownerTree->GetMetaObject(item);
-		if (metaObject != nullptr) {		
-			CMemoryWriter dataWritter; 
+		if (metaObject != nullptr) {
+			CMemoryWriter dataWritter;
 			if (metaObject->CopyObject(dataWritter)) {
 				// create an RTF data object
 				wxCustomDataObject* pdo = new wxCustomDataObject();
@@ -291,21 +291,25 @@ void CMetadataTree::CMetadataTreeWnd::OnPasteItem(wxCommandEvent& event)
 	if (m_ownerTree->m_bReadOnly)
 		return;
 
-	wxTreeItemId item = GetSelection();
+	const wxTreeItemId& item = m_ownerTree->GetSelectionIdentifier();
 	if (!item.IsOk())
 		return;
 	if (wxTheClipboard->Open()
 		&& wxTheClipboard->IsSupported(wxOES_Data)) {
 		wxCustomDataObject data(wxOES_Data);
 		if (wxTheClipboard->GetData(data)) {
-			IMetaObject* metaObject = m_ownerTree->CreateItem(false);
+
+			IMetaObject* metaObject = m_ownerTree->NewItem(
+				m_ownerTree->GetClassIdentifier(),
+				m_ownerTree->GetMetaIdentifier()
+			);
+
 			if (metaObject != nullptr) {
 				CMemoryReader reader(data.GetData(), data.GetDataSize());
 				if (metaObject->PasteObject(reader)) {
 					objectInspector->SelectObject(metaObject);
 				}
-
-				m_ownerTree->Load(m_ownerTree->m_metaData);
+				m_ownerTree->FillItem(metaObject, item);
 			}
 		}
 		wxTheClipboard->Close();

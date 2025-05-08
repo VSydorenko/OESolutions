@@ -184,20 +184,25 @@ void CDataProcessorTree::CDataProcessorTreeWnd::OnPasteItem(wxCommandEvent &even
 	if (m_ownerTree->m_bReadOnly)
 		return;
 
-	wxTreeItemId item = GetSelection();
+	const wxTreeItemId& item = m_ownerTree->GetSelectionIdentifier();
 	if (!item.IsOk())
 		return;
 	if (wxTheClipboard->Open()
 		&& wxTheClipboard->IsSupported(wxOES_Data)) {
 		wxCustomDataObject data(wxOES_Data);
 		if (wxTheClipboard->GetData(data)) {
-			IMetaObject* metaObject = m_ownerTree->CreateItem(false);
+
+			IMetaObject* metaObject = m_ownerTree->NewItem(
+				m_ownerTree->GetClassIdentifier(),
+				m_ownerTree->GetMetaIdentifier()
+			);
+
 			if (metaObject != nullptr) {
 				CMemoryReader reader(data.GetData(), data.GetDataSize());
 				if (metaObject->PasteObject(reader)) {
 					objectInspector->SelectObject(metaObject);
 				}
-				m_ownerTree->Load(m_ownerTree->m_metaData);
+				m_ownerTree->FillItem(metaObject, item);
 			}
 		}
 		wxTheClipboard->Close();
