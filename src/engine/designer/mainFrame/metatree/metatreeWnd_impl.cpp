@@ -305,7 +305,7 @@ void CMetadataTree::EraseItem(const wxTreeItemId& item)
 	IMetaObject* const metaObject = GetMetaObject(item);
 	for (auto& doc : docManager->GetDocumentsVector()) {
 		CMetaDocument* metaDoc = wxDynamicCast(doc, CMetaDocument);
-		if (metaDoc != nullptr && metaObject == metaDoc->GetMetaObject()) {
+		if (metaDoc != nullptr && metaObject != nullptr && metaObject == metaDoc->GetMetaObject()) {
 			metaDoc->DeleteAllViews();
 		}
 	}
