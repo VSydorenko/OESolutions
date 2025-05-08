@@ -260,20 +260,7 @@ void wxPGTypeProperty::RefreshChildren()
             m_length->Hide(true);
             m_length->SetExpanded(false);
         }
-    }
-    else {
-        m_precision->Hide(true);
-        m_precision->SetExpanded(false);
-        m_scale->Hide(true);
-        m_scale->SetExpanded(false);
-        m_date_time->Hide(true);
-        m_date_time->SetExpanded(false);
-        m_length->Hide(true);
-        m_length->SetExpanded(false);
-    }
 
-    if (varData != nullptr) {
-        const CTypeDescription& td = varData->GetTypeDesc();
         for (unsigned int idx = 0; idx < td.GetClsidCount(); idx++) {
             eValueTypes id = CValue::GetVTByID(td.GetByIdx(idx));
             if (id == eValueTypes::TYPE_NUMBER) {
@@ -287,6 +274,16 @@ void wxPGTypeProperty::RefreshChildren()
                 m_length->SetValue(td.GetLength());
             }
         }
+    }
+    else {
+        m_precision->Hide(true);
+        m_precision->SetExpanded(false);
+        m_scale->Hide(true);
+        m_scale->SetExpanded(false);
+        m_date_time->Hide(true);
+        m_date_time->SetExpanded(false);
+        m_length->Hide(true);
+        m_length->SetExpanded(false);
     }
 
     wxPGTypeProperty::SetExpanded(true);
@@ -693,6 +690,10 @@ wxPGEditorDialogAdapter* wxPGTypeProperty::GetEditorDialog() const
                 FillByClsid(CValue::GetIDByVT(eValueTypes::TYPE_NUMBER), tc, data);
                 FillByClsid(CValue::GetIDByVT(eValueTypes::TYPE_DATE), tc, data);
                 FillByClsid(CValue::GetIDByVT(eValueTypes::TYPE_STRING), tc, data);
+            }
+            else if (selectorDataType == eSelectorDataType::eSelectorDataType_boolean) {
+                FillByClsid(CValue::GetIDByVT(eValueTypes::TYPE_BOOLEAN), tc, data);
+                FillByClsid(CValue::GetIDByVT(eValueTypes::TYPE_NUMBER), tc, data);
             }
             else if (selectorDataType == eSelectorDataType::eSelectorDataType_resource) {
                 FillByClsid(CValue::GetIDByVT(eValueTypes::TYPE_NUMBER), tc, data);

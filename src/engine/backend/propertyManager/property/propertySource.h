@@ -20,7 +20,7 @@ public:
 #pragma region _value_
 	meta_identifier_t GetValueAsSource() const;
 	Guid GetValueAsSourceGuid() const;
-	CTypeDescription& GetValueAsTypeDesc() const;
+	CTypeDescription& GetValueAsTypeDesc(bool fillTypeDesc = true) const;
 
 	void SetValue(const meta_identifier_t& val);
 	void SetValue(const Guid& val, bool fillTypeDesc = true);

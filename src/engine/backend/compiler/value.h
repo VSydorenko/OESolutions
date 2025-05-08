@@ -11,6 +11,15 @@ public:
 	virtual CValue* GetImplValueRef() const = 0;
 };
 
+const class_identifier_t g_valueUndefinedCLSID	= string_to_clsid("VL_UNDF");
+
+const class_identifier_t g_valueBooleanCLSID	= string_to_clsid("VL_BOOL");
+const class_identifier_t g_valueNumberCLSID		= string_to_clsid("VL_NUMB");
+const class_identifier_t g_valueDateCLSID		= string_to_clsid("VL_DATE");
+const class_identifier_t g_valueStringCLSID		= string_to_clsid("VL_STRI");
+
+const class_identifier_t g_valueNullCLSID		= string_to_clsid("VL_NULL");
+
 //simple type date
 class BACKEND_API CValue : public wxObject {
 	wxDECLARE_DYNAMIC_CLASS(CValue);

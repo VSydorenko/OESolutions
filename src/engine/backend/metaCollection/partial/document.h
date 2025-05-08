@@ -148,10 +148,6 @@ protected:
     //create empty object
     virtual IRecordDataObjectRef* CreateObjectRefValue(const Guid& objGuid = wxNullGuid);
 
-    //load & save from variant
-    bool LoadFromVariant(const wxVariant& variant);
-    void SaveToVariant(wxVariant& variant, IMetaData* metaData) const;
-
     //load & save metaData from DB 
     virtual bool LoadData(CMemoryReader& reader);
     virtual bool SaveData(CMemoryWriter& writer = CMemoryWriter());
@@ -210,6 +206,12 @@ public:
     virtual ~CRecordDataObjectDocument();
 
     bool IsPosted() const;
+
+    void ClearRecordSet() {
+        wxASSERT(m_registerRecords);
+        m_registerRecords->ClearRecordSet();
+    }
+   
     void UpdateRecordSet() {
         wxASSERT(m_registerRecords);
         m_registerRecords->ClearRecordSet();

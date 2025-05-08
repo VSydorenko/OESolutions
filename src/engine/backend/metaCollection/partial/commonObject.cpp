@@ -293,11 +293,7 @@ bool IMetaObjectRecordDataRef::OnBeforeRunMetaObject(int flags)
 		return false;
 
 	IMetaValueTypeCtor* typeCtor = m_metaData->GetTypeCtor(this, eCtorMetaType::eCtorMetaType_Reference);
-
-	if (typeCtor != nullptr) {
-		m_attributeReference->SetDefaultMetaType(typeCtor->GetClassType());
-	}
-
+	if (typeCtor != nullptr) m_attributeReference->SetDefaultMetaType(typeCtor->GetClassType());
 	return true;
 }
 
@@ -315,10 +311,8 @@ bool IMetaObjectRecordDataRef::OnAfterCloseMetaObject()
 {
 	if (!m_attributeReference->OnAfterCloseMetaObject())
 		return false;
-
-	if (m_attributeReference != nullptr) {
-		m_attributeReference->SetDefaultMetaType(eValueTypes::TYPE_EMPTY);
-	}
+	
+	if (m_attributeReference != nullptr) m_attributeReference->SetDefaultMetaType(eValueTypes::TYPE_EMPTY);
 
 	unregisterReference();
 	unregisteRefList();

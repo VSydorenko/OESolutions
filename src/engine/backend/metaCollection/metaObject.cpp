@@ -429,7 +429,7 @@ bool IMetaObject::CopyObject(CMemoryWriter& writer) const
 		return false;
 	writer.w_chunk(dataBlock, writterDataMemory.pointer(), writterDataMemory.size());
 	CMemoryWriter writterChildMemory;
-	for (auto& obj : GetObjects()) {
+	for (auto& obj : m_listMetaObject) {
 		if (obj->IsDeleted())
 			continue;
 		CMemoryWriter writterMemory;

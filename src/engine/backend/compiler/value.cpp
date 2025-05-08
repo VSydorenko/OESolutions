@@ -1179,11 +1179,11 @@ CValue CValue::GetValue(bool getThis)
 //*                       Runtime register                             *
 //**********************************************************************
 
-PRIMITIVE_TYPE_REGISTER(CValue, "undefined", eValueTypes::TYPE_EMPTY, string_to_clsid("VL_UNDF"));
+PRIMITIVE_TYPE_REGISTER(CValue, "undefined", eValueTypes::TYPE_EMPTY, g_valueUndefinedCLSID);
 
-PRIMITIVE_TYPE_REGISTER(CValue, "boolean", eValueTypes::TYPE_BOOLEAN, string_to_clsid("VL_BOOL"));
-PRIMITIVE_TYPE_REGISTER(CValue, "number", eValueTypes::TYPE_NUMBER, string_to_clsid("VL_NUMB"));
-PRIMITIVE_TYPE_REGISTER(CValue, "date", eValueTypes::TYPE_DATE, string_to_clsid("VL_DATE"));
-PRIMITIVE_TYPE_REGISTER(CValue, "string", eValueTypes::TYPE_STRING, string_to_clsid("VL_STRI"));
+PRIMITIVE_TYPE_REGISTER(CValue, "boolean", eValueTypes::TYPE_BOOLEAN, g_valueBooleanCLSID);
+PRIMITIVE_TYPE_REGISTER(CValue, "number", eValueTypes::TYPE_NUMBER, g_valueNumberCLSID);
+PRIMITIVE_TYPE_REGISTER(CValue, "date", eValueTypes::TYPE_DATE, g_valueDateCLSID);
+PRIMITIVE_TYPE_REGISTER(CValue, "string", eValueTypes::TYPE_STRING, g_valueStringCLSID);
 
-PRIMITIVE_TYPE_REGISTER(CValue, "null", eValueTypes::TYPE_NULL, string_to_clsid("VL_NULL"));
+PRIMITIVE_TYPE_REGISTER(CValue, "null", eValueTypes::TYPE_NULL, g_valueNullCLSID);

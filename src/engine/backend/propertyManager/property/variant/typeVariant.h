@@ -7,19 +7,35 @@
 class BACKEND_API wxVariantDataAttribute : public wxVariantData {
 	wxString MakeString() const;
 protected:
+	virtual void DoSetDefaultMetaType();
 	virtual void DoSetFromMetaId(const meta_identifier_t& id);
+	virtual void DoSetFromTypeId(const CTypeDescription& td);
+	virtual void DoRefreshTypeDesc();
 public:
 
-	eSelectorDataType GetFilterDataType() const {
-		return m_ownerProperty->GetFilterDataType();
-	}
-
-	CTypeDescription& GetTypeDesc() { return m_typeDesc; }
-	const CTypeDescription& GetTypeDesc() const { return m_typeDesc; }
+	eSelectorDataType GetFilterDataType() const { return m_ownerProperty->GetFilterDataType(); }
 
 	/////////////////////////////////////////////////////////////////////////////////////////
-	void SetFromMetaId(const meta_identifier_t& id) { DoSetFromMetaId(id); }
-	void SetFromTypeId(const CTypeDescription& typeDesc) { m_typeDesc = typeDesc; }
+
+	CTypeDescription& GetTypeDesc() {
+		if (m_typeDesc.GetClsidCount() > 0) 
+			RefreshTypeDesc();
+		return m_typeDesc;
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+
+	void SetDefaultMetaType() { DoSetDefaultMetaType(); }
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+
+	void SetFromMetaDesc(const meta_identifier_t& id) { DoSetFromMetaId(id); }
+	void SetFromTypeDesc(const CTypeDescription& td) { DoSetFromTypeId(td); }
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+
+	void RefreshTypeDesc() { DoRefreshTypeDesc(); }
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 
 	wxVariantDataAttribute(const IBackendTypeConfigFactory* prop) : wxVariantData(), m_ownerProperty(prop) {}
@@ -61,7 +77,6 @@ public:
 protected:
 
 	const IBackendTypeConfigFactory* m_ownerProperty = nullptr;
-
 	CTypeDescription m_typeDesc;
 };
 

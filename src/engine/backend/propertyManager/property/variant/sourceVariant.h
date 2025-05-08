@@ -4,13 +4,14 @@
 #include "typeVariant.h"
 
 class BACKEND_API wxVariantDataAttributeSource : public wxVariantDataAttribute {
-	void UpdateSourceAttribute();
+protected:
+	virtual void DoSetFromMetaId(const meta_identifier_t& id);
 public:
 
 	wxVariantDataAttributeSource(const IBackendTypeSourceFactory* prop, const meta_identifier_t& id)
 		: wxVariantDataAttribute(prop), m_ownerSrcProperty(prop)
 	{
-		DoSetFromMetaId(id);
+		SetFromMetaDesc(id);
 	}
 
 	wxVariantDataAttributeSource(const IBackendTypeSourceFactory* prop, const CTypeDescription& typeDesc)
@@ -21,19 +22,18 @@ public:
 	wxVariantDataAttributeSource(const wxVariantDataAttributeSource& srcData)
 		: wxVariantDataAttribute(srcData), m_ownerSrcProperty(srcData.m_ownerSrcProperty)
 	{
-		UpdateSourceAttribute();
+		RefreshTypeDesc();
 	}
 
 	virtual wxVariantDataAttributeSource* Clone() const {
 		return new wxVariantDataAttributeSource(*this);
 	}
 
-	virtual wxString GetType() const { 
-		return wxT("wxVariantDataAttributeSource"); 
+	virtual wxString GetType() const {
+		return wxT("wxVariantDataAttributeSource");
 	}
 
-protected:
-	virtual void DoSetFromMetaId(const meta_identifier_t& id);
+	friend class wxVariantDataSource;
 
 protected:
 	const IBackendTypeSourceFactory* m_ownerSrcProperty = nullptr;
@@ -57,19 +57,16 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	void SetSourceAttribute(wxVariantDataAttributeSource* data) {
-		m_attributeSource->SetFromMetaId(wxNOT_FOUND);
-		m_attributeSource->SetFromTypeId(data->GetTypeDesc());
+		m_attributeSource->SetFromMetaDesc(wxNOT_FOUND);
+		m_attributeSource->SetFromTypeDesc(data->GetTypeDesc());
 	}
 
 	wxVariantDataAttributeSource* GetSourceAttribute() const { return m_attributeSource; }
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	CTypeDescription& GetTypeDesc() { return m_attributeSource->GetTypeDesc(); }
-	const CTypeDescription& GetTypeDesc() const { return m_attributeSource->GetTypeDesc(); }
-
 	//////////////////////////////////////////////////
+
 	IMetaObjectAttribute* GetSourceAttributeObject() const;
+
 	//////////////////////////////////////////////////
 
 	void SetSource(const meta_identifier_t& id, bool fillTypeDesc = true);
@@ -79,6 +76,11 @@ public:
 
 	void SetSourceGuid(const Guid& guid, bool fillTypeDesc = true);
 	Guid GetSourceGuid() const;
+
+	//////////////////////////////////////////////////
+
+	void SetSourceTypeDesc(const CTypeDescription& td);
+	CTypeDescription& GetSourceTypeDesc(bool fillTypeDesc = true) const;
 
 	//////////////////////////////////////////////////
 

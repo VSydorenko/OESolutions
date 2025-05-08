@@ -273,52 +273,6 @@ std::vector<IMetaObjectAttribute*> CMetaObjectDocument::GetSearchedAttributes() 
 	return attributes;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
-bool CMetaObjectDocument::LoadFromVariant(const wxVariant& variant)
-{
-	//std::set<meta_identifier_t> prevRecords = m_recordData.m_data;
-	//if (m_recordData.LoadFromVariant(variant)) {
-	//	std::set<meta_identifier_t> records = m_recordData.m_data;
-	//	for (auto record : prevRecords) {
-	//		auto& it = records.find(record);
-	//		if (it != records.end())
-	//			continue;
-	//		IMetaObjectRegisterData* registerData = wxDynamicCast(
-	//			m_metaData->GetMetaObject(record), IMetaObjectRegisterData
-	//		);
-	//		if (registerData != nullptr) {
-	//			CMetaObjectAttributeDefault* infoRecorder = registerData->GetRegisterRecorder();
-	//			infoRecorder->ClearMetaType(
-	//				m_attributeReference->GetClsidList()
-	//			);
-	//		}
-	//	}
-	//	for (auto record : records) {
-	//		auto& it = prevRecords.find(record);
-	//		if (it != prevRecords.end())
-	//			continue;
-	//		IMetaObjectRegisterData* registerData = wxDynamicCast(
-	//			m_metaData->GetMetaObject(record), IMetaObjectRegisterData
-	//		);
-	//		if (registerData != nullptr) {
-	//			CMetaObjectAttributeDefault* infoRecorder = registerData->GetRegisterRecorder();
-	//			infoRecorder->AppendMetaType(
-	//				m_attributeReference->GetClsidList()
-	//			);
-	//		}
-	//	}
-	//	return true;
-	//}
-	//return false;
-	return true;
-}
-
-void CMetaObjectDocument::SaveToVariant(wxVariant& variant, IMetaData* metaData) const
-{
-	//m_recordData.SaveToVariant(variant, metaData);
-}
-
 //***************************************************************************
 //*                       Save & load metaData                              *
 //***************************************************************************
@@ -458,7 +412,8 @@ bool CMetaObjectDocument::OnReloadMetaObject()
 		}
 
 		if (pDataRef->InitializeObject()) {
-			pDataRef->UpdateRecordSet();
+			if (IsDeleted()) pDataRef->ClearRecordSet();
+			else pDataRef->UpdateRecordSet();
 			return true;
 		}
 
@@ -545,6 +500,16 @@ bool CMetaObjectDocument::OnAfterCloseMetaObject()
 
 	if (!m_moduleObject->OnAfterCloseMetaObject())
 		return false;
+
+	const CMetaDescription& metaDesc = m_propertyRegisterRecord->GetValueAsMetaDesc();
+	for (unsigned int idx = 0; idx < metaDesc.GetTypeCount(); idx++) {
+		IMetaObjectRegisterData* registerData = nullptr;
+		if (m_metaData->GetMetaObject(registerData, metaDesc.GetByIdx(idx))) {
+			CMetaObjectAttributeDefault* infoRecorder = registerData->GetRegisterRecorder();
+			wxASSERT(infoRecorder);
+			infoRecorder->GetTypeDesc().ClearMetaType(m_attributeReference->GetTypeDesc());
+		}
+	}
 
 	unregisterSelection();
 

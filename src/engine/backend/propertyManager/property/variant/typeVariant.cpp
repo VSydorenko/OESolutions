@@ -5,7 +5,7 @@ wxString wxVariantDataAttribute::MakeString() const
 {
 	wxString strDescr;
 	if (m_ownerProperty != nullptr) {
-		IMetaData* metaData = m_ownerProperty->GetMetaData();
+		const IMetaData* metaData = m_ownerProperty->GetMetaData();
 		wxASSERT(metaData);
 		for (auto clsid : m_typeDesc.GetClsidList()) {
 			if (metaData->IsRegisterCtor(clsid) && strDescr.IsEmpty()) {
@@ -20,21 +20,67 @@ wxString wxVariantDataAttribute::MakeString() const
 	return strDescr;
 }
 
+#include "backend/system/value/valueTable.h"
+
+void wxVariantDataAttribute::DoSetDefaultMetaType() {
+	if (m_ownerProperty != nullptr) {
+		if (eSelectorDataType::eSelectorDataType_boolean == m_ownerProperty->GetFilterDataType()) {
+			m_typeDesc.SetDefaultMetaType(g_valueBooleanCLSID);
+		}
+		else if (eSelectorDataType::eSelectorDataType_reference == m_ownerProperty->GetFilterDataType()) {
+			m_typeDesc.SetDefaultMetaType(g_valueStringCLSID);
+		}
+		else if (eSelectorDataType::eSelectorDataType_resource == m_ownerProperty->GetFilterDataType()) {
+			m_typeDesc.SetDefaultMetaType(g_valueNumberCLSID);
+		}
+		else if (eSelectorDataType::eSelectorDataType_table == m_ownerProperty->GetFilterDataType()) {
+			m_typeDesc.SetDefaultMetaType(g_valueTableCLSID);
+		}
+		else {
+			m_typeDesc.SetDefaultMetaType(g_valueStringCLSID);
+		}
+	}
+}
+
 void wxVariantDataAttribute::DoSetFromMetaId(const meta_identifier_t& id)
 {
 	if (m_ownerProperty != nullptr && id != wxNOT_FOUND) {
-		IMetaData* metaData = m_ownerProperty->GetMetaData();
+
+		const IMetaData* metaData = m_ownerProperty->GetMetaData();
 		wxASSERT(metaData);
-		IMetaObjectAttribute* metaAttribute = dynamic_cast<IMetaObjectAttribute*>(metaData->GetMetaObject(id));
-		if (metaAttribute != nullptr && metaAttribute->IsAllowed()) {
+
+		IMetaObjectAttribute* metaAttribute = nullptr;
+		if (metaData->GetMetaObject(metaAttribute, id) && metaAttribute->IsAllowed()) {
 			m_typeDesc.SetDefaultMetaType(metaAttribute->GetTypeDesc());
 			return;
 		}
-		CMetaObjectTableData* metaTable = dynamic_cast<CMetaObjectTableData*>(metaData->GetMetaObject(id));
-		if (metaTable != nullptr && metaTable->IsAllowed()) {
+
+		CMetaObjectTableData* metaTable = nullptr;
+		if (metaData->GetMetaObject(metaTable, id) && metaTable->IsAllowed()) {
 			m_typeDesc.SetDefaultMetaType(metaTable->GetTypeDesc());
 			return;
 		}
-		m_typeDesc.SetDefaultMetaType(eValueTypes::TYPE_STRING);
+
+		SetDefaultMetaType();
+	}
+}
+
+void wxVariantDataAttribute::DoSetFromTypeId(const CTypeDescription& td)
+{
+	m_typeDesc = td; 
+	RefreshTypeDesc();
+}
+
+void wxVariantDataAttribute::DoRefreshTypeDesc()
+{ 
+	if (m_ownerProperty != nullptr) {
+		const IMetaData* metaData = m_ownerProperty->GetMetaData();
+		wxASSERT(metaData);
+		std::set<class_identifier_t> clear_list;
+		for (auto clsid : m_typeDesc.GetClsidList()) {
+			if (!metaData->IsRegisterCtor(clsid)) clear_list.insert(clsid);
+		}
+		for (auto clsid : clear_list) { m_typeDesc.ClearMetaType(clsid); }
+		if (!m_typeDesc.IsOk()) SetDefaultMetaType();
 	}
 }
