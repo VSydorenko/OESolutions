@@ -173,6 +173,7 @@
     <ClInclude Include="propertyManager\property\advprop\advpropEventTool.h" />
     <ClInclude Include="propertyManager\property\advprop\advpropFont.h" />
     <ClInclude Include="propertyManager\property\advprop\advpropGeneration.h" />
+    <ClInclude Include="propertyManager\property\advprop\advpropHyperLink.h" />
     <ClInclude Include="propertyManager\property\advprop\advpropNumber.h" />
     <ClInclude Include="propertyManager\property\advprop\advpropOwner.h" />
     <ClInclude Include="propertyManager\property\advprop\advpropPicture.h" />
@@ -190,7 +191,9 @@
     <ClInclude Include="propertyManager\property\propertyDate.h" />
     <ClInclude Include="propertyManager\property\propertyEnum.h" />
     <ClInclude Include="propertyManager\property\propertyFont.h" />
+    <ClInclude Include="propertyManager\property\propertyForm.h" />
     <ClInclude Include="propertyManager\property\propertyGeneration.h" />
+    <ClInclude Include="propertyManager\property\propertyModule.h" />
     <ClInclude Include="propertyManager\property\propertyNumber.h" />
     <ClInclude Include="propertyManager\property\propertyList.h" />
     <ClInclude Include="propertyManager\property\propertyOwner.h" />
@@ -200,8 +203,11 @@
     <ClInclude Include="propertyManager\property\propertySize.h" />
     <ClInclude Include="propertyManager\property\propertySource.h" />
     <ClInclude Include="propertyManager\property\propertyString.h" />
+    <ClInclude Include="propertyManager\property\propertyTemplate.h" />
     <ClInclude Include="propertyManager\property\propertyType.h" />
+    <ClInclude Include="propertyManager\property\variant\formVariant.h" />
     <ClInclude Include="propertyManager\property\variant\genVariant.h" />
+    <ClInclude Include="propertyManager\property\variant\moduleVariant.h" />
     <ClInclude Include="propertyManager\property\variant\numberVariant.h" />
     <ClInclude Include="propertyManager\property\variant\ownerVariant.h" />
     <ClInclude Include="propertyManager\property\variant\recordVariant.h" />
@@ -442,6 +448,7 @@
     <ClCompile Include="propertyManager\property\advprop\advpropEventTool.cpp" />
     <ClCompile Include="propertyManager\property\advprop\advpropFont.cpp" />
     <ClCompile Include="propertyManager\property\advprop\advpropGeneration.cpp" />
+    <ClCompile Include="propertyManager\property\advprop\advpropHyperLink.cpp" />
     <ClCompile Include="propertyManager\property\advprop\advpropNumber.cpp" />
     <ClCompile Include="propertyManager\property\advprop\advpropOwner.cpp" />
     <ClCompile Include="propertyManager\property\advprop\advpropPicture.cpp" />
@@ -459,7 +466,9 @@
     <ClCompile Include="propertyManager\property\propertyDate.cpp" />
     <ClCompile Include="propertyManager\property\propertyEnum.cpp" />
     <ClCompile Include="propertyManager\property\propertyFont.cpp" />
+    <ClCompile Include="propertyManager\property\propertyForm.cpp" />
     <ClCompile Include="propertyManager\property\propertyGeneration.cpp" />
+    <ClCompile Include="propertyManager\property\propertyModule.cpp" />
     <ClCompile Include="propertyManager\property\propertyNumber.cpp" />
     <ClCompile Include="propertyManager\property\propertyList.cpp" />
     <ClCompile Include="propertyManager\property\propertyOwner.cpp" />
@@ -469,8 +478,11 @@
     <ClCompile Include="propertyManager\property\propertySize.cpp" />
     <ClCompile Include="propertyManager\property\propertySource.cpp" />
     <ClCompile Include="propertyManager\property\propertyString.cpp" />
+    <ClCompile Include="propertyManager\property\propertyTemplate.cpp" />
     <ClCompile Include="propertyManager\property\propertyType.cpp" />
+    <ClCompile Include="propertyManager\property\variant\formVariant.cpp" />
     <ClCompile Include="propertyManager\property\variant\genVariant.cpp" />
+    <ClCompile Include="propertyManager\property\variant\moduleVariant.cpp" />
     <ClCompile Include="propertyManager\property\variant\numberVariant.cpp" />
     <ClCompile Include="propertyManager\property\variant\ownerVariant.cpp" />
     <ClCompile Include="propertyManager\property\variant\recordVariant.cpp" />

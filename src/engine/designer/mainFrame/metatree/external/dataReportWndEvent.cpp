@@ -215,7 +215,8 @@ void CDataReportTree::CDataReportTreeWnd::OnPasteItem(wxCommandEvent &event)
 
 			IMetaObject* metaObject = m_ownerTree->NewItem(
 				m_ownerTree->GetClassIdentifier(),
-				m_ownerTree->GetMetaIdentifier()
+				m_ownerTree->GetMetaIdentifier(),
+				false
 			);
 
 			if (metaObject != nullptr) {

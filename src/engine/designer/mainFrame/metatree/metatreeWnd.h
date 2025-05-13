@@ -305,7 +305,7 @@ private:
 
 	void ActivateItem(const wxTreeItemId& item);
 
-	IMetaObject* NewItem(const class_identifier_t& clsid, IMetaObject* metaParent);
+	IMetaObject* NewItem(const class_identifier_t& clsid, IMetaObject* metaParent, bool runObject = true);
 	IMetaObject* CreateItem(bool showValue = true);
 
 	wxTreeItemId FillItem(IMetaObject* metaItem, const wxTreeItemId& item);

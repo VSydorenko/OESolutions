@@ -152,14 +152,14 @@ void CObjectInspector::Create(bool force)
 
 bool CObjectInspector::IsShownProperty() const
 {
-	if (mainFrame != nullptr) 
+	if (mainFrame != nullptr)
 		return mainFrame->IsShownProperty();
 	return false;
 }
 
 void CObjectInspector::ShowProperty()
 {
-	if (mainFrame != nullptr) 
+	if (mainFrame != nullptr)
 		mainFrame->ShowProperty();
 }
 
@@ -187,16 +187,16 @@ wxPropertyGridManager* CObjectInspector::CreatePropertyGridManager(wxWindow* par
 	int defaultDescBoxHeight;
 
 	switch (m_style) {
-		case wxOES_OI_MULTIPAGE_STYLE:
-			pgStyle = wxPG_BOLD_MODIFIED | wxPG_SPLITTER_AUTO_CENTER | wxPG_TOOLBAR | wxPG_DESCRIPTION | wxPGMAN_DEFAULT_STYLE;
-			defaultDescBoxHeight = 50;
-			break;
-		case wxOES_OI_DEFAULT_STYLE:
-		case wxOES_OI_SINGLE_PAGE_STYLE:
-		default:
-			pgStyle = wxPG_BOLD_MODIFIED | wxPG_SPLITTER_AUTO_CENTER | wxPG_DESCRIPTION | wxPGMAN_DEFAULT_STYLE;
-			defaultDescBoxHeight = 150;
-			break;
+	case wxOES_OI_MULTIPAGE_STYLE:
+		pgStyle = wxPG_BOLD_MODIFIED | wxPG_SPLITTER_AUTO_CENTER | wxPG_TOOLBAR | wxPG_DESCRIPTION | wxPGMAN_DEFAULT_STYLE;
+		defaultDescBoxHeight = 50;
+		break;
+	case wxOES_OI_DEFAULT_STYLE:
+	case wxOES_OI_SINGLE_PAGE_STYLE:
+	default:
+		pgStyle = wxPG_BOLD_MODIFIED | wxPG_SPLITTER_AUTO_CENTER | wxPG_DESCRIPTION | wxPGMAN_DEFAULT_STYLE;
+		defaultDescBoxHeight = 150;
+		break;
 	}
 
 	int descBoxHeight;

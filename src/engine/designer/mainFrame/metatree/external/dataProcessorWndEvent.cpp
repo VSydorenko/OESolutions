@@ -194,7 +194,8 @@ void CDataProcessorTree::CDataProcessorTreeWnd::OnPasteItem(wxCommandEvent &even
 
 			IMetaObject* metaObject = m_ownerTree->NewItem(
 				m_ownerTree->GetClassIdentifier(),
-				m_ownerTree->GetMetaIdentifier()
+				m_ownerTree->GetMetaIdentifier(),
+				false
 			);
 
 			if (metaObject != nullptr) {

@@ -52,7 +52,7 @@ void CReferenceDataObject::PrepareRef(bool createData)
 	PrepareNames();
 }
 
-CReferenceDataObject::CReferenceDataObject(IMetaObjectRecordDataRef* metaObject, const Guid& objGuid) : CValue(eValueTypes::TYPE_VALUE, true), IObjectDataValue(objGuid, !objGuid.isValid()),
+CReferenceDataObject::CReferenceDataObject(IMetaObjectRecordDataRef* metaObject, const Guid& objGuid) : CValue(eValueTypes::TYPE_VALUE, true), IValueDataObject(objGuid, !objGuid.isValid()),
 m_metaObject(metaObject), m_methodHelper(new CMethodHelper()), m_initializedRef(false), m_reference_impl(nullptr), m_foundedRef(false)
 {
 	m_reference_impl = new reference_t(m_metaObject->GetMetaID(), m_objGuid);

@@ -246,12 +246,12 @@ bool IMetaObjectRecordDataRef::SaveData(CMemoryWriter& dataWritter)
 //*                           read & save events                        *
 //***********************************************************************
 
-bool IMetaObjectRecordDataRef::OnCreateMetaObject(IMetaData* metaData)
+bool IMetaObjectRecordDataRef::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	if (!IMetaObjectRecordData::OnCreateMetaObject(metaData))
+	if (!IMetaObjectRecordData::OnCreateMetaObject(metaData, flags))
 		return false;
 
-	return m_attributeReference->OnCreateMetaObject(metaData);
+	return m_attributeReference->OnCreateMetaObject(metaData, flags);
 }
 
 #include "backend/appData.h"
@@ -429,12 +429,12 @@ bool IMetaObjectRecordDataEnumRef::SaveData(CMemoryWriter& dataWritter)
 //*                           read & save events                        *
 //***********************************************************************
 
-bool IMetaObjectRecordDataEnumRef::OnCreateMetaObject(IMetaData* metaData)
+bool IMetaObjectRecordDataEnumRef::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	if (!IMetaObjectRecordDataRef::OnCreateMetaObject(metaData))
+	if (!IMetaObjectRecordDataRef::OnCreateMetaObject(metaData, flags))
 		return false;
 
-	return m_attributeOrder->OnCreateMetaObject(metaData);
+	return m_attributeOrder->OnCreateMetaObject(metaData, flags);
 }
 
 bool IMetaObjectRecordDataEnumRef::OnLoadMetaObject(IMetaData* metaData)
@@ -534,13 +534,13 @@ bool IMetaObjectRecordDataMutableRef::SaveData(CMemoryWriter& dataWritter)
 //*                           read & save events                        *
 //***********************************************************************
 
-bool IMetaObjectRecordDataMutableRef::OnCreateMetaObject(IMetaData* metaData)
+bool IMetaObjectRecordDataMutableRef::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	if (!IMetaObjectRecordDataRef::OnCreateMetaObject(metaData))
+	if (!IMetaObjectRecordDataRef::OnCreateMetaObject(metaData, flags))
 		return false;
 
-	return m_attributeDataVersion->OnCreateMetaObject(metaData)
-		&& m_attributeDeletionMark->OnCreateMetaObject(metaData);
+	return m_attributeDataVersion->OnCreateMetaObject(metaData, flags)
+		&& m_attributeDeletionMark->OnCreateMetaObject(metaData, flags);
 }
 
 bool IMetaObjectRecordDataMutableRef::OnLoadMetaObject(IMetaData* metaData)
@@ -760,15 +760,15 @@ bool IMetaObjectRecordDataFolderMutableRef::SaveData(CMemoryWriter& dataWritter)
 //*                           read & save events                        *
 //***********************************************************************
 
-bool IMetaObjectRecordDataFolderMutableRef::OnCreateMetaObject(IMetaData* metaData)
+bool IMetaObjectRecordDataFolderMutableRef::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	if (!IMetaObjectRecordDataMutableRef::OnCreateMetaObject(metaData))
+	if (!IMetaObjectRecordDataMutableRef::OnCreateMetaObject(metaData, flags))
 		return false;
 
-	return m_attributeCode->OnCreateMetaObject(metaData) &&
-		m_attributeDescription->OnCreateMetaObject(metaData) &&
-		m_attributeParent->OnCreateMetaObject(metaData) &&
-		m_attributeIsFolder->OnCreateMetaObject(metaData);
+	return m_attributeCode->OnCreateMetaObject(metaData, flags) &&
+		m_attributeDescription->OnCreateMetaObject(metaData, flags) &&
+		m_attributeParent->OnCreateMetaObject(metaData, flags) &&
+		m_attributeIsFolder->OnCreateMetaObject(metaData, flags);
 }
 
 bool IMetaObjectRecordDataFolderMutableRef::OnLoadMetaObject(IMetaData* metaData)
@@ -996,15 +996,15 @@ bool IMetaObjectRegisterData::SaveData(CMemoryWriter& dataWritter)
 //*                           read & save events                        *
 //***********************************************************************
 
-bool IMetaObjectRegisterData::OnCreateMetaObject(IMetaData* metaData)
+bool IMetaObjectRegisterData::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	if (!IMetaObject::OnCreateMetaObject(metaData))
+	if (!IMetaObject::OnCreateMetaObject(metaData, flags))
 		return false;
 
-	return m_attributeLineActive->OnCreateMetaObject(metaData) &&
-		m_attributePeriod->OnCreateMetaObject(metaData) &&
-		m_attributeRecorder->OnCreateMetaObject(metaData) &&
-		m_attributeLineNumber->OnCreateMetaObject(metaData);
+	return m_attributeLineActive->OnCreateMetaObject(metaData, flags) &&
+		m_attributePeriod->OnCreateMetaObject(metaData, flags) &&
+		m_attributeRecorder->OnCreateMetaObject(metaData, flags) &&
+		m_attributeLineNumber->OnCreateMetaObject(metaData, flags);
 }
 
 bool IMetaObjectRegisterData::OnLoadMetaObject(IMetaData* metaData)
@@ -1296,13 +1296,13 @@ IRecordManagerObject* IMetaObjectRegisterData::CopyRecordManagerObjectValue(cons
 wxIMPLEMENT_ABSTRACT_CLASS(IRecordDataObject, CValue);
 
 IRecordDataObject::IRecordDataObject(const Guid& objGuid, bool newObject) :
-	CValue(eValueTypes::TYPE_VALUE), IObjectDataValue(objGuid, newObject),
+	CValue(eValueTypes::TYPE_VALUE), IValueDataObject(objGuid, newObject),
 	m_methodHelper(new CMethodHelper())
 {
 }
 
 IRecordDataObject::IRecordDataObject(const IRecordDataObject& source) :
-	CValue(eValueTypes::TYPE_VALUE), IObjectDataValue(wxNewUniqueGuid, true),
+	CValue(eValueTypes::TYPE_VALUE), IValueDataObject(wxNewUniqueGuid, true),
 	m_methodHelper(new CMethodHelper())
 {
 }

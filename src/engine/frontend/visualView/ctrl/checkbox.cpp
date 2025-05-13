@@ -50,17 +50,6 @@ void CValueCheckbox::Update(wxObject* wxobject, IVisualHost* visualHost)
 
 	if (checkbox != nullptr) {
 		wxString textCaption = wxEmptyString;
-		//if (m_dataSource.isValid()) {
-		//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
-		//	if (srcObject != nullptr) {
-		//		IMetaObjectGenericData* objMetaValue = srcObject->GetSourceMetaObject();
-		//		IMetaObject* metaObject = objMetaValue->FindMetaObjectByID(m_dataSource);
-		//		if (metaObject != nullptr) {
-		//			textCaption = metaObject->GetSynonym() + wxT(":");
-		//		}
-		//		srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
-		//	}
-		//}
 
 		if (!m_propertySource->IsEmptyProperty()) {
 			const ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
@@ -100,13 +89,6 @@ void CValueCheckbox::Cleanup(wxObject* obj, IVisualHost* visualHost)
 
 bool CValueCheckbox::GetControlValue(CValue& pvarControlVal) const
 {
-	//if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
-	//	ISourceDataObject* srcObject = ownerForm->GetSourceObject();
-	//	if (srcObject != nullptr) {
-	//		return srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), pvarControlVal);
-	//	}
-	//}
-
 	if (!m_propertySource->IsEmptyProperty() && m_formOwner->GetSourceObject()) {
 		ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
 		if (srcObject != nullptr)
@@ -121,13 +103,6 @@ bool CValueCheckbox::GetControlValue(CValue& pvarControlVal) const
 
 bool CValueCheckbox::SetControlValue(const CValue& varControlVal)
 {
-	//if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
-	//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
-	//	if (srcObject != nullptr) {
-	//		srcObject->SetValueByMetaID(GetIdByGuid(m_dataSource), varControlVal);
-	//	}
-	//}
-
 	if (!m_propertySource->IsEmptyProperty() && m_formOwner->GetSourceObject()) {
 		ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
 		if (srcObject != nullptr)

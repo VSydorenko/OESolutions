@@ -10,7 +10,7 @@
 bool CMetaObjectConfiguration::PrepareContextMenu(wxMenu *defaultMenu)
 {
 	wxMenuItem *menuItem = defaultMenu->Append(ID_METATREE_OPEN_INIT_MODULE, _("Open configuration module"));
-	menuItem->SetBitmap(m_commonModule->GetIcon());
+	menuItem->SetBitmap(m_propertyModuleConfiguration->GetMetaObject()->GetIcon());
 	return true;
 }
 
@@ -20,5 +20,5 @@ void CMetaObjectConfiguration::ProcessCommand(unsigned int id)
 	wxASSERT(metaTree);
 
 	if (id == ID_METATREE_OPEN_INIT_MODULE)
-		metaTree->OpenFormMDI(m_commonModule);
+		metaTree->OpenFormMDI(m_propertyModuleConfiguration->GetMetaObject());
 }

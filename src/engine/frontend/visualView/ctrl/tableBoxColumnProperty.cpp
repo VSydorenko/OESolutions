@@ -2,9 +2,6 @@
 
 void CValueTableBoxColumn::OnPropertyCreated(IProperty* property)
 {
-	//if (m_propertySource == property) {
-	//	CValueTableBoxColumn::SaveToVariant(m_propertySource->GetValue(), GetMetaData());
-	//}
 }
 
 #include <wx/propgrid/manager.h>
@@ -35,7 +32,5 @@ void CValueTableBoxColumn::OnPropertyRefresh(wxPropertyGridManager* pg, wxPGProp
 
 bool CValueTableBoxColumn::OnPropertyChanging(IProperty* property, const wxVariant& newValue)
 {
-	//if (m_propertySource == property && !CValueTableBoxColumn::LoadFromVariant(newValue))
-	//	return false;
 	return IValueControl::OnPropertyChanging(property, newValue);
 }

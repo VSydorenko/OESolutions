@@ -98,11 +98,7 @@ IMetaValueTypeCtor* CMetaDataDataProcessor::GetTypeCtor(const class_identifier_t
 	auto it = std::find_if(m_factoryCtors.begin(), m_factoryCtors.end(), [clsid](IMetaValueTypeCtor* typeCtor) {
 		return clsid == typeCtor->GetClassType(); }
 	);
-
-	if (it != m_factoryCtors.end()) {
-		return *it;
-	}
-
+	if (it != m_factoryCtors.end()) return *it;
 	return commonMetaData->GetTypeCtor(clsid);
 }
 
@@ -111,22 +107,28 @@ IMetaValueTypeCtor* CMetaDataDataProcessor::GetTypeCtor(const IMetaObject* metaV
 	auto it = std::find_if(m_factoryCtors.begin(), m_factoryCtors.end(), [metaValue, refType](IMetaValueTypeCtor* typeCtor) {
 		return refType == typeCtor->GetMetaTypeCtor() &&
 			metaValue == typeCtor->GetMetaObject();
-		});
-
-	if (it != m_factoryCtors.end()) {
-		return *it;
-	}
-
+		}
+	);
+	if (it != m_factoryCtors.end()) return *it;
 	return commonMetaData->GetTypeCtor(metaValue, refType);
 }
 
 IAbstractTypeCtor* CMetaDataDataProcessor::GetAvailableCtor(const class_identifier_t& clsid) const
 {
+	auto it = std::find_if(m_factoryCtors.begin(), m_factoryCtors.end(), [clsid](IMetaValueTypeCtor* typeCtor) {
+		return clsid == typeCtor->GetClassType(); }
+	);
+	if (it != m_factoryCtors.end())  return *it;
 	return commonMetaData->GetAvailableCtor(clsid);
 }
 
 IAbstractTypeCtor* CMetaDataDataProcessor::GetAvailableCtor(const wxString& className) const
 {
+	auto it = std::find_if(m_factoryCtors.begin(), m_factoryCtors.end(), [className](IAbstractTypeCtor* typeCtor) {
+		return stringUtils::CompareString(className, typeCtor->GetClassName());
+		}
+	);
+	if (it != m_factoryCtors.end())  return *it;
 	return commonMetaData->GetAvailableCtor(className);
 }
 
@@ -148,10 +150,6 @@ std::vector<IMetaValueTypeCtor*> CMetaDataDataProcessor::GetListCtorsByType(eCto
 IMetaObject* CMetaDataDataProcessor::GetMetaObject(const meta_identifier_t& id)
 {
 	IMetaObject* metaObject = IMetaData::GetMetaObject(id);
-
-	if (metaObject != nullptr) {
-		return metaObject;
-	}
-
+	if (metaObject != nullptr) return metaObject;
 	return commonMetaData->GetMetaObject(id);
 }

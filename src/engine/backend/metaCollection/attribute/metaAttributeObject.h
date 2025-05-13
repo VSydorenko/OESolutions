@@ -180,7 +180,7 @@ public:
 	virtual IMetaData* GetMetaData() const { return m_metaData; }
 
 	//events:
-	virtual bool OnCreateMetaObject(IMetaData* metaData);
+	virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
 	virtual bool OnDeleteMetaObject();
 
 	//for designer 

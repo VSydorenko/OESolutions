@@ -20,12 +20,13 @@ wxIMPLEMENT_ABSTRACT_CLASS(IMetaObjectForm, CMetaObjectModule);
 //***********************************************************************
 
 bool IMetaObjectForm::LoadFormData(IBackendValueForm* valueForm) {
-	return valueForm->LoadForm(m_formData);
+	return valueForm->LoadForm(GetFormData());
 }
 
 bool IMetaObjectForm::SaveFormData(IBackendValueForm* valueForm) {
-	m_formData = valueForm->SaveForm();
-	return !m_formData.IsEmpty();
+	const wxMemoryBuffer& memoryBuffer = valueForm->SaveForm();
+	SetFormData(memoryBuffer);
+	return !memoryBuffer.IsEmpty();
 }
 
 //***********************************************************************
@@ -33,7 +34,7 @@ bool IMetaObjectForm::SaveFormData(IBackendValueForm* valueForm) {
 IBackendValueForm* IMetaObjectForm::GenerateForm(IBackendControlFrame* ownerControl,
 	ISourceDataObject* ownerSrc, const CUniqueKey& guidForm)
 {
-	if (m_formData.IsEmpty()) {
+	if (GetFormData().IsEmpty()) {
 		IBackendValueForm* valueForm = IBackendValueForm::CreateNewForm(
 			ownerControl, this, ownerSrc, guidForm, m_propEnabled
 		);
@@ -77,7 +78,7 @@ IBackendValueForm* IMetaObjectForm::GenerateFormAndRun(IBackendControlFrame* own
 ///////////////////////////////////////////////////////////////////////////
 
 IMetaObjectForm::IMetaObjectForm(const wxString& name, const wxString& synonym, const wxString& comment) :
-	CMetaObjectModule(name, synonym, comment), m_formData(), m_firstInitialized(false)
+	IMetaObjectModule(name, synonym, comment), m_firstInitialized(false)
 {
 	//set default proc
 	SetDefaultProcedure("beforeOpen", eContentHelper::eProcedureHelper, { "cancel" });
@@ -88,22 +89,6 @@ IMetaObjectForm::IMetaObjectForm(const wxString& name, const wxString& synonym, 
 	SetDefaultProcedure("onReOpen", eContentHelper::eProcedureHelper);
 	SetDefaultProcedure("choiceProcessing", eContentHelper::eProcedureHelper, { { "selectedValue" }, { "choiceSource" } });
 	SetDefaultProcedure("refreshDisplay", eContentHelper::eProcedureHelper);
-}
-
-#define chunkForm 0x023456543
-
-bool IMetaObjectForm::LoadData(CMemoryReader& reader)
-{
-	reader.r_chunk(m_metaId + chunkForm, m_formData);
-	reader.r_stringZ(m_moduleData);
-	return true;
-}
-
-bool IMetaObjectForm::SaveData(CMemoryWriter& writer)
-{
-	writer.w_chunk(m_metaId + chunkForm, m_formData);
-	writer.w_stringZ(m_moduleData);
-	return true;
 }
 
 wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectForm, IMetaObjectForm)
@@ -119,13 +104,13 @@ CMetaObjectForm::CMetaObjectForm(const wxString& name, const wxString& synonym, 
 bool CMetaObjectForm::LoadData(CMemoryReader& reader)
 {
 	m_properyFormType->SetValue(reader.r_s32());
-	return IMetaObjectForm::LoadData(reader);
+	return m_propertyForm->LoadData(reader);
 }
 
 bool CMetaObjectForm::SaveData(CMemoryWriter& writer)
 {
 	writer.w_s32(m_properyFormType->GetValueAsInteger());
-	return IMetaObjectForm::SaveData(writer);
+	return m_propertyForm->SaveData(writer);
 }
 
 bool CMetaObjectForm::GetFormType(CPropertyList* prop)
@@ -138,10 +123,10 @@ bool CMetaObjectForm::GetFormType(CPropertyList* prop)
 	CFormTypeList formList = metaObject->GetFormType();
 	for (unsigned int idx = 0; idx < formList.GetItemCount(); idx++) {
 		prop->AppendItem(
-			formList.GetItemName(idx), 
-			formList.GetItemLabel(idx), 
-			formList.GetItemHelp(idx), 
-			formList.GetItemId(idx), 
+			formList.GetItemName(idx),
+			formList.GetItemLabel(idx),
+			formList.GetItemHelp(idx),
+			formList.GetItemId(idx),
 			formList.GetItemName(idx)
 		);
 	}
@@ -152,37 +137,40 @@ bool CMetaObjectForm::GetFormType(CPropertyList* prop)
 //*                             event object                            *
 //***********************************************************************
 
-bool CMetaObjectForm::OnCreateMetaObject(IMetaData* metaData)
+bool CMetaObjectForm::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
 	m_firstInitialized = true;
 
-	if (!IMetaObjectForm::OnCreateMetaObject(metaData))
+	if (!IMetaObjectForm::OnCreateMetaObject(metaData, flags))
 		return false;
 
-	IMetaObjectGenericData* metaObject = wxDynamicCast(
-		m_parent, IMetaObjectGenericData
-	);
-	
-	wxASSERT(metaObject);
-	
-	form_identifier_t res = wxID_CANCEL;
-	if (metaData != nullptr) {
-		IBackendMetadataTree* metaTree = metaData->GetMetaTree();
-		if (metaTree != nullptr) {
-			res = metaTree->SelectFormType(this);
+	if (flags != copyObjectFlag) {
+		
+		IMetaObjectGenericData* metaObject = wxDynamicCast(
+			m_parent, IMetaObjectGenericData
+		);
+		
+		wxASSERT(metaObject);
+		
+		form_identifier_t res = wxID_CANCEL;
+		if (metaData != nullptr) {
+			IBackendMetadataTree* metaTree = metaData->GetMetaTree();
+			if (metaTree != nullptr) {
+				res = metaTree->SelectFormType(this);
+			}
 		}
-	}
-	if (res != wxID_CANCEL) {
-		m_properyFormType->SetValue(res);
-	}
-	else {
-		return false;
-	}
-	metaObject->OnCreateFormObject(this);
-	if (metaData != nullptr) {
-		IBackendMetadataTree* metaTree = metaData->GetMetaTree();
-		if (metaTree != nullptr) {
-			metaTree->UpdateChoiceSelection();
+		if (res != wxID_CANCEL) {
+			m_properyFormType->SetValue(res);
+		}
+		else {
+			return false;
+		}
+		metaObject->OnCreateFormObject(this);
+		if (metaData != nullptr) {
+			IBackendMetadataTree* metaTree = metaData->GetMetaTree();
+			if (metaTree != nullptr) {
+				metaTree->UpdateChoiceSelection();
+			}
 		}
 	}
 
@@ -252,14 +240,24 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectCommonForm, IMetaObjectForm)
 
 CMetaObjectCommonForm::CMetaObjectCommonForm(const wxString& name, const wxString& synonym, const wxString& comment) : IMetaObjectForm(name, synonym, comment) {}
 
+bool CMetaObjectCommonForm::LoadData(CMemoryReader& reader)
+{
+	return m_propertyForm->LoadData(reader);
+}
+
+bool CMetaObjectCommonForm::SaveData(CMemoryWriter& writer)
+{
+	return m_propertyForm->SaveData(writer);
+}
+
 //***********************************************************************
 //*                             event object                            *
 //***********************************************************************
 
-bool CMetaObjectCommonForm::OnCreateMetaObject(IMetaData* metaData)
+bool CMetaObjectCommonForm::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
 	m_firstInitialized = true;
-	return CMetaObjectModule::OnCreateMetaObject(metaData);
+	return IMetaObjectModule::OnCreateMetaObject(metaData, flags);
 }
 
 bool CMetaObjectCommonForm::OnBeforeRunMetaObject(int flags)
@@ -268,11 +266,11 @@ bool CMetaObjectCommonForm::OnBeforeRunMetaObject(int flags)
 		IModuleManager* moduleManager = m_metaData->GetModuleManager();
 		wxASSERT(moduleManager);
 		if (moduleManager->AddCompileModule(this, formWrapper::inl::cast_value(GenerateFormAndRun()))) {
-			return CMetaObjectModule::OnBeforeRunMetaObject(flags);
+			return IMetaObjectModule::OnBeforeRunMetaObject(flags);
 		}
 		return false;
 	}
-	return CMetaObjectModule::OnBeforeRunMetaObject(flags);
+	return IMetaObjectModule::OnBeforeRunMetaObject(flags);
 }
 
 bool CMetaObjectCommonForm::OnAfterCloseMetaObject()
@@ -281,12 +279,13 @@ bool CMetaObjectCommonForm::OnAfterCloseMetaObject()
 		IModuleManager* moduleManager = m_metaData->GetModuleManager();
 		wxASSERT(moduleManager);
 		if (moduleManager->RemoveCompileModule(this)) {
-			return CMetaObjectModule::OnAfterCloseMetaObject();
+			return IMetaObjectModule::OnAfterCloseMetaObject();
 		}
 		return false;
 	}
-	return CMetaObjectModule::OnAfterCloseMetaObject();
+	return IMetaObjectModule::OnAfterCloseMetaObject();
 }
+
 
 //***********************************************************************
 //*                       Register in runtime                           *

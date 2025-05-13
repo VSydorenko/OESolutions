@@ -13,7 +13,7 @@
 //array of mathematical operation priorities
 static std::array<int, 256> gs_operPriority = { 0 };
 
-CPrecompileModule::CPrecompileModule(CMetaObjectModule* moduleObject) :
+CPrecompileModule::CPrecompileModule(IMetaObjectModule* moduleObject) :
 	CTranslateCode(moduleObject->GetFullName(), moduleObject->GetDocPath()),
 	m_moduleObject(moduleObject), m_pContext(nullptr), m_pCurrentContext(nullptr),
 	m_numCurrentCompile(wxNOT_FOUND), m_nCurrentPos(0), nLastPosition(0),
@@ -186,7 +186,7 @@ void CPrecompileModule::PrepareModuleData()
 		CValue* pRefData = nullptr;
 		CCompileModule* compileModule = contextVariable->GetCompileModule();
 		while (compileModule != nullptr) {
-			CMetaObjectModule* moduleObject = compileModule->GetModuleObject();
+			IMetaObjectModule* moduleObject = compileModule->GetModuleObject();
 			if (moduleObject != nullptr) {
 				IMetaData* metaData = moduleObject->GetMetaData();
 				wxASSERT(metaData);

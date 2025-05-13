@@ -19,7 +19,7 @@ public:
 	static wxIcon GetIconGroup();
 
 	//events:
-	virtual bool OnCreateMetaObject(IMetaData* metaData);
+	virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
 
 	//module manager is started or exit 
 	virtual bool OnBeforeRunMetaObject(int flags);

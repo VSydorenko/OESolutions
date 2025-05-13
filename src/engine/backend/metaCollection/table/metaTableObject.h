@@ -35,7 +35,7 @@ public:
     static wxIcon GetIconGroup();
 
     //events:
-    virtual bool OnCreateMetaObject(IMetaData* metaData);
+    virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
     virtual bool OnLoadMetaObject(IMetaData* metaData);
     virtual bool OnSaveMetaObject();
     virtual bool OnDeleteMetaObject();

@@ -43,7 +43,7 @@ wxString ISelectorObject::GetString() const
 
 CSelectorDataObject::CSelectorDataObject(IMetaObjectRecordDataMutableRef* metaObject) :
 	ISelectorObject(),
-	IObjectDataValue(Guid(), false),
+	IValueDataObject(Guid(), false),
 	m_metaObject(metaObject)
 {
 	Reset();

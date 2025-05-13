@@ -29,9 +29,9 @@ void CDataProcessorTree::ActivateItem(const wxTreeItemId& item)
 	OpenFormMDI(currObject);
 }
 
-IMetaObject* CDataProcessorTree::NewItem(const class_identifier_t& clsid, IMetaObject* metaParent)
+IMetaObject* CDataProcessorTree::NewItem(const class_identifier_t& clsid, IMetaObject* metaParent, bool runObject)
 {
-	return m_metaData->CreateMetaObject(clsid, metaParent);
+	return m_metaData->CreateMetaObject(clsid, metaParent, runObject);
 }
 
 IMetaObject* CDataProcessorTree::CreateItem(bool showValue)
@@ -43,6 +43,8 @@ IMetaObject* CDataProcessorTree::CreateItem(bool showValue)
 		GetClassIdentifier(),
 		GetMetaIdentifier()
 	);
+
+	if (createdObject == nullptr) return nullptr;
 
 	if (showValue) { OpenFormMDI(createdObject); }
 	UpdateToolbar(createdObject, FillItem(createdObject, item));

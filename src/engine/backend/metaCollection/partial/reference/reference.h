@@ -18,7 +18,7 @@ class BACKEND_API IRecordDataObjectRef;
 //********************************************************************************************
 
 class BACKEND_API CReferenceDataObject : public CValue,
-	public IObjectDataValue {
+	public IValueDataObject {
 	wxDECLARE_DYNAMIC_CLASS(CReferenceDataObject);
 private:
 	enum helperAlias {

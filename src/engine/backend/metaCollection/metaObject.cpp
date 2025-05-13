@@ -26,9 +26,9 @@ bool IMetaObject::AccessRight(const Role* role, const meta_identifier_t& id) con
 	auto roleData = m_valRoles.find(id);
 	if (roleData != m_valRoles.end()) {
 		auto foundedData = std::find_if(roleData->second.begin(), roleData->second.end(), [role](const std::pair<wxString, bool >& pair)
-		{
-			return stringUtils::CompareString(role->GetName(), pair.first);
-		}
+			{
+				return stringUtils::CompareString(role->GetName(), pair.first);
+			}
 		);
 		if (foundedData != roleData->second.end())
 			return foundedData->second;
@@ -49,9 +49,9 @@ Role* IMetaObject::GetRole(const wxString& nameParam) const
 {
 	auto it = std::find_if(m_roles.begin(), m_roles.end(),
 		[nameParam](const std::pair<wxString, Role*>& pair)
-	{
-		return stringUtils::CompareString(nameParam, pair.first);
-	}
+		{
+			return stringUtils::CompareString(nameParam, pair.first);
+		}
 	);
 
 	if (it != m_roles.end())
@@ -356,7 +356,7 @@ bool IMetaObject::DeleteMetaTable(IMetaDataConfiguration* srcMetaData)
 	return CreateAndUpdateTableDB(srcMetaData, this, deleteMetaTable);
 }
 
-bool IMetaObject::OnCreateMetaObject(IMetaData* metaData)
+bool IMetaObject::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
 	GenerateGuid();
 	wxASSERT(metaData);
@@ -458,16 +458,14 @@ bool IMetaObject::PasteObject(CMemoryReader& reader)
 			if (readerMemory == nullptr)
 				break;
 			if (clsid > 0) {
-				IMetaObject* metaObject = m_metaData->CreateMetaObject(clsid, this);
+				IMetaObject* metaObject = m_metaData->CreateMetaObject(clsid, this, false);
 				if (metaObject != nullptr && !metaObject->PasteObject(*readerMemory))
 					return false;
 			}
 			prevReaderMemory = readerMemory;
-		}
-		while (true);
+		} while (true);
 	}
-
-	return true;
+	return OnBeforeRunMetaObject(0) && OnAfterRunMetaObject(0);
 }
 
 bool IMetaObject::ChangeChildPosition(IPropertyObject* obj, unsigned int pos)

@@ -16,16 +16,13 @@ CMetaObjectInformationRegister::CMetaObjectInformationRegister() : IMetaObjectRe
 m_metaRecordManager(new CMetaObjectRecordManager())
 {
 	//set default proc
-	m_moduleObject->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, { "cancel" });
-	m_moduleObject->SetDefaultProcedure("onWrite", eContentHelper::eProcedureHelper, { "cancel" });
+	m_propertyModuleObject->GetMetaObject()->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, {"cancel"});
+	m_propertyModuleObject->GetMetaObject()->SetDefaultProcedure("onWrite", eContentHelper::eProcedureHelper, { "cancel" });
 }
 
 CMetaObjectInformationRegister::~CMetaObjectInformationRegister()
 {
 	wxDELETE(m_metaRecordManager);
-
-	wxDELETE(m_moduleObject);
-	wxDELETE(m_moduleManager);
 }
 
 CMetaObjectForm* CMetaObjectInformationRegister::GetDefaultFormByID(const form_identifier_t& id)
@@ -170,8 +167,8 @@ bool CMetaObjectInformationRegister::LoadData(CMemoryReader& dataReader)
 	m_propertyPeriodicity->SetValue(dataReader.r_u16());
 
 	//load object module
-	m_moduleObject->LoadMeta(dataReader);
-	m_moduleManager->LoadMeta(dataReader);
+	m_propertyModuleObject->LoadData(dataReader);
+	m_propertyModuleManager->LoadData(dataReader);
 
 	return IMetaObjectRegisterData::LoadData(dataReader);
 }
@@ -187,8 +184,8 @@ bool CMetaObjectInformationRegister::SaveData(CMemoryWriter& dataWritter)
 	dataWritter.w_u16(m_propertyPeriodicity->GetValueAsInteger());
 
 	//Save object module
-	m_moduleObject->SaveMeta(dataWritter);
-	m_moduleManager->SaveMeta(dataWritter);
+	m_propertyModuleObject->SaveData(dataWritter);
+	m_propertyModuleManager->SaveData(dataWritter);
 
 	//create or update table:
 	return IMetaObjectRegisterData::SaveData(dataWritter);
@@ -200,21 +197,21 @@ bool CMetaObjectInformationRegister::SaveData(CMemoryWriter& dataWritter)
 
 #include "backend/appData.h"
 
-bool CMetaObjectInformationRegister::OnCreateMetaObject(IMetaData* metaData)
+bool CMetaObjectInformationRegister::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	if (!IMetaObjectRegisterData::OnCreateMetaObject(metaData))
+	if (!IMetaObjectRegisterData::OnCreateMetaObject(metaData, flags))
 		return false;
 
-	return m_moduleManager->OnCreateMetaObject(metaData) &&
-		m_moduleObject->OnCreateMetaObject(metaData);
+	return m_propertyModuleManager->GetMetaObject()->OnCreateMetaObject(metaData, flags) &&
+		m_propertyModuleObject->GetMetaObject()->OnCreateMetaObject(metaData, flags);
 }
 
 bool CMetaObjectInformationRegister::OnLoadMetaObject(IMetaData* metaData)
 {
-	if (!m_moduleManager->OnLoadMetaObject(metaData))
+	if (!m_propertyModuleManager->GetMetaObject()->OnLoadMetaObject(metaData))
 		return false;
 
-	if (!m_moduleObject->OnLoadMetaObject(metaData))
+	if (!m_propertyModuleObject->GetMetaObject()->OnLoadMetaObject(metaData))
 		return false;
 
 	return IMetaObjectRegisterData::OnLoadMetaObject(metaData);
@@ -222,10 +219,10 @@ bool CMetaObjectInformationRegister::OnLoadMetaObject(IMetaData* metaData)
 
 bool CMetaObjectInformationRegister::OnSaveMetaObject()
 {
-	if (!m_moduleManager->OnSaveMetaObject())
+	if (!m_propertyModuleManager->GetMetaObject()->OnSaveMetaObject())
 		return false;
 
-	if (!m_moduleObject->OnSaveMetaObject())
+	if (!m_propertyModuleObject->GetMetaObject()->OnSaveMetaObject())
 		return false;
 
 #if _USE_SAVE_METADATA_IN_TRANSACTION == 1
@@ -240,10 +237,10 @@ bool CMetaObjectInformationRegister::OnSaveMetaObject()
 
 bool CMetaObjectInformationRegister::OnDeleteMetaObject()
 {
-	if (!m_moduleManager->OnDeleteMetaObject())
+	if (!m_propertyModuleManager->GetMetaObject()->OnDeleteMetaObject())
 		return false;
 
-	if (!m_moduleObject->OnDeleteMetaObject())
+	if (!m_propertyModuleObject->GetMetaObject()->OnDeleteMetaObject())
 		return false;
 
 	return IMetaObjectRegisterData::OnDeleteMetaObject();
@@ -257,7 +254,7 @@ bool CMetaObjectInformationRegister::OnReloadMetaObject()
 	if (appData->DesignerMode()) {
 
 		CRecordSetObjectInformationRegister* recordSet = nullptr;
-		if (moduleManager->FindCompileModule(m_moduleObject, recordSet)) {
+		if (moduleManager->FindCompileModule(m_propertyModuleObject->GetMetaObject(), recordSet)) {
 			if (!recordSet->InitializeObject())
 				return false;
 		}
@@ -276,10 +273,10 @@ bool CMetaObjectInformationRegister::OnReloadMetaObject()
 
 bool CMetaObjectInformationRegister::OnBeforeRunMetaObject(int flags)
 {
-	if (!m_moduleManager->OnBeforeRunMetaObject(flags))
+	if (!m_propertyModuleManager->GetMetaObject()->OnBeforeRunMetaObject(flags))
 		return false;
 
-	if (!m_moduleObject->OnBeforeRunMetaObject(flags))
+	if (!m_propertyModuleObject->GetMetaObject()->OnBeforeRunMetaObject(flags))
 		return false;
 
 	registerSelection();
@@ -299,7 +296,7 @@ bool CMetaObjectInformationRegister::OnAfterRunMetaObject(int flags)
 			if (!moduleManager->AddCompileModule(m_metaRecordManager, CreateRecordManagerObjectValue()))
 				return false;
 
-			if (!moduleManager->AddCompileModule(m_moduleObject, CreateRecordSetObjectValue()))
+			if (!moduleManager->AddCompileModule(m_propertyModuleObject->GetMetaObject(), CreateRecordSetObjectValue()))
 				return false;
 
 			return true;
@@ -321,7 +318,7 @@ bool CMetaObjectInformationRegister::OnBeforeCloseMetaObject()
 			if (!moduleManager->RemoveCompileModule(m_metaRecordManager))
 				return false;
 
-			if (!moduleManager->RemoveCompileModule(m_moduleObject))
+			if (!moduleManager->RemoveCompileModule(m_propertyModuleObject->GetMetaObject()))
 				return false;
 
 			return true;
@@ -333,10 +330,10 @@ bool CMetaObjectInformationRegister::OnBeforeCloseMetaObject()
 
 bool CMetaObjectInformationRegister::OnAfterCloseMetaObject()
 {
-	if (!m_moduleManager->OnAfterCloseMetaObject())
+	if (!m_propertyModuleManager->GetMetaObject()->OnAfterCloseMetaObject())
 		return false;
 
-	if (!m_moduleObject->OnAfterCloseMetaObject())
+	if (!m_propertyModuleObject->GetMetaObject()->OnAfterCloseMetaObject())
 		return false;
 
 	unregisterSelection();
@@ -436,7 +433,7 @@ IRecordSetObject* CMetaObjectInformationRegister::CreateRecordSetObjectRegValue(
 
 	if (appData->DesignerMode()) {
 		IRecordSetObject* pDataRef = nullptr;
-		if (!moduleManager->FindCompileModule(m_moduleObject, pDataRef)) {
+		if (!moduleManager->FindCompileModule(m_propertyModuleObject->GetMetaObject(), pDataRef)) {
 			return m_metaData->CreateAndConvertObjectValueRef<CRecordSetObjectInformationRegister>(this, uniqueKey);
 		}
 		return pDataRef;

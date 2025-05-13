@@ -15,10 +15,10 @@ public:
 
 ///////////////////
 
-class IObjectDataValue {
+class IValueDataObject {
 public:
 
-	IObjectDataValue(const Guid& objGuid = wxNullGuid, bool newObject = true) : m_objGuid(objGuid), m_newObject(newObject) {}
+	IValueDataObject(const Guid& objGuid = wxNullGuid, bool newObject = true) : m_objGuid(objGuid), m_newObject(newObject) {}
 
 	//support source set/get data 
 	virtual bool SetValueByMetaID(const meta_identifier_t& id, const CValue& varMetaVal) { return false; }

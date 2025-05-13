@@ -21,19 +21,18 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectConstant, CMetaObjectAttribute)
 CMetaObjectConstant::CMetaObjectConstant() : CMetaObjectAttribute()
 {
 	//set default proc
-	m_moduleObject->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, { "cancel" });
-	m_moduleObject->SetDefaultProcedure("onWrite", eContentHelper::eProcedureHelper, { "cancel" });
+	m_propertyModule->GetMetaObject()->SetDefaultProcedure("beforeWrite", eContentHelper::eProcedureHelper, { "cancel" });
+	m_propertyModule->GetMetaObject()->SetDefaultProcedure("onWrite", eContentHelper::eProcedureHelper, { "cancel" });
 }
 
 CMetaObjectConstant::~CMetaObjectConstant()
 {
-	wxDELETE(m_moduleObject);
 }
 
 bool CMetaObjectConstant::LoadData(CMemoryReader& dataReader)
 {
 	//load object module
-	m_moduleObject->LoadMeta(dataReader);
+	m_propertyModule->LoadData(dataReader);
 
 	return CMetaObjectAttribute::LoadData(dataReader);
 }
@@ -41,7 +40,7 @@ bool CMetaObjectConstant::LoadData(CMemoryReader& dataReader)
 bool CMetaObjectConstant::SaveData(CMemoryWriter& dataWritter)
 {
 	//save object module
-	m_moduleObject->SaveMeta(dataWritter);
+	m_propertyModule->SaveData(dataWritter);
 
 	return CMetaObjectAttribute::SaveData(dataWritter);
 }
@@ -57,12 +56,12 @@ bool CMetaObjectConstant::DeleteData()
 
 #include "backend/appData.h"
 
-bool CMetaObjectConstant::OnCreateMetaObject(IMetaData* metaData)
+bool CMetaObjectConstant::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	if (!CMetaObjectAttribute::OnCreateMetaObject(metaData))
+	if (!CMetaObjectAttribute::OnCreateMetaObject(metaData, flags))
 		return false;
 
-	return m_moduleObject->OnCreateMetaObject(metaData);
+	return m_propertyModule->GetMetaObject()->OnCreateMetaObject(metaData, flags);
 }
 
 bool CMetaObjectConstant::OnLoadMetaObject(IMetaData* metaData)
@@ -70,7 +69,7 @@ bool CMetaObjectConstant::OnLoadMetaObject(IMetaData* metaData)
 	IModuleManager* moduleManager = m_metaData->GetModuleManager();
 	wxASSERT(moduleManager);
 
-	if (!m_moduleObject->OnLoadMetaObject(metaData))
+	if (!m_propertyModule->GetMetaObject()->OnLoadMetaObject(metaData))
 		return false;
 
 	return CMetaObjectAttribute::OnLoadMetaObject(metaData);
@@ -78,7 +77,7 @@ bool CMetaObjectConstant::OnLoadMetaObject(IMetaData* metaData)
 
 bool CMetaObjectConstant::OnSaveMetaObject()
 {
-	if (!m_moduleObject->OnSaveMetaObject())
+	if (!m_propertyModule->GetMetaObject()->OnSaveMetaObject())
 		return false;
 
 	return CMetaObjectAttribute::OnSaveMetaObject();
@@ -86,7 +85,7 @@ bool CMetaObjectConstant::OnSaveMetaObject()
 
 bool CMetaObjectConstant::OnDeleteMetaObject()
 {
-	if (!m_moduleObject->OnDeleteMetaObject())
+	if (!m_propertyModule->GetMetaObject()->OnDeleteMetaObject())
 		return false;
 
 	return CMetaObjectAttribute::OnDeleteMetaObject();
@@ -96,7 +95,7 @@ bool CMetaObjectConstant::OnDeleteMetaObject()
 
 bool CMetaObjectConstant::OnBeforeRunMetaObject(int flags)
 {
-	if (!m_moduleObject->OnBeforeRunMetaObject(flags))
+	if (!m_propertyModule->GetMetaObject()->OnBeforeRunMetaObject(flags))
 		return false;
 
 	registerConstObject();
@@ -113,7 +112,7 @@ bool CMetaObjectConstant::OnAfterRunMetaObject(int flags)
 	if (appData->DesignerMode()) {
 	
 		if (CMetaObjectAttribute::OnAfterRunMetaObject(flags))
-			return moduleManager->AddCompileModule(m_moduleObject, CreateObjectValue());
+			return moduleManager->AddCompileModule(m_propertyModule->GetMetaObject(), CreateObjectValue());
 		
 		return false;
 	}
@@ -128,7 +127,7 @@ bool CMetaObjectConstant::OnBeforeCloseMetaObject()
 
 	if (appData->DesignerMode()) {
 		
-		if (moduleManager->RemoveCompileModule(m_moduleObject)) 
+		if (moduleManager->RemoveCompileModule(m_propertyModule->GetMetaObject()))
 			return CMetaObjectAttribute::OnAfterCloseMetaObject();
 		
 		return false;
@@ -139,7 +138,7 @@ bool CMetaObjectConstant::OnBeforeCloseMetaObject()
 
 bool CMetaObjectConstant::OnAfterCloseMetaObject()
 {
-	if (!m_moduleObject->OnAfterCloseMetaObject())
+	if (!m_propertyModule->GetMetaObject()->OnAfterCloseMetaObject())
 		return false;
 
 	unregisterConstObject();

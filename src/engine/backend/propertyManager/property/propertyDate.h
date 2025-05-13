@@ -3,6 +3,8 @@
 
 #include "backend/propertyManager/propertyObject.h"
 
+#include <wx/propgrid/advprops.h>
+
 //base property for "date"
 class BACKEND_API CPropertyDate : public IProperty {
 public:
@@ -29,7 +31,7 @@ public:
 
 	//get property for grid 
 	virtual wxPGProperty* GetPGProperty() const {
-		return new wxStringProperty(m_propLabel, m_propName, m_propValue.GetString());
+		return new wxDateProperty(m_propLabel, m_propName, GetValueAsDateTime());
 	}
 
 	// set/get property data

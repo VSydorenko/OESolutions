@@ -86,8 +86,6 @@ IMetaData* CValueTableBoxColumn::GetMetaData() const
 wxObject* CValueTableBoxColumn::Create(wxWindow* wxparent, IVisualHost* visualHost)
 {
     ÑDataViewColumnContainer* columnObject = new ÑDataViewColumnContainer(this, m_propertyCaption->GetValueAsString(),
-        //	m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId, 
-        //GetSourceColumn(),
         wxNOT_FOUND,
         m_propertyWidth->GetValueAsInteger(),
         (wxAlignment)m_propertyAlign->GetValueAsInteger(),
@@ -105,9 +103,6 @@ wxObject* CValueTableBoxColumn::Create(wxWindow* wxparent, IVisualHost* visualHo
     columnObject->SetHidden(!m_propertyVisible->GetValueAsBoolean());
     columnObject->SetSortable(false);
     columnObject->SetResizeable(m_propertyResizable->GetValueAsBoolean());
-
-    //columnObject->SetColModel(m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId);
-    //columnObject->SetColModel(GetSourceColumn());
 
     CValueViewRenderer* colRenderer = columnObject->GetRenderer();
     wxASSERT(colRenderer);
@@ -136,8 +131,6 @@ void CValueTableBoxColumn::OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVi
     for (unsigned int i = 0; i < parentControl->GetChildCount(); i++) {
         CValueTableBoxColumn* child = dynamic_cast<CValueTableBoxColumn*>(parentControl->GetChild(i));
         wxASSERT(child);
-        //if (m_dataSource.isValid() && m_dataSource == child->m_dataSource) { idx = i; break; }
-        //else if (!m_dataSource.isValid() && m_controlId == child->m_controlId) { idx = i; break; }
         if (child->GetSourceColumn() == GetSourceColumn()) { idx = i; break; }
     }
 
@@ -161,7 +154,6 @@ void CValueTableBoxColumn::OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVi
     columnObject->SetAlignment((wxAlignment)m_propertyAlign->GetValueAsInteger());
 
     IValueModel* modelValue = GetOwner()->GetModel();
-    //	sortOrder_t::sortData_t* sort = modelValue != nullptr ? modelValue->GetSortByID(m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId) : false;
     sortOrder_t::sortData_t* sort = modelValue != nullptr ? modelValue->GetSortByID(GetSourceColumn()) : nullptr;
 
     columnObject->SetBitmap(m_propertyIcon->GetValueAsBitmap());
@@ -172,7 +164,6 @@ void CValueTableBoxColumn::OnUpdated(wxObject* wxobject, wxWindow* wxparent, IVi
     if (sort != nullptr && sort->m_sortEnable && !sort->m_sortSystem && !appData->DesignerMode())
         columnObject->SetSortOrder(sort->m_sortAscending);
 
-    //columnObject->SetColModel(m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId);
     columnObject->SetColModel(GetSourceColumn());
 
     wxHeaderCtrl* headerCtrl = tableCtrl->GenericGetHeader();
@@ -216,7 +207,6 @@ bool CValueTableBoxColumn::CanDeleteControl() const
 
 bool CValueTableBoxColumn::FilterSource(const CSourceExplorer& src, const meta_identifier_t& id)
 {
-    //return id == GetIdByGuid(GetOwner()->m_dataSource);
     return id == GetOwner()->GetSource();
 }
 
@@ -228,7 +218,6 @@ bool CValueTableBoxColumn::SetControlValue(const CValue& varControlVal)
     IValueTable::IValueModelReturnLine* retLine = GetReturnLine();
     if (retLine != nullptr) {
         retLine->SetValueByMetaID(
-            //			m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId, varControlVal
             GetSourceColumn(), varControlVal
         );
     }
@@ -257,7 +246,6 @@ bool CValueTableBoxColumn::GetControlValue(CValue& pvarControlVal) const
     IValueTable::IValueModelReturnLine* retLine = GetReturnLine();
     if (retLine != nullptr) {
         return retLine->GetValueByMetaID(
-            //			m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId, pvarControlVal
             GetSourceColumn(), pvarControlVal
         );
     }

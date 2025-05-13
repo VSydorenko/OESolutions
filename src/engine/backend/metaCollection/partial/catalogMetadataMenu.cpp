@@ -10,9 +10,9 @@ bool CMetaObjectCatalog::PrepareContextMenu(wxMenu *defaultMenu)
 {
 	wxMenuItem *menuItem = nullptr;
 	menuItem = defaultMenu->Append(ID_METATREE_OPEN_MODULE, _("Open module"));
-	menuItem->SetBitmap(m_moduleObject->GetIcon());
+	menuItem->SetBitmap(m_propertyModuleObject->GetMetaObject()->GetIcon());
 	menuItem = defaultMenu->Append(ID_METATREE_OPEN_MANAGER, _("Open manager"));
-	menuItem->SetBitmap(m_moduleManager->GetIcon());
+	menuItem->SetBitmap(m_propertyModuleManager->GetMetaObject()->GetIcon());
 	defaultMenu->AppendSeparator();
 	return false;
 }
@@ -23,7 +23,7 @@ void CMetaObjectCatalog::ProcessCommand(unsigned int id)
 	wxASSERT(metaTree);
 
 	if (id == ID_METATREE_OPEN_MODULE)
-		metaTree->OpenFormMDI(m_moduleObject);
+		metaTree->OpenFormMDI(m_propertyModuleObject->GetMetaObject());
 	else if (id == ID_METATREE_OPEN_MANAGER)
-		metaTree->OpenFormMDI(m_moduleManager);
+		metaTree->OpenFormMDI(m_propertyModuleManager->GetMetaObject());
 }

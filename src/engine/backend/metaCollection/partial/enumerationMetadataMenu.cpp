@@ -9,7 +9,7 @@
 bool CMetaObjectEnumeration::PrepareContextMenu(wxMenu *defaultMenu)
 {
 	wxMenuItem *menuItem = defaultMenu->Append(ID_METATREE_OPEN_MANAGER, _("Open manager"));
-	menuItem->SetBitmap(m_moduleManager->GetIcon());
+	menuItem->SetBitmap(m_propertyModuleManager->GetMetaObject()->GetIcon());
 	defaultMenu->AppendSeparator();
 	return false;
 }
@@ -20,5 +20,5 @@ void CMetaObjectEnumeration::ProcessCommand(unsigned int id)
 	wxASSERT(metaTree);
 
 	if (id == ID_METATREE_OPEN_MANAGER)
-		metaTree->OpenFormMDI(m_moduleManager);
+		metaTree->OpenFormMDI(m_propertyModuleManager->GetMetaObject());
 }

@@ -10,7 +10,7 @@ bool CMetaObjectConstant::PrepareContextMenu(wxMenu *defaultMenu)
 {
 	wxMenuItem *menuItem = nullptr;
 	menuItem = defaultMenu->Append(ID_METATREE_OPEN_CONSTANT_MANAGER, _("Open constant module"));
-	menuItem->SetBitmap(m_moduleObject->GetIcon());
+	menuItem->SetBitmap(m_propertyModule->GetMetaObject()->GetIcon());
 	defaultMenu->AppendSeparator();
 	return false;
 }
@@ -21,5 +21,5 @@ void CMetaObjectConstant::ProcessCommand(unsigned int id)
 	wxASSERT(metaTree);
 
 	if (id == ID_METATREE_OPEN_CONSTANT_MANAGER)
-		metaTree->OpenFormMDI(m_moduleObject);
+		metaTree->OpenFormMDI(m_propertyModule->GetMetaObject());
 }

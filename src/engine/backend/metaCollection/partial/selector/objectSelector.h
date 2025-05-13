@@ -36,7 +36,7 @@ protected:
 };
 
 class BACKEND_API CSelectorDataObject : public ISelectorObject,
-	public IObjectDataValue {
+	public IValueDataObject {
 public:
 
 	CSelectorDataObject(IMetaObjectRecordDataMutableRef* metaObject);

@@ -18,9 +18,10 @@ m_version(version_oes_last)
 	m_commonObject->SetName(
 		IMetaData::GetNewName(g_metaExternalDataProcessorCLSID, nullptr, m_commonObject->GetClassName())
 	);
+
 	m_commonObject->SetReadOnly(!m_metaReadOnly);
 
-	if (m_commonObject->OnCreateMetaObject(this)) {
+	if (m_commonObject->OnCreateMetaObject(this, newObjectFlag)) {
 		m_moduleManager = new CModuleManagerExternalReport(this, m_commonObject);
 		m_moduleManager->IncrRef();
 		if (!m_commonObject->OnLoadMetaObject(this)) {
@@ -234,7 +235,7 @@ bool CMetaDataReport::CloseChildMetadata(IMetaObject* metaParent, int flags, boo
 bool CMetaDataReport::LoadFromFile(const wxString& strFileName)
 {
 	if (m_commonObject->GetObjectMode() == METAOBJECT_NORMAL) {
-		if (!m_commonObject->OnCreateMetaObject(m_ownerMeta))
+		if (!m_commonObject->OnCreateMetaObject(m_ownerMeta, newObjectFlag))
 			return false;
 	}
 	else if (m_commonObject->GetObjectMode() == METAOBJECT_EXTERNAL) {

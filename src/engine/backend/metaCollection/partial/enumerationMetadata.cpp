@@ -25,7 +25,6 @@ CMetaObjectEnumeration::CMetaObjectEnumeration() : IMetaObjectRecordDataEnumRef(
 
 CMetaObjectEnumeration::~CMetaObjectEnumeration()
 {
-	wxDELETE(m_moduleManager);
 }
 
 CMetaObjectForm* CMetaObjectEnumeration::GetDefaultFormByID(const form_identifier_t& id)
@@ -148,7 +147,7 @@ bool CMetaObjectEnumeration::GetFormSelect(CPropertyList* prop)
 	return true;
 }
 
-wxString CMetaObjectEnumeration::GetDataPresentation(const IObjectDataValue* objValue) const
+wxString CMetaObjectEnumeration::GetDataPresentation(const IValueDataObject* objValue) const
 {
 	for (auto &obj : GetObjectEnums()) {
 		if (objValue->GetGuid() == obj->GetGuid()) {
@@ -165,7 +164,7 @@ wxString CMetaObjectEnumeration::GetDataPresentation(const IObjectDataValue* obj
 bool CMetaObjectEnumeration::LoadData(CMemoryReader& dataReader)
 {
 	//Load object module
-	m_moduleManager->LoadMeta(dataReader);
+	m_propertyModuleManager->LoadData(dataReader);
 
 	//save default form 
 	m_propertyDefFormList->SetValue(GetIdByGuid(dataReader.r_stringZ()));
@@ -177,7 +176,7 @@ bool CMetaObjectEnumeration::LoadData(CMemoryReader& dataReader)
 bool CMetaObjectEnumeration::SaveData(CMemoryWriter& dataWritter)
 {
 	//Save object module
-	m_moduleManager->SaveMeta(dataWritter);
+	m_propertyModuleManager->SaveData(dataWritter);
 
 	//save default form 
 	dataWritter.w_stringZ(GetGuidByID(m_propertyDefFormList->GetValueAsInteger()));
@@ -191,17 +190,17 @@ bool CMetaObjectEnumeration::SaveData(CMemoryWriter& dataWritter)
 //*                           read & save events                        *
 //***********************************************************************
 
-bool CMetaObjectEnumeration::OnCreateMetaObject(IMetaData* metaData)
+bool CMetaObjectEnumeration::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	if (!IMetaObjectRecordDataEnumRef::OnCreateMetaObject(metaData))
+	if (!IMetaObjectRecordDataEnumRef::OnCreateMetaObject(metaData, flags))
 		return false;
 
-	return m_moduleManager->OnCreateMetaObject(metaData);
+	return m_propertyModuleManager->GetMetaObject()->OnCreateMetaObject(metaData, flags);
 }
 
 bool CMetaObjectEnumeration::OnLoadMetaObject(IMetaData* metaData)
 {
-	if (!m_moduleManager->OnLoadMetaObject(metaData))
+	if (!m_propertyModuleManager->GetMetaObject()->OnLoadMetaObject(metaData))
 		return false;
 
 	return IMetaObjectRecordDataEnumRef::OnLoadMetaObject(metaData);
@@ -209,7 +208,7 @@ bool CMetaObjectEnumeration::OnLoadMetaObject(IMetaData* metaData)
 
 bool CMetaObjectEnumeration::OnSaveMetaObject()
 {
-	if (!m_moduleManager->OnSaveMetaObject())
+	if (!m_propertyModuleManager->GetMetaObject()->OnSaveMetaObject())
 		return false;
 
 	return IMetaObjectRecordDataEnumRef::OnSaveMetaObject();
@@ -217,7 +216,7 @@ bool CMetaObjectEnumeration::OnSaveMetaObject()
 
 bool CMetaObjectEnumeration::OnDeleteMetaObject()
 {
-	if (!m_moduleManager->OnDeleteMetaObject())
+	if (!m_propertyModuleManager->GetMetaObject()->OnDeleteMetaObject())
 		return false;
 
 	return IMetaObjectRecordDataEnumRef::OnDeleteMetaObject();
@@ -230,7 +229,7 @@ bool CMetaObjectEnumeration::OnReloadMetaObject()
 
 bool CMetaObjectEnumeration::OnBeforeRunMetaObject(int flags)
 {
-	if (!m_moduleManager->OnBeforeRunMetaObject(flags))
+	if (!m_propertyModuleManager->GetMetaObject()->OnBeforeRunMetaObject(flags))
 		return false;
 
 	return IMetaObjectRecordDataEnumRef::OnBeforeRunMetaObject(flags);
@@ -238,7 +237,7 @@ bool CMetaObjectEnumeration::OnBeforeRunMetaObject(int flags)
 
 bool CMetaObjectEnumeration::OnAfterCloseMetaObject()
 {
-	if (!m_moduleManager->OnAfterCloseMetaObject())
+	if (!m_propertyModuleManager->GetMetaObject()->OnAfterCloseMetaObject())
 		return false;
 
 	return IMetaObjectRecordDataEnumRef::OnAfterCloseMetaObject();

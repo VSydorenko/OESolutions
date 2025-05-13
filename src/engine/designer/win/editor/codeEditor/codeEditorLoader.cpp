@@ -40,7 +40,7 @@ void CCodeEditor::AddKeywordFromObject(const CValue& vObject)
 		}
 		IModuleDataObject* moduleInfo = dynamic_cast<IModuleDataObject*>(vObject.GetRef());
 		if (moduleInfo != nullptr) {
-			CMetaObjectModule* computeModuleObject = moduleInfo->GetMetaObject();
+			IMetaObjectModule* computeModuleObject = moduleInfo->GetMetaObject();
 			if (computeModuleObject != nullptr) {
 				CParserModule cParser;
 				if (cParser.ParseModule(computeModuleObject->GetModuleText())) {
@@ -381,7 +381,7 @@ void CCodeEditor::LoadCallTip()
 
 				IModuleDataObject* moduleInfo = dynamic_cast<IModuleDataObject*>(vObject.GetRef());
 				if (moduleInfo) {
-					CMetaObjectModule* computeModuleObject = moduleInfo->GetMetaObject();
+					IMetaObjectModule* computeModuleObject = moduleInfo->GetMetaObject();
 					if (computeModuleObject) {
 						CParserModule cParser;
 						if (cParser.ParseModule(computeModuleObject->GetModuleText())) {

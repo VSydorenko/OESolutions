@@ -4,14 +4,14 @@
 #include "metaObject.h"
 #include "metaObjectMetadataEnum.h"
 
+#include "metaModuleObject.h"
+
 //*****************************************************************************************
 //*                                  metaData object                                      *
 //*****************************************************************************************
 
 #define configurationDefaultName _("ñonfiguration")
 
-///////////////////////////////////////////////////////////////////////////
-class BACKEND_API CMetaObjectModule;
 ///////////////////////////////////////////////////////////////////////////
 
 class BACKEND_API CMetaObjectConfiguration : public IMetaObject {
@@ -24,18 +24,20 @@ private:
 	Role* m_roleExclusiveMode = IMetaObject::CreateRole("exclusiveMode", _("exclusive mode"));
 	Role* m_roleModeAllFunction = IMetaObject::CreateRole("modeAllFunctions", _("mode \"All functions\""));
 protected:
-	
+
 	enum
 	{
 		ID_METATREE_OPEN_INIT_MODULE = 19000,
 	};
+
+	CPropertyInnerModule<CMetaObjectModule>* m_propertyModuleConfiguration = IPropertyObject::CreateProperty<CPropertyInnerModule<CMetaObjectModule>>(m_categorySecondary, IMetaObject::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("configurationModule"), _("configuration module")));
 
 	CPropertyCategory* m_compatibilityCategory = IPropertyObject::CreatePropertyCategory(wxT("compatibility"), _("compatibility"));
 	CPropertyEnum<CValueEnumVersion>* m_propertyVersion = IPropertyObject::CreateProperty<CPropertyEnum<CValueEnumVersion>>(m_compatibilityCategory, wxT("version"), _("version"), version_oes_last);
 
 public:
 
-	virtual bool FilterChild(const class_identifier_t &clsid) const {
+	virtual bool FilterChild(const class_identifier_t& clsid) const {
 
 		if (
 			clsid == g_metaCommonModuleCLSID ||
@@ -52,7 +54,7 @@ public:
 			clsid == g_metaInformationRegisterCLSID ||
 			clsid == g_metaAccumulationRegisterCLSID
 			)
-			return true; 
+			return true;
 
 		return false;
 	}
@@ -81,7 +83,7 @@ public:
 	static wxIcon GetIconGroup();
 
 	//events
-	virtual bool OnCreateMetaObject(IMetaData* metaData);
+	virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
 	virtual bool OnLoadMetaObject(IMetaData* metaData);
 	virtual bool OnSaveMetaObject();
 	virtual bool OnDeleteMetaObject();
@@ -99,19 +101,13 @@ public:
 
 public:
 
-	virtual CMetaObjectModule* GetModuleObject() const {
-		return m_commonModule;
-	}
+	virtual CMetaObjectModule* GetModuleObject() const { return m_propertyModuleConfiguration->GetMetaObject(); }
 
 protected:
 
 	//load & save metaData from DB 
 	virtual bool LoadData(CMemoryReader& reader);
 	virtual bool SaveData(CMemoryWriter& writer = CMemoryWriter());
-
-private:
-
-	CMetaObjectModule* m_commonModule = IMetaObject::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("configurationModule"));
 };
 
 #endif 

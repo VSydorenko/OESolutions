@@ -15,14 +15,10 @@ bool CValueTextCtrl::GetChoiceForm(CPropertyList* property)
 	IMetaData* metaData = GetMetaData();
 	if (metaData != nullptr) {
 		IMetaObjectRecordDataRef* metaObject = nullptr;
-		//if (m_dataSource.isValid()) {
 		if (!m_propertySource->IsEmptyProperty()) {
 			const IMetaObjectGenericData* metaObjectValue =
 				m_formOwner->GetMetaObject();
 			if (metaObjectValue != nullptr) {
-				//IMetaObjectAttribute* metaAttribute = wxDynamicCast(
-				//	metaObjectValue->FindMetaObjectByID(m_dataSource), IMetaObjectAttribute
-				//);
 				IMetaObjectAttribute* metaAttribute = wxDynamicCast(
 					metaObjectValue->FindMetaObjectByID(m_propertySource->GetValueAsSource()), IMetaObjectAttribute
 				);
@@ -78,19 +74,9 @@ IMetaData* CValueTextCtrl::GetMetaData() const
 wxObject* CValueTextCtrl::Create(wxWindow* wxparent, IVisualHost* visualHost)
 {
 	wxTextContainerCtrl* textEditor = new wxTextContainerCtrl(wxparent, wxID_ANY,
-		m_selValue.GetString(),
+		wxEmptyString,
 		wxDefaultPosition,
 		wxDefaultSize);
-
-	//if (m_dataSource.isValid()) {
-	//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
-	//	if (srcObject != nullptr) {
-	//		srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
-	//	}
-	//}
-	//else {
-	//	m_selValue = ITypeControlFactory::CreateValue();
-	//}
 
 	if (!m_propertySource->IsEmptyProperty()) {
 		ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
@@ -117,10 +103,6 @@ void CValueTextCtrl::Update(wxObject* wxobject, IVisualHost* visualHost)
 
 	if (textEditor != nullptr) {
 		wxString textCaption = wxEmptyString;
-		//if (m_dataSource.isValid()) {
-		//	IMetaObject* metaObject = GetMetaSource();
-		//	if (metaObject != nullptr) textCaption = metaObject->GetSynonym() + wxT(":");
-		//}
 
 		if (!m_propertySource->IsEmptyProperty()) {
 			const IMetaObject* metaObject = m_propertySource->GetSourceAttributeObject();
@@ -129,13 +111,6 @@ void CValueTextCtrl::Update(wxObject* wxobject, IVisualHost* visualHost)
 
 		textEditor->SetTextLabel(m_propertyCaption->IsEmptyProperty() ?
 			textCaption : m_propertyCaption->GetValueAsString());
-
-		//if (m_dataSource.isValid()) {
-		//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
-		//	if (srcObject != nullptr) {
-		//		srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), m_selValue);
-		//	}
-		//}
 
 		if (!m_propertySource->IsEmptyProperty()) {
 			ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
@@ -200,13 +175,6 @@ void CValueTextCtrl::Cleanup(wxObject* wxobject, IVisualHost* visualHost)
 
 bool CValueTextCtrl::GetControlValue(CValue& pvarControlVal) const
 {
-	//if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
-	//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
-	//	if (srcObject != nullptr) {
-	//		return srcObject->GetValueByMetaID(GetIdByGuid(m_dataSource), pvarControlVal);
-	//	}
-	//}
-
 	const ISourceDataObject* sourceObject = m_formOwner->GetSourceObject();
 	if (!m_propertySource->IsEmptyProperty() && sourceObject != nullptr) {
 		return sourceObject->GetValueByMetaID(m_propertySource->GetValueAsSource(), pvarControlVal);
@@ -218,21 +186,6 @@ bool CValueTextCtrl::GetControlValue(CValue& pvarControlVal) const
 
 bool CValueTextCtrl::SetControlValue(const CValue& varControlVal)
 {
-	//if (m_dataSource.isValid() && m_formOwner->GetSourceObject()) {
-	//	IMetaObjectAttribute* metaObject = wxDynamicCast(
-	//		GetMetaSource(), IMetaObjectAttribute
-	//	);
-	//	wxASSERT(metaObject);
-	//	ISourceDataObject* srcObject = m_formOwner->GetSourceObject();
-	//	if (srcObject != nullptr) {
-	//		srcObject->SetValueByMetaID(GetIdByGuid(m_dataSource), varControlVal);
-	//	}
-	//	m_selValue = metaObject->AdjustValue(varControlVal);
-	//}
-	//else {
-	//	m_selValue = ITypeControlFactory::AdjustValue(varControlVal);
-	//}
-
 	ISourceDataObject* sourceObject = m_formOwner->GetSourceObject();
 	if (!m_propertySource->IsEmptyProperty() && sourceObject != nullptr) {
 		//IMetaObjectAttribute* metaObject = wxDynamicCast(GetMetaSource(), IMetaObjectAttribute);

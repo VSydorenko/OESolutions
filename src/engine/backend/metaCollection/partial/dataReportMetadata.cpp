@@ -20,8 +20,6 @@ CMetaObjectReport::CMetaObjectReport(int objMode) : IMetaObjectRecordDataExt(obj
 
 CMetaObjectReport::~CMetaObjectReport()
 {
-	wxDELETE(m_moduleObject);
-	wxDELETE(m_moduleManager);
 }
 
 CMetaObjectForm* CMetaObjectReport::GetDefaultFormByID(const form_identifier_t& id)
@@ -58,7 +56,7 @@ IRecordDataObjectExt* CMetaObjectReport::CreateObjectExtValue()
 	CRecordDataObjectReport* pDataRef = nullptr;
 	if (appData->DesignerMode()) {
 		if (m_objMode == METAOBJECT_NORMAL) {
-			if (!moduleManager->FindCompileModule(m_moduleObject, pDataRef)) {
+			if (!moduleManager->FindCompileModule(m_propertyModuleObject->GetMetaObject(), pDataRef)) {
 				CRecordDataObjectReport* createdObj = m_metaData->CreateAndConvertObjectValueRef<CRecordDataObjectReport>(this);
 				if (!createdObj->InitializeObject()) {
 					wxDELETE(createdObj);
@@ -142,8 +140,8 @@ bool CMetaObjectReport::GetFormObject(CPropertyList* prop)
 bool CMetaObjectReport::LoadData(CMemoryReader& dataReader)
 {
 	//Load object module
-	m_moduleObject->LoadMeta(dataReader);
-	m_moduleManager->LoadMeta(dataReader);
+	m_propertyModuleObject->LoadData(dataReader);
+	m_propertyModuleManager->LoadData(dataReader);
 
 	//Load default form 
 	m_propertyDefFormObject->SetValue(GetIdByGuid(dataReader.r_stringZ()));
@@ -154,8 +152,8 @@ bool CMetaObjectReport::LoadData(CMemoryReader& dataReader)
 bool CMetaObjectReport::SaveData(CMemoryWriter& dataWritter)
 {
 	//Save object module
-	m_moduleObject->SaveMeta(dataWritter);
-	m_moduleManager->SaveMeta(dataWritter);
+	m_propertyModuleObject->SaveData(dataWritter);
+	m_propertyModuleManager->SaveData(dataWritter);
 
 	//Save default form 
 	dataWritter.w_stringZ(GetGuidByID(m_propertyDefFormObject->GetValueAsInteger()));
@@ -167,13 +165,13 @@ bool CMetaObjectReport::SaveData(CMemoryWriter& dataWritter)
 //*                           read & save events                        *
 //***********************************************************************
 
-bool CMetaObjectReport::OnCreateMetaObject(IMetaData* metaData)
+bool CMetaObjectReport::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	if (!IMetaObjectRecordData::OnCreateMetaObject(metaData))
+	if (!IMetaObjectRecordData::OnCreateMetaObject(metaData, flags))
 		return false;
 
-	return (m_objMode == METAOBJECT_NORMAL ? m_moduleManager->OnCreateMetaObject(metaData) : true) &&
-		m_moduleObject->OnCreateMetaObject(metaData);
+	return (m_objMode == METAOBJECT_NORMAL ? m_propertyModuleManager->GetMetaObject()->OnCreateMetaObject(metaData, flags) : true) &&
+		m_propertyModuleObject->GetMetaObject()->OnCreateMetaObject(metaData, flags);
 }
 
 bool CMetaObjectReport::OnLoadMetaObject(IMetaData* metaData)
@@ -183,19 +181,19 @@ bool CMetaObjectReport::OnLoadMetaObject(IMetaData* metaData)
 
 	if (m_objMode == METAOBJECT_NORMAL) {
 
-		if (!m_moduleManager->OnLoadMetaObject(metaData))
+		if (!m_propertyModuleManager->GetMetaObject()->OnLoadMetaObject(metaData))
 			return false;
 
-		m_moduleObject->SetMetaData(m_metaData);
-
-		if (!m_moduleObject->OnLoadMetaObject(metaData))
+		m_propertyModuleObject->GetMetaObject()->SetMetaData(m_metaData);
+	
+		if (!m_propertyModuleObject->GetMetaObject()->OnLoadMetaObject(metaData))
 			return false;
 	}
 	else {
 
-		m_moduleObject->SetMetaData(m_metaData);
+		m_propertyModuleObject->GetMetaObject()->SetMetaData(m_metaData);
 
-		if (!m_moduleObject->OnLoadMetaObject(metaData))
+		if (!m_propertyModuleObject->GetMetaObject()->OnLoadMetaObject(metaData))
 			return false;
 	}
 
@@ -205,11 +203,11 @@ bool CMetaObjectReport::OnLoadMetaObject(IMetaData* metaData)
 bool CMetaObjectReport::OnSaveMetaObject()
 {
 	if (m_objMode == METAOBJECT_NORMAL) {
-		if (!m_moduleManager->OnSaveMetaObject())
+		if (!m_propertyModuleManager->GetMetaObject()->OnSaveMetaObject())
 			return false;
 	}
 
-	if (!m_moduleObject->OnSaveMetaObject())
+	if (!m_propertyModuleObject->GetMetaObject()->OnSaveMetaObject())
 		return false;
 
 	return IMetaObjectRecordData::OnSaveMetaObject();
@@ -218,11 +216,11 @@ bool CMetaObjectReport::OnSaveMetaObject()
 bool CMetaObjectReport::OnDeleteMetaObject()
 {
 	if (m_objMode == METAOBJECT_NORMAL) {
-		if (!m_moduleManager->OnDeleteMetaObject())
+		if (!m_propertyModuleManager->GetMetaObject()->OnDeleteMetaObject())
 			return false;
 	}
 
-	if (!m_moduleObject->OnDeleteMetaObject())
+	if (!m_propertyModuleObject->GetMetaObject()->OnDeleteMetaObject())
 		return false;
 
 	return IMetaObjectRecordData::OnDeleteMetaObject();
@@ -235,7 +233,7 @@ bool CMetaObjectReport::OnReloadMetaObject()
 
 	if (appData->DesignerMode()) {
 		CRecordDataObjectReport* pDataRef = nullptr;
-		if (!moduleManager->FindCompileModule(m_moduleObject, pDataRef)) {
+		if (!moduleManager->FindCompileModule(m_propertyModuleObject->GetMetaObject(), pDataRef)) {
 			return true;
 		}
 		return pDataRef->InitializeObject();
@@ -247,12 +245,12 @@ bool CMetaObjectReport::OnReloadMetaObject()
 bool CMetaObjectReport::OnBeforeRunMetaObject(int flags)
 {
 	if (m_objMode == METAOBJECT_NORMAL) {
-		if (!m_moduleManager->OnBeforeRunMetaObject(flags)) {
+		if (!m_propertyModuleManager->GetMetaObject()->OnBeforeRunMetaObject(flags)) {
 			return false;
 		}
 	}
 
-	if (!m_moduleObject->OnBeforeRunMetaObject(flags)) {
+	if (!m_propertyModuleObject->GetMetaObject()->OnBeforeRunMetaObject(flags)) {
 		return false;
 	}
 
@@ -266,7 +264,7 @@ bool CMetaObjectReport::OnAfterRunMetaObject(int flags)
 
 	if (appData->DesignerMode()) {
 		if (IMetaObjectRecordData::OnAfterRunMetaObject(flags))
-			return moduleManager->AddCompileModule(m_moduleObject, CreateObjectValue());
+			return moduleManager->AddCompileModule(m_propertyModuleObject->GetMetaObject(), CreateObjectValue());
 		return false;
 	}
 
@@ -280,7 +278,7 @@ bool CMetaObjectReport::OnBeforeCloseMetaObject()
 
 	if (appData->DesignerMode()) {
 		if (IMetaObjectRecordData::OnBeforeCloseMetaObject())
-			return moduleManager->RemoveCompileModule(m_moduleObject);
+			return moduleManager->RemoveCompileModule(m_propertyModuleObject->GetMetaObject());
 		return false;
 	}
 
@@ -290,11 +288,11 @@ bool CMetaObjectReport::OnBeforeCloseMetaObject()
 bool CMetaObjectReport::OnAfterCloseMetaObject()
 {
 	if (m_objMode == METAOBJECT_NORMAL) {
-		if (!m_moduleManager->OnAfterCloseMetaObject())
+		if (!m_propertyModuleManager->GetMetaObject()->OnAfterCloseMetaObject())
 			return false;
 	}
 
-	if (!m_moduleObject->OnAfterCloseMetaObject()) {
+	if (!m_propertyModuleObject->GetMetaObject()->OnAfterCloseMetaObject()) {
 		return false;
 	}
 

@@ -24,12 +24,12 @@ private:
 		ID_METATREE_OPEN_MANAGER = 19001,
 	};
 
-	CMetaObjectModule* m_moduleObject = IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("recordSetModule"));
-	CMetaObjectCommonModule* m_moduleManager = IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(wxT("managerModule"));
-
 private:
 	CMetaObjectAttributeDefault* m_attributeRecordType = IMetaObjectSourceData::CreateSpecialType(wxT("recordType"), _("Record type"), wxEmptyString, g_enumRecordTypeCLSID, false, CValueEnumAccumulationRegisterRecordType::CreateDefEnumValue());
 protected:
+
+	CPropertyInnerModule<CMetaObjectModule>* m_propertyModuleObject = IPropertyObject::CreateProperty<CPropertyInnerModule<CMetaObjectModule>>(m_categorySecondary, IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("recordSetModule"), _("record set module")));
+	CPropertyInnerModule<CMetaObjectCommonModule>* m_propertyModuleManager = IPropertyObject::CreateProperty<CPropertyInnerModule<CMetaObjectCommonModule>>(m_categorySecondary, IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectCommonModule>(wxT("managerModule"), _("manager module")));
 
 	CPropertyCategory* m_categoryForm = IPropertyObject::CreatePropertyCategory(wxT("defaultForms"), _("default forms"));
 	CPropertyList* m_propertyDefFormList = IPropertyObject::CreateProperty<CPropertyList>(m_categoryForm, wxT("defaultFormList"), _("default form list"), &CMetaObjectAccumulationRegister::GetFormList, wxNOT_FOUND);
@@ -86,7 +86,7 @@ public:
 	static wxIcon GetIconGroup();
 
 	//events: 
-	virtual bool OnCreateMetaObject(IMetaData* metaData);
+	virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
 	virtual bool OnLoadMetaObject(IMetaData* metaData);
 	virtual bool OnSaveMetaObject();
 	virtual bool OnDeleteMetaObject();
@@ -126,13 +126,8 @@ public:
 	}
 
 	//get module object in compose object 
-	virtual CMetaObjectModule* GetModuleObject() const {
-		return m_moduleObject;
-	}
-
-	virtual CMetaObjectCommonModule* GetModuleManager() const {
-		return m_moduleManager;
-	}
+	virtual CMetaObjectModule* GetModuleObject() const { return m_propertyModuleObject->GetMetaObject(); }
+	virtual CMetaObjectCommonModule* GetModuleManager() const { return m_propertyModuleManager->GetMetaObject(); }
 
 	//create associate value 
 	virtual CMetaObjectForm* GetDefaultFormByID(const form_identifier_t& id);

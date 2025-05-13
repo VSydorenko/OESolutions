@@ -54,7 +54,7 @@ bool CReferenceDataObject::ReadData(bool createData)
 
 bool CReferenceDataObject::FindValue(const wxString& findData, std::vector<CValue>& listValue) const
 {
-	class CObjectComparatorValue : public IObjectDataValue {
+	class CObjectComparatorValue : public IValueDataObject {
 		bool ReadValues() {
 			if (m_metaObject == nullptr || m_newObject)
 				return false;
@@ -84,7 +84,7 @@ bool CReferenceDataObject::FindValue(const wxString& findData, std::vector<CValu
 		}
 		IMetaObjectRecordDataRef* m_metaObject;
 	private:
-		CObjectComparatorValue(IMetaObjectRecordDataRef* metaObject, const Guid& guid) : IObjectDataValue(guid, false), m_metaObject(metaObject) {}
+		CObjectComparatorValue(IMetaObjectRecordDataRef* metaObject, const Guid& guid) : IValueDataObject(guid, false), m_metaObject(metaObject) {}
 	public:
 
 		static bool CompareValue(const wxString& findData, IMetaObjectRecordDataRef* metaObject, const Guid& guid) {

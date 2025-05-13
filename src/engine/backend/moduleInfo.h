@@ -7,7 +7,7 @@
 class BACKEND_API IModuleDataObject {
 public:
 
-	CMetaObjectModule* GetMetaObject() const { return GetCompileModule() ? GetCompileModule()->GetModuleObject() : nullptr; }
+	IMetaObjectModule* GetMetaObject() const { return GetCompileModule() ? GetCompileModule()->GetModuleObject() : nullptr; }
 
 	//method call
 	bool ExecuteProc(const wxString& strMethodName,

@@ -19,9 +19,9 @@ CMetaObjectRole::CMetaObjectRole(const wxString& name, const wxString& synonym, 
 //*                             event object                            *
 //***********************************************************************
 
-bool CMetaObjectRole::OnCreateMetaObject(IMetaData* metaData)
+bool CMetaObjectRole::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	return IMetaObject::OnCreateMetaObject(metaData);
+	return IMetaObject::OnCreateMetaObject(metaData, flags);
 }
 
 bool CMetaObjectRole::OnBeforeRunMetaObject(int flags)

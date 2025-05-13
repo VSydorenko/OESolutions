@@ -128,7 +128,7 @@ public:
 	virtual bool CloseConfiguration(int flags = defaultFlag) = 0;
 
 	//metaobject
-	IMetaObject* CreateMetaObject(const class_identifier_t& clsid, IMetaObject* parentMetaObj);
+	IMetaObject* CreateMetaObject(const class_identifier_t& clsid, IMetaObject* parentMetaObj, bool runObject = true);
 
 	bool RenameMetaObject(IMetaObject* obj, const wxString& newName);
 	void RemoveMetaObject(IMetaObject* obj, IMetaObject* objParent = nullptr);

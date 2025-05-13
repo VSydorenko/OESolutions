@@ -18,6 +18,11 @@
 #include "backend/propertyManager/property/propertyOwner.h"
 #include "backend/propertyManager/property/propertySource.h"
 
+//metaobject property
+#include "backend/propertyManager/property/propertyModule.h"
+#include "backend/propertyManager/property/propertyForm.h"
+#include "backend/propertyManager/property/propertyTemplate.h"
+
 //form property
 #include "backend/propertyManager/property/propertyPicture.h"
 #include "backend/propertyManager/property/propertyFont.h"

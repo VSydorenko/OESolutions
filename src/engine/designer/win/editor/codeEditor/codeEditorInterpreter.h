@@ -136,7 +136,7 @@ class CPrecompileModule : public CTranslateCode
 {
 	int m_numCurrentCompile;		//текущее положение в массиве лексем
 
-	CMetaObjectModule* m_moduleObject;
+	IMetaObjectModule* m_moduleObject;
 
 	std::map<wxString, unsigned int> m_aHashConstList;
 
@@ -164,7 +164,7 @@ public:
 	virtual void Clear();//—брос данных дл€ повторного использовани€ объекта
 	void PrepareModuleData();
 
-	CPrecompileModule(CMetaObjectModule* moduleObject);
+	CPrecompileModule(IMetaObjectModule* moduleObject);
 	virtual ~CPrecompileModule();
 
 	CValue GetComputeValue() const {

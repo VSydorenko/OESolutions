@@ -29,7 +29,7 @@ public:
 	public:
 
 		CModuleUnit() {}
-		CModuleUnit(IModuleManager* moduleManager, CMetaObjectModule* moduleObject, bool managerModule = false);
+		CModuleUnit(IModuleManager* moduleManager, IMetaObjectModule* moduleObject, bool managerModule = false);
 		virtual ~CModuleUnit();
 
 		//initalize common module
@@ -37,7 +37,7 @@ public:
 		bool DestroyCommonModule();
 
 		//get common module 
-		CMetaObjectModule* GetModuleObject() const {
+		IMetaObjectModule* GetModuleObject() const {
 			return m_moduleObject;
 		}
 
@@ -110,7 +110,7 @@ public:
 
 	protected:
 		IModuleManager* m_moduleManager;
-		CMetaObjectModule* m_moduleObject;
+		IMetaObjectModule* m_moduleObject;
 	};
 
 	class BACKEND_API CMetadataUnit : 

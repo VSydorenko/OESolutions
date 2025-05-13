@@ -18,7 +18,7 @@ protected:
 		ID_METATREE_OPEN_CONSTANT_MANAGER = 19000,
 	};
 
-	CMetaObjectModule* m_moduleObject = IMetaObject::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("objectModule"));
+	CPropertyInnerModule<CMetaObjectModule>* m_propertyModule = IPropertyObject::CreateProperty<CPropertyInnerModule<CMetaObjectModule>>(m_categorySecondary, IMetaObject::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("recordModule"), _("record module")));
 
 public:
 
@@ -29,7 +29,7 @@ public:
 	virtual wxIcon GetIcon() const;
 	static wxIcon GetIconGroup();
 
-	virtual bool OnCreateMetaObject(IMetaData* metaData);
+	virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
 	virtual bool OnLoadMetaObject(IMetaData* metaData);
 	virtual bool OnSaveMetaObject();
 	virtual bool OnDeleteMetaObject();
@@ -45,7 +45,7 @@ public:
 	static wxString GetTableNameDB() { return wxT("_const"); }
 
 	//get module object in compose object 
-	virtual CMetaObjectModule* GetModuleObject() const { return m_moduleObject; }
+	virtual CMetaObjectModule* GetModuleObject() const { return m_propertyModule->GetMetaObject(); }
 
 	//create empty object
 	virtual CRecordDataObjectConstant* CreateObjectValue();

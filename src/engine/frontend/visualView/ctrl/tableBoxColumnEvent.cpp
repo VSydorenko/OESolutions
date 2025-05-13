@@ -40,9 +40,6 @@ void CValueTableBoxColumn::ChoiceProcessing(CValue& vSelected)
 	if (standartProcessing.GetBoolean()) {
 		IValueTable::IValueModelReturnLine* retLine = GetReturnLine();
 		if (retLine != nullptr) {
-			//retLine->SetValueByMetaID(
-			//	m_dataSource.isValid() ? GetIdByGuid(m_dataSource) : m_controlId, vSelected
-			//);
 			retLine->SetValueByMetaID(
 				GetSourceColumn(), vSelected
 			);

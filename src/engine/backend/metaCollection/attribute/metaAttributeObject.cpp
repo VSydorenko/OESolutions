@@ -99,9 +99,9 @@ CValue* IMetaObjectAttribute::CreateValueRef() const
 //*								Events								    *
 //***********************************************************************
 
-bool IMetaObjectAttribute::OnCreateMetaObject(IMetaData* metaData)
+bool IMetaObjectAttribute::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	return IMetaObject::OnCreateMetaObject(metaData);
+	return IMetaObject::OnCreateMetaObject(metaData, flags);
 }
 
 bool IMetaObjectAttribute::OnDeleteMetaObject()

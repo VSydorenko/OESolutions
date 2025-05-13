@@ -254,7 +254,7 @@ IValueFrame* CValueForm::CopyObject(IValueFrame* srcControl)
 		return nullptr;
 
 	assert(srcControl);
-	IValueFrame* copyObj = NewObject(srcControl->GetClassName(), nullptr, false); // creamos la copia
+	IValueFrame* copyObj = NewObject(srcControl->GetClassName(), srcControl->GetParent(), false); // creamos la copia
 	assert(copyObj);
 
 	// copiamos las propiedades

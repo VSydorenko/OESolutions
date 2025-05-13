@@ -67,6 +67,8 @@ const class_identifier_t g_metaExternalReportCLSID = string_to_clsid("MD_ERPT");
 #define forceRunFlag	  0x0016000
 #define newObjectFlag	  0x0032000
 
+#define copyObjectFlag	  0x0064000
+
 //flags metaobject 
 #define metaDeletedFlag	  0x0001000
 #define metaCanSaveFlag	  0x0002000
@@ -95,6 +97,8 @@ protected:
 	CPropertyName* m_propertyName = IPropertyObject::CreateProperty<CPropertyName>(m_categoryCommon, wxT("name"), _("name"), wxEmptyString);
 	CPropertyCaption* m_propertySynonym = IPropertyObject::CreateProperty<CPropertyCaption>(m_categoryCommon, wxT("synonym"), _("synonym"), wxEmptyString);
 	CPropertyString* m_propertyComment = IPropertyObject::CreateProperty<CPropertyString>(m_categoryCommon, wxT("comment"), _("comment"), wxEmptyString);
+	
+	CPropertyCategory* m_categorySecondary = IPropertyObject::CreatePropertyCategory(wxT("secondary"), _("secondary"));
 
 protected:
 
@@ -343,7 +347,7 @@ public:
 	bool DeleteMetaTable(IMetaDataConfiguration* srcMetaData);
 
 	//events: 
-	virtual bool OnCreateMetaObject(IMetaData* metaData);
+	virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
 	virtual bool OnLoadMetaObject(IMetaData* metaData);
 	virtual bool OnSaveMetaObject() { return true; }
 	virtual bool OnDeleteMetaObject();

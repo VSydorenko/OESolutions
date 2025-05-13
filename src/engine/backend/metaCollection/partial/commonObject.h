@@ -372,7 +372,7 @@ public:
     }
 
     //meta events
-    virtual bool OnCreateMetaObject(IMetaData* metaData);
+    virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
     virtual bool OnLoadMetaObject(IMetaData* metaData);
     virtual bool OnSaveMetaObject();
     virtual bool OnDeleteMetaObject();
@@ -428,7 +428,7 @@ public:
     virtual IBackendValueForm* GetSelectForm(const wxString& formName = wxEmptyString, IBackendControlFrame* ownerControl = nullptr, const CUniqueKey& formGuid = wxNullGuid) = 0;
 
     //descriptions...
-    virtual wxString GetDataPresentation(const IObjectDataValue* objValue) const = 0;
+    virtual wxString GetDataPresentation(const IValueDataObject* objValue) const = 0;
 
     //special functions for DB 
     virtual wxString GetTableNameDB() const;
@@ -470,7 +470,7 @@ public:
     bool IsDataOrder(const meta_identifier_t& id) const { return id == m_attributeOrder->GetMetaID(); }
 
     //events: 
-    virtual bool OnCreateMetaObject(IMetaData* metaData);
+    virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
     virtual bool OnLoadMetaObject(IMetaData* metaData);
     virtual bool OnSaveMetaObject();
     virtual bool OnDeleteMetaObject();
@@ -519,7 +519,7 @@ public:
     virtual bool HasQuickChoice() const { return false; }
 
     //events: 
-    virtual bool OnCreateMetaObject(IMetaData* metaData);
+    virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
     virtual bool OnLoadMetaObject(IMetaData* metaData);
     virtual bool OnSaveMetaObject();
     virtual bool OnDeleteMetaObject();
@@ -600,7 +600,7 @@ public:
     }
 
     //events: 
-    virtual bool OnCreateMetaObject(IMetaData* metaData);
+    virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
     virtual bool OnLoadMetaObject(IMetaData* metaData);
     virtual bool OnSaveMetaObject();
     virtual bool OnDeleteMetaObject();
@@ -767,7 +767,7 @@ public:
     }
 
     //meta events
-    virtual bool OnCreateMetaObject(IMetaData* metaData);
+    virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
     virtual bool OnLoadMetaObject(IMetaData* metaData);
     virtual bool OnSaveMetaObject();
     virtual bool OnDeleteMetaObject();
@@ -858,7 +858,7 @@ public:
 #pragma region objects 
 //Object with metaobject 
 class BACKEND_API IRecordDataObject : public CValue, public IActionDataObject,
-    public ISourceDataObject, public IObjectDataValue, public IModuleDataObject {
+    public ISourceDataObject, public IValueDataObject, public IModuleDataObject {
     wxDECLARE_ABSTRACT_CLASS(IRecordDataObject);
 protected:
     enum helperAlias {

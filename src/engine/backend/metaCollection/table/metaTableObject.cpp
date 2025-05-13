@@ -54,11 +54,11 @@ bool CMetaObjectTableData::SaveData(CMemoryWriter& dataWritter)
 //*								Events								    *
 //***********************************************************************
 
-bool CMetaObjectTableData::OnCreateMetaObject(IMetaData* metaData)
+bool CMetaObjectTableData::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	if (!IMetaObject::OnCreateMetaObject(metaData))
+	if (!IMetaObject::OnCreateMetaObject(metaData, flags))
 		return false;
-	if (!m_numberLine->OnCreateMetaObject(metaData)) {
+	if (!m_numberLine->OnCreateMetaObject(metaData, flags)) {
 		return false;
 	}
 	return true;

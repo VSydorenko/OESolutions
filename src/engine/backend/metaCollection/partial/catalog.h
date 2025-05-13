@@ -17,9 +17,6 @@ private:
         ID_METATREE_OPEN_MANAGER = 19001,
     };
 
-    CMetaObjectModule* m_moduleObject = IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("objectModule"));
-    CMetaObjectCommonModule* m_moduleManager = IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectManagerModule>(wxT("managerModule"));
-
     enum
     {
         eFormObject = 1,
@@ -40,6 +37,9 @@ private:
     }
 
 protected:
+
+    CPropertyInnerModule<CMetaObjectModule>* m_propertyModuleObject = IPropertyObject::CreateProperty<CPropertyInnerModule<CMetaObjectModule>>(m_categorySecondary, IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectModule>(wxT("objectModule"), _("object module")));
+    CPropertyInnerModule<CMetaObjectCommonModule>* m_propertyModuleManager = IPropertyObject::CreateProperty<CPropertyInnerModule<CMetaObjectCommonModule>>(m_categorySecondary, IMetaObjectSourceData::CreateMetaObjectAndSetParent<CMetaObjectCommonModule>(wxT("managerModule"), _("manager module")));
 
     CPropertyCategory* m_categoryForm = IPropertyObject::CreatePropertyCategory(wxT("defaultForms"), _("default forms"));
 
@@ -76,7 +76,7 @@ public:
     static wxIcon GetIconGroup();
 
     //events: 
-    virtual bool OnCreateMetaObject(IMetaData* metaData);
+    virtual bool OnCreateMetaObject(IMetaData* metaData, int flags);
     virtual bool OnLoadMetaObject(IMetaData* metaData);
     virtual bool OnSaveMetaObject();
     virtual bool OnDeleteMetaObject();
@@ -127,11 +127,11 @@ public:
     virtual IBackendValueForm* GetFolderSelectForm(const wxString& formName = wxEmptyString, IBackendControlFrame* ownerControl = nullptr, const CUniqueKey& formGuid = wxNullGuid);
 
     //descriptions...
-    wxString GetDataPresentation(const IObjectDataValue* objValue) const;
+    wxString GetDataPresentation(const IValueDataObject* objValue) const;
 
     //get module object in compose object 
-    virtual CMetaObjectModule* GetModuleObject() const { return m_moduleObject; }
-    virtual CMetaObjectCommonModule* GetModuleManager() const { return m_moduleManager; }
+    virtual CMetaObjectModule* GetModuleObject() const { return m_propertyModuleObject->GetMetaObject(); }
+    virtual CMetaObjectCommonModule* GetModuleManager() const { return m_propertyModuleManager->GetMetaObject(); }
 
     /**
     * Property events

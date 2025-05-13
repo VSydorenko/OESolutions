@@ -19,10 +19,10 @@ wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectConfiguration, IMetaObject);
 CMetaObjectConfiguration::CMetaObjectConfiguration() : IMetaObject(configurationDefaultName)
 {
 	//set default proc
-	m_commonModule->SetDefaultProcedure("beforeStart", eContentHelper::eProcedureHelper, { "cancel" });
-	m_commonModule->SetDefaultProcedure("onStart", eContentHelper::eProcedureHelper);
-	m_commonModule->SetDefaultProcedure("beforeExit", eContentHelper::eProcedureHelper, { "cancel" });
-	m_commonModule->SetDefaultProcedure("onExit", eContentHelper::eProcedureHelper);
+	m_propertyModuleConfiguration->GetMetaObject()->SetDefaultProcedure("beforeStart", eContentHelper::eProcedureHelper, {"cancel"});
+	m_propertyModuleConfiguration->GetMetaObject()->SetDefaultProcedure("onStart", eContentHelper::eProcedureHelper);
+	m_propertyModuleConfiguration->GetMetaObject()->SetDefaultProcedure("beforeExit", eContentHelper::eProcedureHelper, { "cancel" });
+	m_propertyModuleConfiguration->GetMetaObject()->SetDefaultProcedure("onExit", eContentHelper::eProcedureHelper);
 
 	//set def metaid
 	m_metaId = defaultMetaID;
@@ -30,19 +30,18 @@ CMetaObjectConfiguration::CMetaObjectConfiguration() : IMetaObject(configuration
 
 CMetaObjectConfiguration::~CMetaObjectConfiguration()
 {
-	wxDELETE(m_commonModule);
 }
 
 bool CMetaObjectConfiguration::LoadData(CMemoryReader& dataReader)
 {
 	m_propertyVersion->SetValue(dataReader.r_s32());
-	return m_commonModule->LoadMeta(dataReader);
+	return m_propertyModuleConfiguration->GetMetaObject()->LoadMeta(dataReader);
 }
 
 bool CMetaObjectConfiguration::SaveData(CMemoryWriter& dataWritter)
 {
 	dataWritter.w_s32(m_propertyVersion->GetValueAsInteger());
-	return m_commonModule->SaveMeta(dataWritter);
+	return m_propertyModuleConfiguration->GetMetaObject()->SaveMeta(dataWritter);
 }
 
 //***********************************************************************
@@ -51,18 +50,18 @@ bool CMetaObjectConfiguration::SaveData(CMemoryWriter& dataWritter)
 
 #include "backend/metaData.h"
 
-bool CMetaObjectConfiguration::OnCreateMetaObject(IMetaData* metaData)
+bool CMetaObjectConfiguration::OnCreateMetaObject(IMetaData* metaData, int flags)
 {
-	if (!m_commonModule->OnCreateMetaObject(metaData)) {
+	if (!m_propertyModuleConfiguration->GetMetaObject()->OnCreateMetaObject(metaData, flags)) {
 		return false;
 	}
 
-	return IMetaObject::OnCreateMetaObject(metaData);
+	return IMetaObject::OnCreateMetaObject(metaData, flags);
 }
 
 bool CMetaObjectConfiguration::OnLoadMetaObject(IMetaData* metaData)
 {
-	if (!m_commonModule->OnLoadMetaObject(metaData)) {
+	if (!m_propertyModuleConfiguration->GetMetaObject()->OnLoadMetaObject(metaData)) {
 		return false;
 	}
 
@@ -71,7 +70,7 @@ bool CMetaObjectConfiguration::OnLoadMetaObject(IMetaData* metaData)
 
 bool CMetaObjectConfiguration::OnSaveMetaObject()
 {
-	if (!m_commonModule->OnSaveMetaObject()) {
+	if (!m_propertyModuleConfiguration->GetMetaObject()->OnSaveMetaObject()) {
 		return false;
 	}
 
@@ -80,7 +79,7 @@ bool CMetaObjectConfiguration::OnSaveMetaObject()
 
 bool CMetaObjectConfiguration::OnDeleteMetaObject()
 {
-	if (!m_commonModule->OnDeleteMetaObject()) {
+	if (!m_propertyModuleConfiguration->GetMetaObject()->OnDeleteMetaObject()) {
 		return false;
 	}
 
@@ -89,13 +88,13 @@ bool CMetaObjectConfiguration::OnDeleteMetaObject()
 
 bool CMetaObjectConfiguration::OnBeforeRunMetaObject(int flags)
 {
-	if (!m_commonModule->OnBeforeRunMetaObject(flags))
+	if (!m_propertyModuleConfiguration->GetMetaObject()->OnBeforeRunMetaObject(flags))
 		return false;
 
 	IModuleManager* moduleManager = m_metaData->GetModuleManager();
 	wxASSERT(moduleManager);
 
-	if (!moduleManager->AddCompileModule(m_commonModule, moduleManager))
+	if (!moduleManager->AddCompileModule(m_propertyModuleConfiguration->GetMetaObject(), moduleManager))
 		return false;
 
 	return IMetaObject::OnBeforeRunMetaObject(flags);
@@ -103,13 +102,13 @@ bool CMetaObjectConfiguration::OnBeforeRunMetaObject(int flags)
 
 bool CMetaObjectConfiguration::OnAfterCloseMetaObject()
 {
-	if (!m_commonModule->OnAfterCloseMetaObject())
+	if (!m_propertyModuleConfiguration->GetMetaObject()->OnAfterCloseMetaObject())
 		return false;
 
 	IModuleManager* moduleManager = m_metaData->GetModuleManager();
 	wxASSERT(moduleManager);
 
-	if (!moduleManager->RemoveCompileModule(m_commonModule))
+	if (!moduleManager->RemoveCompileModule(m_propertyModuleConfiguration->GetMetaObject()))
 		return false;
 
 	return IMetaObject::OnAfterCloseMetaObject();

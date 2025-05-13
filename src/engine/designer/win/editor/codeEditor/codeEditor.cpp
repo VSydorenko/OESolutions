@@ -292,7 +292,7 @@ void CCodeEditor::AppendText(const wxString& text)
 	wxStyledTextCtrl::AppendText(text);
 	m_bInitialized = true;
 
-	CMetaObjectModule* moduleObject = m_document->ConvertMetaObjectToType<CMetaObjectModule>();
+	IMetaObjectModule* moduleObject = m_document->ConvertMetaObjectToType<IMetaObjectModule>();
 
 	if (moduleObject != nullptr) {
 
@@ -332,7 +332,7 @@ void CCodeEditor::Replace(long from, long to, const wxString& text)
 	wxStyledTextCtrl::Replace(from, to, text);
 	m_bInitialized = true;
 
-	CMetaObjectModule* moduleObject = m_document->ConvertMetaObjectToType<CMetaObjectModule>();
+	IMetaObjectModule* moduleObject = m_document->ConvertMetaObjectToType<IMetaObjectModule>();
 
 	if (moduleObject != nullptr) {
 		try {
@@ -361,7 +361,7 @@ bool CCodeEditor::LoadModule()
 	RefreshEditor();
 
 	if (m_document != nullptr) {
-		CMetaObjectModule* moduleObject = m_document->ConvertMetaObjectToType<CMetaObjectModule>();
+		IMetaObjectModule* moduleObject = m_document->ConvertMetaObjectToType<IMetaObjectModule>();
 		if (moduleObject != nullptr) {
 			m_precompileModule = new CPrecompileModule(moduleObject);
 
@@ -392,7 +392,7 @@ bool CCodeEditor::LoadModule()
 bool CCodeEditor::SaveModule()
 {
 	if (m_document != nullptr) {
-		CMetaObjectModule* moduleObject = m_document->ConvertMetaObjectToType<CMetaObjectModule>();
+		IMetaObjectModule* moduleObject = m_document->ConvertMetaObjectToType<IMetaObjectModule>();
 		if (moduleObject != nullptr) {
 			moduleObject->SetModuleText(GetText());
 			return true;
@@ -863,7 +863,7 @@ void CCodeEditor::OnTextChange(wxStyledTextEvent& event)
 		return;
 
 	if (m_bInitialized) {
-		CMetaObjectModule* moduleObject = m_document->ConvertMetaObjectToType<CMetaObjectModule>();
+		IMetaObjectModule* moduleObject = m_document->ConvertMetaObjectToType<IMetaObjectModule>();
 		if (moduleObject != nullptr) {
 
 			IMetaData* metaData = moduleObject->GetMetaData();

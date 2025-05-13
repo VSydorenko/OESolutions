@@ -52,7 +52,7 @@ m_commonObject(nullptr), m_moduleManager(nullptr), m_configOpened(false)
 	m_commonObject = new CMetaObjectConfiguration();
 	m_commonObject->SetReadOnly(!m_metaReadOnly);
 
-	if (m_commonObject->OnCreateMetaObject(this)) {
+	if (m_commonObject->OnCreateMetaObject(this, newObjectFlag)) {
 		m_moduleManager = new CModuleManagerConfiguration(this, m_commonObject);
 		m_moduleManager->IncrRef();
 		if (!m_commonObject->OnLoadMetaObject(this)) {

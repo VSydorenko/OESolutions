@@ -220,7 +220,7 @@ CTabularSectionDataObjectRef::CTabularSectionDataObjectRef(IRecordDataObjectRef*
 }
 
 CTabularSectionDataObjectRef::CTabularSectionDataObjectRef(CSelectorDataObject* selectorObject, CMetaObjectTableData* tableObject) :
-	ITabularSectionDataObject((IObjectDataValue*)selectorObject, tableObject), m_readAfter(false)
+	ITabularSectionDataObject((IValueDataObject*)selectorObject, tableObject), m_readAfter(false)
 {
 }
 

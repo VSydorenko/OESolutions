@@ -5,6 +5,7 @@
 
 #include <wx/slider.h>
 #include <wx/odcombo.h>
+#include <wx/stattext.h>
 
 // -----------------------------------------------------------------------
 // wxComboBox-based property editor
@@ -14,7 +15,7 @@ WX_PG_IMPLEMENT_INTERNAL_EDITOR_CLASS(ComboBoxAndButton,
 	wxPGComboBoxAndButtonEditor,
 	wxPGComboBoxEditor)
 
-wxPGWindowList wxPGComboBoxAndButtonEditor::CreateControls(wxPropertyGrid* propGrid,
+	wxPGWindowList wxPGComboBoxAndButtonEditor::CreateControls(wxPropertyGrid* propGrid,
 		wxPGProperty* property,
 		const wxPoint& pos,
 		const wxSize& sz) const
@@ -52,6 +53,8 @@ wxPGWindowList wxPGComboBoxAndButtonEditor::CreateControls(wxPropertyGrid* propG
 #ifdef __WXMSW__
 	bt->Show();
 #endif
+
+	property->SetAttribute(wxT("hyperLink_clicked"), WXVARIANT(false));
 
 	return wxPGWindowList(ch, bt);
 }
@@ -232,16 +235,96 @@ void wxPGSliderEditor::SetValueToUnspecified(wxPGProperty* WXUNUSED(property), w
 
 #endif //wxUSE_SLIDER
 
+WX_PG_IMPLEMENT_INTERNAL_EDITOR_CLASS(HyperLink,
+	wxPGHyperLinkEditor,
+	wxPGEditor)
+
+	wxPGWindowList wxPGHyperLinkEditor::CreateControls(wxPropertyGrid* propGrid,
+		wxPGProperty* property,
+		const wxPoint& pos,
+		const wxSize& sz) const
+{
+
+	// Use two stage creation to allow cleaner display on wxMSW
+	wxStaticText* ctrl = new wxStaticText();
+
+#ifdef __WXMSW__
+	ctrl->Hide();
+#endif
+
+	ctrl->Create(propGrid->GetPanel(),
+		wxID_ANY,
+		property->GetValueAsString(),
+		{ pos.x + 3, pos.y + 2 },
+		{ sz.x - 3, sz.y - 2 },
+		wxBORDER_NONE);
+
+	ctrl->SetBackgroundColour(propGrid->GetPropertyBackgroundColour(property));
+	ctrl->SetForegroundColour(propGrid->GetPropertyTextColour(property));
+
+	wxFont font = ctrl->GetFont();
+	font.SetUnderlined(true);
+	ctrl->SetFont(font);
+
+	ctrl->SetCursor(wxCURSOR_HAND);
+
+	// Connect all required events to grid's OnCustomEditorEvent
+	// (all relevenat wxTextCtrl, wxComboBox and wxButton events are
+	// already connected)
+
+#ifdef __WXMSW__
+	ctrl->Show();
+#endif
+
+	return ctrl;
+}
+
+bool wxPGHyperLinkEditor::OnEvent(wxPropertyGrid* propGrid,
+	wxPGProperty* property,
+	wxWindow* wnd,
+	wxEvent& event) const
+{
+	if (event.GetEventType() == wxEVT_LEFT_DOWN)
+	{
+		wxStaticText* ctrl = wxDynamicCast(wnd, wxStaticText);
+		if (ctrl)
+		{
+			property->SetValue(wxVariant(true, wxT("hyperLink_clicked")));
+			return true;
+		}
+	}
+	return false;
+}
+
+void wxPGHyperLinkEditor::UpdateControl(wxPGProperty* property, wxWindow* wnd) const
+{
+	wxStaticText* ctrl = (wxStaticText*)wnd;
+	assert(ctrl && ctrl->IsKindOf(CLASSINFO(wxStaticText)));
+}
+
+bool wxPGHyperLinkEditor::GetValueFromControl(wxVariant& variant, wxPGProperty* property, wxWindow* wnd) const
+{
+	wxStaticText* ctrl = (wxStaticText*)wnd;
+	assert(ctrl && ctrl->IsKindOf(CLASSINFO(wxStaticText)));
+	return false;
+}
+
+wxPGHyperLinkEditor::~wxPGHyperLinkEditor()
+{
+	wxPG_EDITOR(HyperLink) = nullptr;
+}
+
 #include <wx/module.h>
 
 class wxOESEditorModule : public wxModule
 {
 public:
-	wxOESEditorModule() : wxModule() { }
+	wxOESEditorModule() : wxModule() {}
 	virtual bool OnInit() {
 		//register new editor 
 		wxPGRegisterEditorClass(ComboBoxAndButton);
 		wxPGRegisterEditorClass(Slider);
+		wxPGRegisterEditorClass(HyperLink);
 		return true;
 	}
 	virtual void OnExit() {}

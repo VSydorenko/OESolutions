@@ -57,12 +57,12 @@ static const char *s_grid_xpm[] = {
 	"  ............. "
 };
 
-wxIcon CMetaObjectGrid::GetIcon() const
+wxIcon IMetaObjectGrid::GetIcon() const
 {
 	return wxIcon(s_grid_xpm);
 }
 
-wxIcon CMetaObjectGrid::GetIconGroup()
+wxIcon IMetaObjectGrid::GetIconGroup()
 {
 	return wxIcon(s_gridGroup_xpm);
 }

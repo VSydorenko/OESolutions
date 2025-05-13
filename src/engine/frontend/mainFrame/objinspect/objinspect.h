@@ -187,7 +187,7 @@ private:
 			// We do not want to duplicate inherited events
 			if (events.find(eventName) == events.end()) {
 
-				wxPGProperty* id = m_pg->Append(GetEvent(event));
+				wxPGProperty* id = m_pg->Append(GetEvent(event));				
 
 				m_pg->SetPropertyHelpString(id, wxGetTranslation(event->GetHelp()));
 
@@ -252,7 +252,7 @@ private:
 
 	void RestoreLastSelectedPropItem() {
 		wxPGProperty* p = m_pg->GetPropertyByName(wxT("name"));
-		if (p != nullptr) m_pg->SelectProperty(p, true);
+		if (p != nullptr) m_pg->SelectProperty(p, false);
 	}
 
 	CObjectInspector(wxWindow* parent, int id, int style = wxOES_OI_DEFAULT_STYLE);

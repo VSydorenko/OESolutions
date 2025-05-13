@@ -178,7 +178,7 @@ public:
 		m_objectValue(nullptr), m_metaTable(nullptr), m_dataColumnCollection(nullptr), m_methodHelper(nullptr), m_readOnly(false) {
 	}
 
-	ITabularSectionDataObject(IObjectDataValue* objectValue, CMetaObjectTableData* tableObject, bool readOnly = false) :
+	ITabularSectionDataObject(IValueDataObject* objectValue, CMetaObjectTableData* tableObject, bool readOnly = false) :
 		m_objectValue(objectValue), m_metaTable(tableObject), m_dataColumnCollection(nullptr), m_methodHelper(new CMethodHelper()), m_readOnly(readOnly) {
 		m_dataColumnCollection = new CTabularSectionDataObjectColumnCollection(this);
 		m_dataColumnCollection->IncrRef();
@@ -258,7 +258,7 @@ public:
 protected:
 	bool m_readOnly;
 	CMethodHelper* m_methodHelper;
-	IObjectDataValue* m_objectValue;
+	IValueDataObject* m_objectValue;
 	CTabularSectionDataObjectColumnCollection* m_dataColumnCollection;
 	CMetaObjectTableData* m_metaTable;
 };

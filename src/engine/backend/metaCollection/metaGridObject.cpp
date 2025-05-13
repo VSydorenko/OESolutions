@@ -6,19 +6,21 @@
 #include "metaGridObject.h"
 #include "backend/metaData.h"
 
-wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectGrid, IMetaObject)
-wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectCommonGrid, CMetaObjectGrid)
+wxIMPLEMENT_ABSTRACT_CLASS(IMetaObjectGrid, IMetaObject);
+
+wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectGrid, IMetaObjectGrid);
+wxIMPLEMENT_DYNAMIC_CLASS(CMetaObjectCommonGrid, IMetaObjectGrid);
 
 //***********************************************************************
 //*                           Metagrid                                  *
 //***********************************************************************
 
-bool CMetaObjectGrid::LoadData(CMemoryReader &reader)
+bool IMetaObjectGrid::LoadData(CMemoryReader &reader)
 {
 	return true;
 }
 
-bool CMetaObjectGrid::SaveData(CMemoryWriter &writer)
+bool IMetaObjectGrid::SaveData(CMemoryWriter &writer)
 {
 	return true;
 }
@@ -27,12 +29,12 @@ bool CMetaObjectGrid::SaveData(CMemoryWriter &writer)
 //*                           read & save events                        *
 //***********************************************************************
 
-bool CMetaObjectGrid::OnBeforeRunMetaObject(int flags)
+bool IMetaObjectGrid::OnBeforeRunMetaObject(int flags)
 {
 	return IMetaObject::OnBeforeRunMetaObject(flags);
 }
 
-bool CMetaObjectGrid::OnAfterCloseMetaObject()
+bool IMetaObjectGrid::OnAfterCloseMetaObject()
 {
 	return IMetaObject::OnAfterCloseMetaObject();
 }

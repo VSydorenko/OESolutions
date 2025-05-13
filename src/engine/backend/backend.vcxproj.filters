@@ -588,6 +588,24 @@
     <ClInclude Include="propertyManager\property\advprop\ctrl\checktree.h">
       <Filter>propertyManager\property\advprop\ctrl</Filter>
     </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyModule.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\variant\moduleVariant.h">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyTemplate.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\propertyForm.h">
+      <Filter>propertyManager\property</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\variant\formVariant.h">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClInclude>
+    <ClInclude Include="propertyManager\property\advprop\advpropHyperLink.h">
+      <Filter>propertyManager\property\advprop</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="backend.cpp" />
@@ -1338,6 +1356,24 @@
     </ClCompile>
     <ClCompile Include="propertyManager\property\advprop\ctrl\checktree.cpp">
       <Filter>propertyManager\property\advprop\ctrl</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyModule.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\variant\moduleVariant.cpp">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyTemplate.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\propertyForm.cpp">
+      <Filter>propertyManager\property</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\variant\formVariant.cpp">
+      <Filter>propertyManager\property\variant</Filter>
+    </ClCompile>
+    <ClCompile Include="propertyManager\property\advprop\advpropHyperLink.cpp">
+      <Filter>propertyManager\property\advprop</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

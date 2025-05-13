@@ -57,12 +57,12 @@ static const char *s_module_xpm[] = {
 	"                "
 };
 
-wxIcon CMetaObjectModule::GetIcon() const
+wxIcon IMetaObjectModule::GetIcon() const
 {
 	return wxIcon(s_module_xpm);
 }
 
-wxIcon CMetaObjectModule::GetIconGroup()
+wxIcon IMetaObjectModule::GetIconGroup()
 {
 	return wxIcon(s_moduleGroup_xpm);
 }

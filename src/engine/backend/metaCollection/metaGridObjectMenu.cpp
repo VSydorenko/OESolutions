@@ -6,7 +6,7 @@
 #include "metaGridObject.h"
 #include "backend/metaData.h"
 
-bool CMetaObjectGrid::PrepareContextMenu(wxMenu *defaultMenu)
+bool IMetaObjectGrid::PrepareContextMenu(wxMenu *defaultMenu)
 {
 	wxMenuItem *menuItem = defaultMenu->Append(ID_METATREE_OPEN_TEMPLATE, _("Open template"));
 	menuItem->SetBitmap(GetIcon());
@@ -14,7 +14,7 @@ bool CMetaObjectGrid::PrepareContextMenu(wxMenu *defaultMenu)
 	return false;
 }
 
-void CMetaObjectGrid::ProcessCommand(unsigned int id)
+void IMetaObjectGrid::ProcessCommand(unsigned int id)
 {
 	IBackendMetadataTree *metaTree = m_metaData->GetMetaTree();
 	wxASSERT(metaTree);

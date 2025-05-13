@@ -311,7 +311,7 @@ wxPGEditorDialogAdapter* wxPGTypeProperty::GetEditorDialog() const
             wxImageList* imageList = tc->GetImageList();
             wxASSERT(imageList);
             IAbstractTypeCtor* so = CValue::GetAvailableCtor(clsid);
-            int groupIcon = imageList->Add(so->GetClassIcon());
+            const int groupIcon = imageList->Add(so->GetClassIcon());
 
             wxTreeItemOptionData* itemData = new wxTreeItemOptionData(so);
             wxTreeItemId newItem = tc->AppendItem(tc->GetRootItem(), so->GetClassName(),
@@ -336,7 +336,7 @@ wxPGEditorDialogAdapter* wxPGTypeProperty::GetEditorDialog() const
             wxASSERT(imageList);
             if (metaData != nullptr && metaData->IsRegisterCtor(clsid)) {
                 IAbstractTypeCtor* so = metaData ? metaData->GetAvailableCtor(clsid) : CValue::GetAvailableCtor(clsid);
-                int groupIcon = imageList->Add(so->GetClassIcon());
+                const int groupIcon = imageList->Add(so->GetClassIcon());
 
                 wxTreeItemOptionData* itemData = new wxTreeItemOptionData(so);
                 wxTreeItemId newItem = tc->AppendItem(tc->GetRootItem(), so->GetClassName(),
