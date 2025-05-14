@@ -446,9 +446,16 @@ bool IMetaObject::PasteObject(CMemoryReader& reader)
 	std::shared_ptr <CMemoryReader>readerHeaderMemory(reader.open_chunk(headerBlock));
 	version_identifier_t version = readerHeaderMemory->r_s32();
 	std::shared_ptr <CMemoryReader>readerDataMemory(reader.open_chunk(dataBlock));
+	
 	if (!ReadProperty(*readerDataMemory))
 		return false;
+	
 	BuildNewName();
+
+	//and running initialization
+	if (!OnBeforeRunMetaObject(newObjectFlag))
+		return false;
+
 	std::shared_ptr <CMemoryReader> readerChildMemory(reader.open_chunk(childBlock));
 	if (readerChildMemory != nullptr) {
 		CMemoryReader* prevReaderMemory = nullptr;
@@ -465,7 +472,9 @@ bool IMetaObject::PasteObject(CMemoryReader& reader)
 			prevReaderMemory = readerMemory;
 		} while (true);
 	}
-	return OnBeforeRunMetaObject(0) && OnAfterRunMetaObject(0);
+
+	if (!OnAfterRunMetaObject(newObjectFlag))
+		return false;
 }
 
 bool IMetaObject::ChangeChildPosition(IPropertyObject* obj, unsigned int pos)
