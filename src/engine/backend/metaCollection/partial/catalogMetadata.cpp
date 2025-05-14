@@ -354,9 +354,9 @@ bool CMetaObjectCatalog::LoadData(CMemoryReader& dataReader)
 	//load default attributes:
 	m_attributeOwner->LoadMeta(dataReader);
 
-	//load object module
-	m_propertyModuleObject->LoadData(dataReader);
-	m_propertyModuleManager->LoadData(dataReader);
+	//Load object module
+	m_propertyModuleObject->GetMetaObject()->LoadMeta(dataReader);
+	m_propertyModuleManager->GetMetaObject()->LoadMeta(dataReader);
 
 	//load default form 
 	m_propertyDefFormObject->SetValue(GetIdByGuid(dataReader.r_stringZ()));
@@ -375,9 +375,9 @@ bool CMetaObjectCatalog::SaveData(CMemoryWriter& dataWritter)
 	//save default attributes:
 	m_attributeOwner->SaveMeta(dataWritter);
 
-	//save object module
-	m_propertyModuleObject->SaveData(dataWritter);
-	m_propertyModuleManager->SaveData(dataWritter);
+	//Save object module
+	m_propertyModuleObject->GetMetaObject()->SaveMeta(dataWritter);
+	m_propertyModuleManager->GetMetaObject()->SaveMeta(dataWritter);
 
 	//save default form 
 	dataWritter.w_stringZ(GetGuidByID(m_propertyDefFormObject->GetValueAsInteger()));

@@ -32,7 +32,7 @@ CMetaObjectConstant::~CMetaObjectConstant()
 bool CMetaObjectConstant::LoadData(CMemoryReader& dataReader)
 {
 	//load object module
-	m_propertyModule->LoadData(dataReader);
+	m_propertyModule->GetMetaObject()->LoadMeta(dataReader);
 
 	return CMetaObjectAttribute::LoadData(dataReader);
 }
@@ -40,7 +40,7 @@ bool CMetaObjectConstant::LoadData(CMemoryReader& dataReader)
 bool CMetaObjectConstant::SaveData(CMemoryWriter& dataWritter)
 {
 	//save object module
-	m_propertyModule->SaveData(dataWritter);
+	m_propertyModule->GetMetaObject()->SaveMeta(dataWritter);
 
 	return CMetaObjectAttribute::SaveData(dataWritter);
 }

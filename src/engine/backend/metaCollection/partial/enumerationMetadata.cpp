@@ -164,7 +164,7 @@ wxString CMetaObjectEnumeration::GetDataPresentation(const IValueDataObject* obj
 bool CMetaObjectEnumeration::LoadData(CMemoryReader& dataReader)
 {
 	//Load object module
-	m_propertyModuleManager->LoadData(dataReader);
+	m_propertyModuleManager->GetMetaObject()->LoadMeta(dataReader);
 
 	//save default form 
 	m_propertyDefFormList->SetValue(GetIdByGuid(dataReader.r_stringZ()));
@@ -176,7 +176,7 @@ bool CMetaObjectEnumeration::LoadData(CMemoryReader& dataReader)
 bool CMetaObjectEnumeration::SaveData(CMemoryWriter& dataWritter)
 {
 	//Save object module
-	m_propertyModuleManager->SaveData(dataWritter);
+	m_propertyModuleManager->GetMetaObject()->SaveMeta(dataWritter);
 
 	//save default form 
 	dataWritter.w_stringZ(GetGuidByID(m_propertyDefFormList->GetValueAsInteger()));

@@ -99,8 +99,8 @@ bool CMetaObjectAccumulationRegister::LoadData(CMemoryReader& dataReader)
 	m_propertyRegisterType->SetValue(dataReader.r_u16());
 
 	//load object module
-	m_propertyModuleObject->LoadData(dataReader);
-	m_propertyModuleManager->LoadData(dataReader);
+	m_propertyModuleObject->GetMetaObject()->LoadMeta(dataReader);
+	m_propertyModuleManager->GetMetaObject()->LoadMeta(dataReader);
 
 	return IMetaObjectRegisterData::LoadData(dataReader);
 }
@@ -117,8 +117,8 @@ bool CMetaObjectAccumulationRegister::SaveData(CMemoryWriter& dataWritter)
 	dataWritter.w_u16(m_propertyRegisterType->GetValueAsInteger());
 
 	//Save object module
-	m_propertyModuleObject->SaveData(dataWritter);
-	m_propertyModuleManager->SaveData(dataWritter);
+	m_propertyModuleObject->GetMetaObject()->SaveMeta(dataWritter);
+	m_propertyModuleManager->GetMetaObject()->SaveMeta(dataWritter);
 
 	//create or update table:
 	return IMetaObjectRegisterData::SaveData(dataWritter);

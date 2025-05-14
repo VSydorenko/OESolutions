@@ -280,10 +280,10 @@ bool CMetaObjectDocument::LoadData(CMemoryReader& dataReader)
 	m_attributeNumber->LoadMeta(dataReader);
 	m_attributeDate->LoadMeta(dataReader);
 	m_attributePosted->LoadMeta(dataReader);
-
+	
 	//load object module
-	m_propertyModuleObject->LoadData(dataReader);
-	m_propertyModuleManager->LoadData(dataReader);
+	m_propertyModuleObject->GetMetaObject()->LoadMeta(dataReader);
+	m_propertyModuleManager->GetMetaObject()->LoadMeta(dataReader);
 
 	//load default form 
 	m_propertyDefFormObject->SetValue(GetIdByGuid(dataReader.r_stringZ()));
@@ -303,9 +303,9 @@ bool CMetaObjectDocument::SaveData(CMemoryWriter& dataWritter)
 	m_attributeDate->SaveMeta(dataWritter);
 	m_attributePosted->SaveMeta(dataWritter);
 
-	//Save object module
-	m_propertyModuleObject->SaveData(dataWritter);
-	m_propertyModuleManager->SaveData(dataWritter);
+	//save object module
+	m_propertyModuleObject->GetMetaObject()->SaveMeta(dataWritter);
+	m_propertyModuleManager->GetMetaObject()->SaveMeta(dataWritter);
 
 	//save default form 
 	dataWritter.w_stringZ(GetGuidByID(m_propertyDefFormObject->GetValueAsInteger()));

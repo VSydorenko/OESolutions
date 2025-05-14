@@ -128,8 +128,8 @@ bool CMetaObjectDataProcessor::GetFormObject(CPropertyList* prop)
 bool CMetaObjectDataProcessor::LoadData(CMemoryReader& dataReader)
 {
 	//Load object module
-	m_propertyModuleObject->LoadData(dataReader);
-	m_propertyModuleManager->LoadData(dataReader);
+	m_propertyModuleObject->GetMetaObject()->LoadMeta(dataReader);
+	m_propertyModuleManager->GetMetaObject()->LoadMeta(dataReader);
 
 	//Load default form 
 	m_propertyDefFormObject->SetValue(GetIdByGuid(dataReader.r_stringZ()));
@@ -140,8 +140,8 @@ bool CMetaObjectDataProcessor::LoadData(CMemoryReader& dataReader)
 bool CMetaObjectDataProcessor::SaveData(CMemoryWriter& dataWritter)
 {
 	//Save object module
-	m_propertyModuleObject->SaveData(dataWritter);
-	m_propertyModuleManager->SaveData(dataWritter);
+	m_propertyModuleObject->GetMetaObject()->SaveMeta(dataWritter);
+	m_propertyModuleManager->GetMetaObject()->SaveMeta(dataWritter);
 
 	//Save default form 
 	dataWritter.w_stringZ(GetGuidByID(m_propertyDefFormObject->GetValueAsInteger()));
