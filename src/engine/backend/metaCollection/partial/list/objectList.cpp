@@ -871,7 +871,7 @@ bool CListRegisterObject::GetModel(IValueModel*& tableValue, const meta_identifi
 //events 
 void CListRegisterObject::AddValue(unsigned int before)
 {
-	if (m_metaObject != nullptr) {
+	if (m_metaObject != nullptr && m_metaObject->HasRecordManager()) {
 		IRecordManagerObject* recordManager =
 			m_metaObject->CreateRecordManagerObjectValue();
 		wxASSERT(recordManager);
@@ -884,11 +884,13 @@ void CListRegisterObject::CopyValue()
 	if (m_metaObject != nullptr) {
 		wxValueTableKeyRow* node = GetViewData<wxValueTableKeyRow>(GetSelection());
 		if (node == nullptr) return;
-		IRecordManagerObject* recordManager = m_metaObject->CopyRecordManagerObjectValue(
-			node->GetUniquePairKey(m_metaObject)
-		);
-		wxASSERT(recordManager);
-		recordManager->ShowFormValue(wxEmptyString, dynamic_cast<IBackendControlFrame*>(IBackendValueForm::FindFormBySourceUniqueKey(m_objGuid)));
+		if (m_metaObject->HasRecordManager()) {
+			IRecordManagerObject* recordManager = m_metaObject->CopyRecordManagerObjectValue(
+				node->GetUniquePairKey(m_metaObject)
+			);
+			wxASSERT(recordManager);
+			recordManager->ShowFormValue(wxEmptyString, dynamic_cast<IBackendControlFrame*>(IBackendValueForm::FindFormBySourceUniqueKey(m_objGuid)));
+		}
 	}
 }
 
@@ -897,11 +899,19 @@ void CListRegisterObject::EditValue()
 	if (m_metaObject != nullptr) {
 		wxValueTableKeyRow* node = GetViewData<wxValueTableKeyRow>(GetSelection());
 		if (node == nullptr) return;
-		IRecordManagerObject* recordManager = m_metaObject->CreateRecordManagerObjectValue(
-			node->GetUniquePairKey(m_metaObject)
-		);
-		wxASSERT(recordManager);
-		recordManager->ShowFormValue(wxEmptyString, dynamic_cast<IBackendControlFrame*>(IBackendValueForm::FindFormBySourceUniqueKey(m_objGuid)));
+		if (m_metaObject->HasRecordManager()) {
+			IRecordManagerObject* recordManager = m_metaObject->CreateRecordManagerObjectValue(
+				node->GetUniquePairKey(m_metaObject)
+			);
+			wxASSERT(recordManager);
+			recordManager->ShowFormValue(wxEmptyString, dynamic_cast<IBackendControlFrame*>(IBackendValueForm::FindFormBySourceUniqueKey(m_objGuid)));
+		}
+		else {
+			CMetaObjectAttributeDefault* recorder = m_metaObject->GetRegisterRecorder();
+			wxASSERT(recorder);
+			CValue recorderVal = node->GetTableValue(recorder->GetMetaID());
+			recorderVal.ShowValue();
+		}
 	}
 }
 
@@ -910,11 +920,13 @@ void CListRegisterObject::DeleteValue()
 	if (m_metaObject != nullptr) {
 		wxValueTableKeyRow* node = GetViewData<wxValueTableKeyRow>(GetSelection());
 		if (node == nullptr) return;
-		IRecordManagerObject* recordManager = m_metaObject->CreateRecordManagerObjectValue(
-			node->GetUniquePairKey(m_metaObject)
-		);
-		wxASSERT(recordManager);
-		recordManager->DeleteRegister();
+		if (m_metaObject->HasRecordManager()) {
+			IRecordManagerObject* recordManager = m_metaObject->CreateRecordManagerObjectValue(
+				node->GetUniquePairKey(m_metaObject)
+			);
+			wxASSERT(recordManager);
+			recordManager->DeleteRegister();
+		}
 	}
 }
 
